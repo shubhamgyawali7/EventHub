@@ -2,6 +2,7 @@
 import React, { useEffect } from "react";
 import Navbar from "../components/common/Navbar";
 import Header from "../components/common/Header";
+import Stats from "../components/common/Stats";
 import Footer from "../components/common/Footer";
 import EventCard from "../components/common/EventCard";
 import useEvents from "../hooks/useEvents";
@@ -17,6 +18,7 @@ const Home = () => {
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <Header />
+      <Stats />
 
       <section className="py-12 px-6 md:px-12 flex-1">
         <h2 className="text-2xl font-bold mb-6">Latest Events</h2>

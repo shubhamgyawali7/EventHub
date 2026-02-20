@@ -12,14 +12,6 @@ const Navbar = () => {
       location.pathname === path ? "text-[#4F46E5]" : "text-[#0F172A] hover:text-[#4F46E5]"
     }`;
 
-  const Underline = ({ path }) => (
-    <span
-      className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
-        location.pathname === path ? "w-full" : "w-0 group-hover:w-full"
-      }`}
-    />
-  );
-
   return (
     <nav className="bg-white shadow-sm fixed w-full z-50">
       <div className="max-w-7xl mx-auto px-8">
@@ -34,13 +26,31 @@ const Navbar = () => {
             {/* Home */}
             <Link to="/" className={navLink("/")}>
               Home
-              <Underline path="/" />
+              <span
+                className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                  location.pathname === "/" ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              />
             </Link>
 
             {/* Events */}
             <Link to="/events" className={navLink("/events")}>
               Events
-              <Underline path="/events" />
+              <span
+                className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                  location.pathname === "/events" ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              />
+            </Link>
+
+            {/* About */}
+            <Link to="/about" className={navLink("/about")}>
+              About
+              <span
+                className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                  location.pathname === "/about" ? "w-full" : "w-0 group-hover:w-full"
+                }`}
+              />
             </Link>
 
             {/* Admin */}
@@ -48,12 +58,20 @@ const Navbar = () => {
               <>
                 <Link to="/manage-events" className={navLink("/manage-events")}>
                   Manage Events
-                  <Underline path="/manage-events" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/manage-events" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
 
                 <Link to="/dashboard" className={navLink("/dashboard")}>
                   Dashboard
-                  <Underline path="/dashboard" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/dashboard" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
               </>
             )}
@@ -63,12 +81,20 @@ const Navbar = () => {
               <>
                 <Link to="/create-event" className={navLink("/create-event")}>
                   Create Event
-                  <Underline path="/create-event" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/create-event" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
 
                 <Link to="/my-events" className={navLink("/my-events")}>
                   My Events
-                  <Underline path="/my-events" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/my-events" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
               </>
             )}
@@ -78,12 +104,20 @@ const Navbar = () => {
               <>
                 <Link to="/profile" className={navLink("/profile")}>
                   My Profile
-                  <Underline path="/profile" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/profile" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
 
                 <Link to="/registered-events" className={navLink("/registered-events")}>
                   Registered Events
-                  <Underline path="/registered-events" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/registered-events" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
               </>
             )}
@@ -93,7 +127,11 @@ const Navbar = () => {
               <>
                 <Link to="/login" className={navLink("/login")}>
                   Login
-                  <Underline path="/login" />
+                  <span
+                    className={`absolute left-0 -bottom-1 h-[2px] bg-[#4F46E5] transition-all duration-300 ${
+                      location.pathname === "/login" ? "w-full" : "w-0 group-hover:w-full"
+                    }`}
+                  />
                 </Link>
 
                 <Link
@@ -105,7 +143,6 @@ const Navbar = () => {
               </>
             ) : (
               <div className="relative">
-                {/* Avatar */}
                 <div
                   onClick={() => setOpen(!open)}
                   className="w-10 h-10 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] flex items-center justify-center text-white font-semibold cursor-pointer"
@@ -113,7 +150,6 @@ const Navbar = () => {
                   {user?.name?.charAt(0).toUpperCase() || "U"}
                 </div>
 
-                {/* Dropdown */}
                 {open && (
                   <div className="absolute right-0 mt-3 w-52 bg-white rounded-xl shadow-lg border border-gray-100 py-2">
                     <div className="px-4 py-2 text-sm text-[#0F172A] border-b">{user?.name}</div>
