@@ -13,15 +13,9 @@
     "@tailwindcss/vite": "^4.2.0",
     "axios": "^1.13.5",
     "lucide-react": "^0.575.0",
-<<<<<<< HEAD
     "react": "^19.2.4",
     "react-countup": "^6.5.3",
     "react-dom": "^19.2.4",
-=======
-    "react": "^19.2.0",
-    "react-countup": "^6.5.3",
-    "react-dom": "^19.2.0",
->>>>>>> 85a66c6e460514ce0ad0fa688d92f61c772f2c01
     "react-intersection-observer": "^10.0.3",
     "react-router-dom": "^7.13.0",
     "tailwindcss": "^4.2.0"
