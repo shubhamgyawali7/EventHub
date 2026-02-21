@@ -1,5 +1,6 @@
 import authService from "../services/authService.js";
 import { createAuthToken } from "../helpers/authHelpers.js";
+import User from "../models/User.js";
 
 const register = async (req, res) => {
   const data = req.body;
@@ -32,10 +33,13 @@ const login = async (req, res) => {
 
   try {
     const existingUser = await authService.login(data);
-
     const token = createAuthToken(existingUser);
-    res.cookie("authToken", token); //(name,token)=> cookie:{name=token}
-    res.status(201).json({ ...existingUser, token });
+    res.cookie("authToken", token);
+    res.status(200).json({
+      ...existingUser,
+      clubStatus: existingUser.club ? existingUser.club.status : "None",
+      token,
+    });
   } catch (error) {
     res.status(500).send(error.message);
   }

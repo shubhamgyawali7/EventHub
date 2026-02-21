@@ -32,21 +32,22 @@ const register = async (data) => {
 };
 
 const login = async (data) => {
-  const userExist = await User.findOne({ email: data.email });
+  const userExist = await User.findOne({ email: data.email }).populate("club");;
   if (!userExist) throw new Error("Invalid Email or Password...");
 
   const isPasswordMatch = bcrypt.compareSync(data.password, userExist.password);
   if (!isPasswordMatch) throw new Error("Invalid Email or Password...");
 
-  return {
-    id: userExist._id,
-    name: userExist.name,
-    email: userExist.email,
-    address: userExist.address,
-    district: userExist.district,
-    college: userExist.college,
-    club: userExist.club,
-    roles: userExist.roles,
+const userObj = userExist.toObject(); // Convert Mongoose document to plain JS object
+ return {
+    id: userObj._id,
+    name: userObj.name,
+    email: userObj.email,
+    address: userObj.address,
+    district: userObj.district,
+    college: userObj.college,
+    club: userObj.club, 
+    roles: userObj.roles,
   };
 };
 

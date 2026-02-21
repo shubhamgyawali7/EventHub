@@ -1,37 +1,23 @@
 import express from "express";
 import { login, register } from "../controllers/authController.js";
+import { adminApproveClub, submitClubRegistration } from "../controllers/clubController.js";
+import auth from "../middlewares/auth.js";
+import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 // import resetsPasswords from '../models/ResetPassword.js';
 
 const router = express.Router();
 
 // router.post('/forget-password',forgetPassword);
 
-// /**
-//  * POST
-//  * api/auth/reset-password/?token=<forget_password req.body.token>
-//  * Reset Paasword
-//  */
 // router.post('/reset-password',resetPassword);
 
-// /**
-//  * POST
-//  * api/auth/register
-//  * Register Users
-//  */
 router.post('/register',register);
 
-/**
- * POST
- * api/auth/login
- * Login Users
- */
+router.post("/register-club", auth, submitClubRegistration);
+router.patch("/approve-club/:id",[auth, roleBasedAuth("Admin")], adminApproveClub);
+
 router.post("/login", login);
 
-/**
- * POST
- * api/auth/logout
- * Logout Users
- */
 // router.post("/logout", logout);
 
 export default router;
