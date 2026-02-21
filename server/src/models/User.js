@@ -27,14 +27,16 @@ district:{
     require: true,
   },
 
-  roles: {
+ roles: {
     type: [String],
-    default: ["Student", "Club"],
+    enum: ["Student", "Club", "Admin"], 
+    default: ["Student"], // Default to Student during first registration
   },
 
   club: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "RegisterClub",
+    ref: "RegisterClub", // Link to the club they created
+    default: null
   },
 
   createdAt: {

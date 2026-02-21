@@ -38,6 +38,9 @@ app.get("/", (req, res) => {
 app.use("/api/auth", auth);
 app.use ('/api/events',events);
 
+
+
+
 app.listen(PORT, () => {
   console.log(`Server is listen at port ${PORT}...........`);
 });
