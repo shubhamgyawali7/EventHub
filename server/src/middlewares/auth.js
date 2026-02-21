@@ -1,33 +1,28 @@
 import jwt from "jsonwebtoken";
 
-function auth (req,res,next){
-    
-  const authHeader=req.headers?.authorization;
-      //console.log(authHeader);
-    let authToken;
+function auth(req, res, next) {
+  const authHeader = req.headers?.authorization;
+  let authToken;
 
-    if(authHeader && authHeader.startsWith("Bearer ")){
-        authToken = authHeader.split(" ")[1];
-        //console.log("AUTHTOKEN:-",authToken);
-    } else {
-        const cookie=req.headers.cookie;
-         //  console.log(cookie);
-        if(!cookie) return res.status(401).send("Unauthoried..");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    authToken = authHeader.split(" ")[1];
+  } else {
+    const cookie = req.headers.cookie;
+    if (!cookie) return res.status(401).json({ message: "Unauthorized" });
+    authToken = cookie.split("=")[1];
+  }
 
-            authToken=cookie.split('=')[1];
-           
-     } 
+  if (!authToken) return res.status(401).json({ message: "Unauthorized" });
 
-    if(!authToken) return res.status(401).send("Unauthorized..");
-
-    // verify a token 
-jwt.verify(authToken, process.env.JWT_SECRET, function(error, data) {
-    if(error){
-        return res.status(401).send("Unauthrized..");
+  jwt.verify(authToken, process.env.JWT_SECRET, (error, decoded) => {
+    if (error) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-     req.user=data;
-     next();
+
+    // ✅ decoded contains { id, role }
+    req.user = { id: decoded.id, role: decoded.role };
+    next();
   });
-   
 }
+
 export default auth;

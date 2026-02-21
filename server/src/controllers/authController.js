@@ -1,43 +1,61 @@
+// src/controllers/authController.js
 import authService from "../services/authService.js";
 import { createAuthToken } from "../helpers/authHelpers.js";
 
 const register = async (req, res) => {
   const data = req.body;
-  if (!data.name || !data.email || !data.password || !data.district)
-    return res.status(422).send("Required Data missing....");
-  if (data.password.length < 6)
-    return res.status(400).send("Paasword lenght must be greater then 6");
-  if (data.password !== data.confirmPassword)
-    return res.status(400).send("Password not Match");
+
+  // ✅ Validation with JSON responses
+  if (!data.name || !data.email || !data.password || !data.district) {
+    return res.status(422).json({ message: "Required data is missing." });
+  }
+  if (data.password.length < 6) {
+    return res.status(400).json({ message: "Password length must be greater than 6." });
+  }
+  if (data.password !== data.confirmPassword) {
+    return res.status(400).json({ message: "Passwords do not match." });
+  }
 
   try {
     const users = await authService.register(data);
-
     const token = createAuthToken(users);
 
-    res.cookie("authToken", token, { httpOnly: true }); //(key,data)=> key is used to encrypt and dercrypt the data-token
+    // ✅ Set cookie securely
+    res.cookie("authToken", token, { httpOnly: true });
+
+    // ✅ Return user + token in JSON
     res.status(201).json({ ...users, token });
   } catch (error) {
-    res.status(500).send(error.message);
+    console.error("Error registering user:", error);
+    res.status(500).json({ message: error.message });
   }
 };
 
 const login = async (req, res) => {
   const data = req.body;
 
-  if (!data.email || !data.password)
-    return res.status(422).send("Email or Password are missing....");
-  if (data.password.length < 6)
-    return res.status(400).send("Paasword lenght must be greater then 6");
+  // ✅ Validation with JSON responses
+  if (!data.email || !data.password) {
+    return res.status(422).json({ message: "Email or password is missing." });
+  }
+  if (data.password.length < 6) {
+    return res.status(400).json({ message: "Password length must be greater than 6." });
+  }
 
   try {
     const existingUser = await authService.login(data);
 
+    if (!existingUser) {
+      return res.status(401).json({ message: "Invalid email or password." });
+    }
+
     const token = createAuthToken(existingUser);
-    res.cookie("authToken", token); //(name,token)=> cookie:{name=token}
-    res.status(201).json({ ...existingUser, token });
+
+    res.cookie("authToken", token, { httpOnly: true });
+    return res.status(200).json({ ...existingUser, token });
   } catch (error) {
-    res.status(500).send(error.message);
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error. Please try again later." });
   }
 };
 

@@ -4,9 +4,8 @@ const createEvents = async (data, userId) => {
   return await Events.create({ ...data, createdBy: userId });
 };
 
-
 const getAllEvents = async () => {
- return await Events.find();
+  return await Events.find();
 };
 
 const getEventById = async (eventId) => {
@@ -19,5 +18,18 @@ const updateEvent = async (eventId, updatedData) => {
 
 const deleteEvent = async (eventId) => {
   await Events.findByIdAndDelete(eventId);
-}
-export default { createEvents, getAllEvents,getEventById, updateEvent,deleteEvent };
+};
+
+// ✅ New: Get events created by a specific organizer
+const getEventsByOrganizer = async (organizerId) => {
+  return await Events.find({ createdBy: organizerId });
+};
+
+export default {
+  createEvents,
+  getAllEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  getEventsByOrganizer, // ✅ export new function
+};

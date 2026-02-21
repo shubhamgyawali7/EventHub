@@ -1,123 +1,102 @@
-// // // src/pages/Login.jsx
-// // import React, { useState } from "react";
-// // import useAuth from "../hooks/useAuth";
+// src/pages/Login.jsx
+import React, { useState } from "react";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import useAuth from "../hooks/useAuth";
 
-// // const Login = () => {
-// //   const { login } = useAuth();
-// //   const [formData, setFormData] = useState({ email: "", password: "" });
+const Login = () => {
+  const { login } = useAuth();
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-// //   const handleChange = (e) =>
-// //     setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setFormData({ ...formData, [e.target.name]: e.target.value });
 
-// //   const handleSubmit = (e) => {
-// //     e.preventDefault();
-// //     login(formData);
-// //   };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
 
-// //   return (
-// //     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-600 to-pink-500">
-// //       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-// //         <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
-// //           Welcome Back
-// //         </h2>
-// //         <form onSubmit={handleSubmit} className="space-y-5">
-// //           <div>
-// //             <label className="block text-gray-700 mb-2">Email</label>
-// //             <input
-// //               type="email"
-// //               name="email"
-// //               value={formData.email}
-// //               onChange={handleChange}
-// //               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-// //               placeholder="Enter your email"
-// //               required
-// //             />
-// //           </div>
-// //           <div>
-// //             <label className="block text-gray-700 mb-2">Password</label>
-// //             <input
-// //               type="password"
-// //               name="password"
-// //               value={formData.password}
-// //               onChange={handleChange}
-// //               className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-// //               placeholder="Enter your password"
-// //               required
-// //             />
-// //           </div>
-// //           <button
-// //             type="submit"
-// //             className="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition"
-// //           >
-// //             Login
-// //           </button>
-// //         </form>
-// //         <p className="text-center text-gray-600 mt-4">
-// //           Don’t have an account?{" "}
-// //           <a href="/signup" className="text-pink-500 hover:underline">
-// //             Sign up
-// //           </a>
-// //         </p>
-// //       </div>
-// //     </div>
-// //   );
-// // };
+    try {
+      setLoading(true);
+      await login(formData); // backend login
+      window.location.href = "/continue"; // redirect to role selection
+    } catch (err) {
+      setError(err.message|| "Login failed. Please try again."); // ✅ show backend error like "Invalid credentials"
+    } finally {
+      setLoading(false);
+    }
+  };
 
-// // export default Login;
-// // src/pages/Login.jsx
-// import React from "react";
-// import useAuth from "../hooks/useAuth";
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-orange-100 via-pink-100 to-yellow-100">
+      <div className="bg-white shadow-2xl rounded-2xl p-10 w-full max-w-lg">
+        {/* Branding */}
+        <div className="flex justify-center mb-6">
+          <span className="text-3xl font-extrabold text-pink-600">EventHub</span>
+        </div>
 
-// const Login = () => {
-//   const { loginAsRole } = useAuth();
+        {/* Title */}
+        <h2 className="text-2xl font-bold text-center mb-2 text-gray-800">
+          Welcome Back
+        </h2>
+        <p className="text-center text-gray-500 mb-6">
+          Login to continue exploring events
+        </p>
 
-//   return (
-//     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-600 to-pink-500">
-//       <div className="bg-white shadow-lg rounded-lg p-8 w-full max-w-md text-center">
-//         <h2 className="text-2xl font-bold mb-6 text-gray-800">Preview Roles</h2>
-//         <div className="space-y-4">
-//           <button
-//             onClick={() => loginAsRole("admin")}
-//             className="w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
-//           >
-//             Login as Admin
-//           </button>
-//           <button
-//             onClick={() => loginAsRole("organizer")}
-//             className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition"
-//           >
-//             Login as Organizer
-//           </button>
-//           <button
-//             onClick={() => loginAsRole("student")}
-//             className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition"
-//           >
-//             Login as Student
-//           </button>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
+        {/* Error Banner */}
+        {error && (
+          <div className="bg-red-100 text-red-700 border border-red-400 rounded-md p-3 mb-4 text-center">
+            {error}
+          </div>
+        )}
 
-// export default Login;
-// src/components/common/ProtectedRoute.jsx
-import React from "react";
-import { Navigate } from "react-router-dom";
-import useAuth from ".././hooks/useAuth";
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="flex items-center border rounded-lg px-4 py-3 focus-within:ring-2 focus-within:ring-pink-400">
+            <FaEnvelope className="text-gray-400 mr-3" />
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full focus:outline-none"
+              placeholder="Email Address"
+              required
+            />
+          </div>
 
-const ProtectedRoute = ({ children, allowedRoles }) => {
-  const { user } = useAuth();
+          <div className="flex items-center border rounded-lg px-4 py-3 focus-within:ring-2 focus-within:ring-pink-400">
+            <FaLock className="text-gray-400 mr-3" />
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full focus:outline-none"
+              placeholder="Password"
+              required
+            />
+          </div>
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-pink-500 text-white py-3 rounded-lg font-semibold hover:bg-pink-600 transition disabled:opacity-50"
+          >
+            {loading ? "Logging In..." : "Login"}
+          </button>
+        </form>
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
+        {/* Footer */}
+        <p className="text-center text-gray-600 mt-6">
+          Don’t have an account?{" "}
+          <a href="/signup" className="text-pink-500 hover:underline font-medium">
+            Sign Up
+          </a>
+        </p>
+      </div>
+    </div>
+  );
 };
 
-export default ProtectedRoute;
+export default Login;
