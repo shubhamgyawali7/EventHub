@@ -1,16 +1,22 @@
 import Events from "../models/Events.js";
+import User from "../models/User.js";
 
 const createEvents = async (data, userId) => {
-  return await Events.create({ ...data, createdBy: userId });
+  const user = await User.findById(userId);
+  return await Events.create({
+    ...data,
+    createdBy: userId,
+    organizer: user?.club || null
+  });
 };
 
 
 const getAllEvents = async () => {
- return await Events.find();
+  return await Events.find().populate("organizer", "name logo district");
 };
 
 const getEventById = async (eventId) => {
-  return await Events.findById(eventId);
+  return await Events.findById(eventId).populate("organizer", "name logo district email website");
 };
 
 const updateEvent = async (eventId, updatedData) => {
@@ -20,4 +26,4 @@ const updateEvent = async (eventId, updatedData) => {
 const deleteEvent = async (eventId) => {
   await Events.findByIdAndDelete(eventId);
 }
-export default { createEvents, getAllEvents,getEventById, updateEvent,deleteEvent };
+export default { createEvents, getAllEvents, getEventById, updateEvent, deleteEvent };

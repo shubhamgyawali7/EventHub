@@ -1,6 +1,7 @@
 import authService from "../services/authService.js";
 import { createAuthToken } from "../helpers/authHelpers.js";
 import User from "../models/User.js";
+import RegisterClub from "../models/RegisterClub.js";
 
 const register = async (req, res) => {
   const data = req.body;
@@ -45,4 +46,25 @@ const login = async (req, res) => {
   }
 };
 
-export { register, login };
+const getMe = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const user = await User.findById(userId).populate("club").select("-password");
+    if (!user) return res.status(404).send("User not found");
+    console.log("User data sent to client:",user);
+    res.status(200).json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      address: user.address,
+      district: user.district,
+      college: user.college,
+      club: user.club,
+      roles: user.roles,
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+};
+
+export { register, login, getMe };

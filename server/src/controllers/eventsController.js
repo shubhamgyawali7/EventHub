@@ -48,8 +48,17 @@ const getEventById = async (req, res) => {
 const updateEvent = async (req, res) => {
   const updatedData = req.body;
   const eventId = req.params.id;
+  const userId = req.user.id;
 
   try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).send("Event Not Found");
+
+    // Check ownership
+    if (event.createdBy.toString() !== userId) {
+      return res.status(403).send("Unauthorized: You can only edit your own events");
+    }
+
     const changeEvent = await eventService.updateEvent(eventId, updatedData);
     res.status(200).json(changeEvent);
   } catch (error) {
@@ -59,8 +68,17 @@ const updateEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
   const eventId = req.params.id;
+  const userId = req.user.id;
 
   try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).send("Event Not Found");
+
+    // Check ownership
+    if (event.createdBy.toString() !== userId) {
+      return res.status(403).send("Unauthorized: You can only delete your own events");
+    }
+
     await eventService.deleteEvent(eventId);
     res.status(200).send("Event deleted successfully");
   } catch (error) {
@@ -68,4 +86,4 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-export { addEvents, getAllEvents,getEventById, updateEvent, deleteEvent };
+export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent };

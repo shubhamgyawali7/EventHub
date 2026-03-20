@@ -14,9 +14,7 @@ const register = async (data) => {
     address: data.address,
     district: data.district,
     college: data.college,
-    club: data.club,
-    roles: data.roles,
-    createdAt: data.createdAt,
+    roles: (data.roles === "Student" || data.roles === "Club") ? [data.roles] : ["Student"],
   });
   return {
     id: createdUser._id,
@@ -38,15 +36,15 @@ const login = async (data) => {
   const isPasswordMatch = bcrypt.compareSync(data.password, userExist.password);
   if (!isPasswordMatch) throw new Error("Invalid Email or Password...");
 
-const userObj = userExist.toObject(); // Convert Mongoose document to plain JS object
- return {
+  const userObj = userExist.toObject(); // Convert Mongoose document to plain JS object
+  return {
     id: userObj._id,
     name: userObj.name,
     email: userObj.email,
     address: userObj.address,
     district: userObj.district,
     college: userObj.college,
-    club: userObj.club, 
+    club: userObj.club,
     roles: userObj.roles,
   };
 };

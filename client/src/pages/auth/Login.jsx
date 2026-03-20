@@ -1,108 +1,119 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 
-const Login = () => {
+const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
+    setError(null);
 
-    const result = await login(formData.email, formData.password);
-    
+    const result = await login(email, password);
     if (result.success) {
-      // Redirect based on the user's highest role
-      // This matches your "Trust-First" logic
-      navigate("/"); 
+      navigate("/");
     } else {
-      setError(result.message || "Invalid email or password");
+      setError(result.message || "Login failed");
     }
     setLoading(false);
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
-      <div className="bg-white shadow-2xl rounded-2xl p-8 w-full max-w-md border border-gray-100">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-extrabold text-[#4F46E5]">Welcome Back</h2>
-          <p className="text-gray-500 mt-2">Log in to manage your events</p>
+    <div className="min-h-[calc(100vh-64px)] flex items-center justify-center p-6 bg-slate-50">
+      <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-indigo-100/50 p-10 border border-slate-100">
+        <div className="text-center mb-10">
+          <h1 className="text-3xl font-black text-slate-800 mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-slate-400 font-medium">
+            Elevate your experience today.
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-6 text-sm text-center border border-red-100">
+          <div className="flex items-center gap-3 bg-red-50 text-red-600 p-4 rounded-2xl mb-6 text-sm font-medium border border-red-100 animate-in fade-in slide-in-from-top-2">
+            <AlertCircle size={18} />
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
               Email Address
             </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F46E5] focus:border-transparent outline-none transition"
-              placeholder="name@example.com"
-            />
+            <div className="relative group">
+              <Mail
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors"
+                size={20}
+              />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full bg-slate-50 border border-transparent focus:border-indigo-600 focus:bg-white p-4 pl-12 rounded-2xl text-slate-700 outline-none transition-all font-medium"
+                placeholder="name@example.com"
+              />
+            </div>
           </div>
 
-          <div>
-            <div className="flex justify-between mb-2">
-              <label className="text-sm font-semibold text-gray-700">Password</label>
-              <Link to="/forgot-password" size="sm" className="text-xs text-[#4F46E5] hover:underline">
-                Forgot password?
-              </Link>
+          <div className="space-y-2">
+            <label className="text-xs font-black uppercase tracking-widest text-slate-400 ml-1">
+              Password
+            </label>
+            <div className="relative group">
+              <Lock
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors"
+                size={20}
+              />
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-slate-50 border border-transparent focus:border-indigo-600 focus:bg-white p-4 pl-12 rounded-2xl text-slate-700 outline-none transition-all font-medium"
+                placeholder="••••••••"
+              />
             </div>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#4F46E5] focus:border-transparent outline-none transition"
-              placeholder="••••••••"
-            />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className={`w-full py-3 rounded-xl font-bold text-white shadow-lg transition transform active:scale-95 ${
-              loading 
-                ? "bg-gray-400 cursor-not-allowed" 
-                : "bg-linear-to-r from-[#4F46E5] to-[#7C3AED] hover:opacity-90"
-            }`}
+            className="w-full bg-indigo-600 text-white p-4 rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? (
+              <>
+                <Loader2 size={20} className="animate-spin" /> Verifying...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
-        <div className="mt-8 text-center text-sm text-gray-600">
+        <p className="text-center mt-8 text-slate-400 font-medium text-sm">
           Don't have an account?{" "}
-          <Link to="/signup" className="text-[#4F46E5] font-bold hover:underline">
-            Create an account
+          <Link
+            to="/signup"
+            className="text-indigo-600 font-bold hover:underline"
+          >
+            Register for free
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default LoginPage;

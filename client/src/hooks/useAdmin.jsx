@@ -1,22 +1,24 @@
 // src/hooks/useAdmin.jsx
-import { useContext } from "react";
-import { AdminContext } from "../context/AdminContext";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import {
+  fetchAdminEvents,
+  fetchAdminUsers,
+  approveEvent,
+  removeUser,
+} from "../redux/adminSlice";
 
 const useAdmin = () => {
-  const {
-    adminData,
-    fetchEvents,
-    fetchUsers,
-    approveEvent,
-    deleteEvent,
-  } = useContext(AdminContext);
+  const dispatch = useAppDispatch();
+  const { events, users, loading, error } = useAppSelector(
+    (state) => state.admin,
+  );
 
   return {
-    adminData,
-    fetchEvents,
-    fetchUsers,
-    approveEvent,
-    deleteEvent,
+    adminData: { events, users, loading, error },
+    fetchEvents: () => dispatch(fetchAdminEvents()),
+    fetchUsers: () => dispatch(fetchAdminUsers()),
+    approveEvent: (id) => dispatch(approveEvent(id)),
+    removeUser: (id) => dispatch(removeUser(id)),
   };
 };
 

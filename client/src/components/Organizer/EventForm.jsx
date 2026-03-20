@@ -1,9 +1,9 @@
 // src/components/Organizer/EventForm.jsx
-import React, { useState, useContext } from "react";
-import { AuthContext } from "../../context/AuthContext.jsx";
+import React, { useState } from "react";
+import useAuth from "../../hooks/useAuth";
 
 const EventForm = ({ onSubmit }) => {
-  const { user } = useContext(AuthContext); // must be logged-in organizer
+  const { user } = useAuth(); // must be logged-in organizer
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -51,7 +51,9 @@ const EventForm = ({ onSubmit }) => {
 
   return (
     <div className="max-w-3xl mx-auto mt-24 p-6 bg-white shadow-md rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Create New Event</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        Create New Event
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="text"

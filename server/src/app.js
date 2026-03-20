@@ -7,6 +7,7 @@ import logger from "./middlewares/logger.js";
 import connectDB from "./database.js";
 import auth from "./routes/auth.js";
 import events from './routes/events.js';
+import registrationRoute from './routes/registration.js';
 
 dotenv.config();
 
@@ -36,7 +37,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", auth);
-app.use ('/api/events',events);
+app.use('/api/events', events);
+app.use('/api/registrations', registrationRoute);
 
 
 

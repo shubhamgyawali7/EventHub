@@ -1,15 +1,29 @@
 // src/hooks/useEvents.jsx
-import { useContext } from "react";
-import { EventContext } from "../context/EventContext";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import {
+  fetchEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+} from "../redux/eventsSlice";
 
 const useEvents = () => {
-  const context = useContext(EventContext);
+  const dispatch = useAppDispatch();
+  const {
+    items: events,
+    loading,
+    error,
+  } = useAppSelector((state) => state.events);
 
-  if (!context) {
-    throw new Error("useEvents must be used within an EventProvider");
-  }
-
-  return context;
+  return {
+    events,
+    loading,
+    error,
+    fetchEvents: () => dispatch(fetchEvents()),
+    createEvent: (data) => dispatch(createEvent(data)),
+    updateEvent: (payload) => dispatch(updateEvent(payload)),
+    deleteEvent: (id) => dispatch(deleteEvent(id)),
+  };
 };
 
 export default useEvents;

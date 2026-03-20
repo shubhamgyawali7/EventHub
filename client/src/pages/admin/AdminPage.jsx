@@ -1,15 +1,16 @@
 // src/pages/AdminPage.jsx
-import React, { useContext, useEffect } from "react";
-import { AdminContext } from "../../context/AdminContext";
+import React, { useEffect } from "react";
+import useAdmin from "../../hooks/useAdmin";
 
 const AdminPage = () => {
-  const { adminData, fetchEvents, fetchUsers, approveEvent, removeUser } = useContext(AdminContext);
+  const { adminData, fetchEvents, fetchUsers, approveEvent, removeUser } =
+    useAdmin();
 
   useEffect(() => {
     // Load data when page mounts
     fetchEvents();
     fetchUsers();
-  }, []);
+  }, [fetchEvents, fetchUsers]);
 
   return (
     <div className="p-8">
@@ -22,7 +23,10 @@ const AdminPage = () => {
         {adminData.error && <p className="text-red-500">{adminData.error}</p>}
         <div className="space-y-4">
           {adminData.events.map((event) => (
-            <div key={event.id} className="border p-4 rounded shadow flex justify-between items-center">
+            <div
+              key={event.id}
+              className="border p-4 rounded shadow flex justify-between items-center"
+            >
               <div>
                 <p className="font-medium">{event.title}</p>
                 <p className="text-sm text-gray-600">📅 {event.date}</p>
@@ -45,7 +49,10 @@ const AdminPage = () => {
         {adminData.error && <p className="text-red-500">{adminData.error}</p>}
         <div className="space-y-4">
           {adminData.users.map((user) => (
-            <div key={user.id} className="border p-4 rounded shadow flex justify-between items-center">
+            <div
+              key={user.id}
+              className="border p-4 rounded shadow flex justify-between items-center"
+            >
               <div>
                 <p className="font-medium">{user.name}</p>
                 <p className="text-sm text-gray-600">{user.email}</p>
@@ -65,4 +72,3 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
-

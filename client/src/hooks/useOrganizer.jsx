@@ -1,26 +1,22 @@
 // src/hooks/useOrganizer.jsx
-import { useContext } from "react";
-import { OrganizationContext } from "../context/OrganizationContext";
+import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import {
+  fetchOrganizerEvents,
+  deleteOrganizerEvent,
+} from "../redux/organizerSlice";
 
 const useOrganizer = () => {
-  const {
-    orgEvents,
-    loading,
-    error,
-    fetchOrganizerEvents,
-    createOrganizerEvent,
-    updateOrganizerEvent,
-    deleteOrganizerEvent,
-  } = useContext(OrganizationContext);
+  const dispatch = useAppDispatch();
+  const { orgEvents, loading, error } = useAppSelector(
+    (state) => state.organizer,
+  );
 
   return {
     orgEvents,
     loading,
     error,
-    fetchOrganizerEvents,
-    createOrganizerEvent,
-    updateOrganizerEvent,
-    deleteOrganizerEvent,
+    fetchOrganizerEvents: (id) => dispatch(fetchOrganizerEvents(id)),
+    deleteOrganizerEvent: (id) => dispatch(deleteOrganizerEvent(id)),
   };
 };
 

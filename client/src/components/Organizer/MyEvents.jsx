@@ -1,22 +1,26 @@
-import React, { useContext, useEffect } from "react";
-import { OrganizationContext } from "../context/OrganizationContext";
-import { AuthContext } from "../context/AuthContext";
+import React, { useEffect } from "react";
+import useOrganizer from "../../hooks/useOrganizer";
+import useAuth from "../../hooks/useAuth";
 
 const MyEvents = () => {
-  const { orgEvents, fetchOrganizerEvents, deleteOrganizerEvent } = useContext(OrganizationContext);
-  const { user } = useContext(AuthContext);
+  const { orgEvents, fetchOrganizerEvents, deleteOrganizerEvent } =
+    useOrganizer();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (user?.id) {
       fetchOrganizerEvents(user.id);
     }
-  }, [user]);
+  }, [user, fetchOrganizerEvents]);
 
   return (
     <div className="p-8">
       <h2 className="text-2xl font-bold mb-6">My Events</h2>
       {orgEvents.map((event) => (
-        <div key={event.id} className="border p-4 rounded shadow mb-4 flex justify-between">
+        <div
+          key={event.id}
+          className="border p-4 rounded shadow mb-4 flex justify-between"
+        >
           <div>
             <p className="font-semibold">{event.title}</p>
             <p className="text-sm text-gray-600">{event.date}</p>
