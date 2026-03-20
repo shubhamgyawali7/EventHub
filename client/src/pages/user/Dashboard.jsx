@@ -1,8 +1,8 @@
 // src/pages/Dashboard.jsx
 import React, { useEffect } from "react";
-import useAdmin from "../hooks/useAdmin";
-import Navbar from "../components/common/Navbar";
-import Footer from "../components/common/Footer";
+import useAdmin from "../../hooks/useAdmin";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
 
 
 const Dashboard = () => {
@@ -51,3 +51,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

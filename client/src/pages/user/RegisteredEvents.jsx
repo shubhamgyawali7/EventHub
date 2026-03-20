@@ -1,10 +1,10 @@
 // src/pages/RegisteredEvents.jsx
 import React, { useEffect } from "react";
-import Navbar from "../components/common/Navbar";
-import Footer from "../components/common/Footer";
-import EventCard from "../components/common/EventCard";
-import useEvents from "../hooks/useEvents";
-import useAuth from "../hooks/useAuth";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
+import EventCard from "../../components/common/EventCard";
+import useEvents from "../../hooks/useEvents";
+import useAuth from "../../hooks/useAuth";
 
 const RegisteredEvents = () => {
   const { user } = useAuth();
@@ -51,3 +51,4 @@ const RegisteredEvents = () => {
 };
 
 export default RegisteredEvents;
+

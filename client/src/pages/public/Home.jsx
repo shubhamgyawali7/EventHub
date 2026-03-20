@@ -1,15 +1,17 @@
 // src/pages/Home.jsx
 import React, { useEffect } from "react";
-import Navbar from "../components/common/Navbar";
-import Header from "../components/common/Header";
-import Stats from "../components/common/Stats";
-import Footer from "../components/common/Footer";
-import EventCard from "../components/common/EventCard";
-import useEvents from "../hooks/useEvents";
+import Navbar from "../../components/common/Navbar";
+import Header from "../../components/common/Header";
+import Stats from "../../components/common/Stats";
+import Footer from "../../components/common/Footer";
+import EventCard from "../../components/common/EventCard";
+import useEvents from "../../hooks/useEvents";
+import useAuth from "../../hooks/useAuth";
 
 const Home = () => {
   const { events, fetchEvents, loading, error } = useEvents();
-
+  const { user } = useAuth();
+  console .log("Current User in RegisterClub:", user);
   useEffect(() => {
     fetchEvents();
   }, []);
@@ -61,3 +63,4 @@ const Home = () => {
 };
 
 export default Home;
+
