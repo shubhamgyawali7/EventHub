@@ -1,5 +1,5 @@
 const url = {
-    baseApiUrl : import.meta.env.VITE_API_URL,
-}
+  baseApiUrl: import.meta.env.VITE_BASE_API_URL,
+};
 
-export default url
+export default url;

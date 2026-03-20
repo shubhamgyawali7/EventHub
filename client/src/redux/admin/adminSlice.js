@@ -1,55 +1,10 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../api/axios";
-
-export const fetchAdminEvents = createAsyncThunk(
-  "admin/fetchEvents",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get("/api/admin/events");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch admin events");
-    }
-  },
-);
-
-export const fetchAdminUsers = createAsyncThunk(
-  "admin/fetchUsers",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get("/api/admin/users");
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to fetch admin users");
-    }
-  },
-);
-
-export const approveEvent = createAsyncThunk(
-  "admin/approveEvent",
-  async (eventId, { rejectWithValue, dispatch }) => {
-    try {
-      await api.put(`/api/admin/events/${eventId}/approve`);
-      dispatch(fetchAdminEvents());
-      return eventId;
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to approve event");
-    }
-  },
-);
-
-export const removeUser = createAsyncThunk(
-  "admin/removeUser",
-  async (userId, { rejectWithValue, dispatch }) => {
-    try {
-      await api.delete(`/api/admin/users/${userId}`);
-      dispatch(fetchAdminUsers());
-      return userId;
-    } catch (error) {
-      return rejectWithValue(error.message || "Failed to remove user");
-    }
-  },
-);
+import { createSlice } from "@reduxjs/toolkit";
+import {
+  fetchAdminEvents,
+  fetchAdminUsers,
+  approveEvent,
+  removeUser,
+} from "./adminAction";
 
 const adminSlice = createSlice({
   name: "admin",

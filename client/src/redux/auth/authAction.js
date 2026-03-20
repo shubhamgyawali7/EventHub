@@ -1,13 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import login from "../../api/auth/login";
+import {login} from "../../api/auth/login";
 import { register } from "../../api/auth/register";
 
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (data, { rejectWithValue }) => {
     try {
+      console.log("Login data in authAction:", data); // Debugging line
       const response = await login(data);
-
+console.log("Login response in authAction:", response); // Debugging line
       localStorage.setItem("authToken", response.data?.token);
 
       return response.data;

@@ -1,33 +1,5 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../api/axios";
-
-export const fetchOrganizerEvents = createAsyncThunk(
-  "organizer/fetchOrganizerEvents",
-  async (organizerId, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/api/organizers/${organizerId}/events`);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to fetch organizer events",
-      );
-    }
-  },
-);
-
-export const deleteOrganizerEvent = createAsyncThunk(
-  "organizer/deleteOrganizerEvent",
-  async (eventId, { rejectWithValue }) => {
-    try {
-      await api.delete(`/api/organizers/events/${eventId}`);
-      return eventId;
-    } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to delete organizer event",
-      );
-    }
-  },
-);
+import { createSlice } from "@reduxjs/toolkit";
+import { fetchOrganizerEvents, deleteOrganizerEvent } from "./organizerAction";
 
 const organizerSlice = createSlice({
   name: "organizer",

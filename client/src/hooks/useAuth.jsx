@@ -1,4 +1,4 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/auth/authSlice.js";
 import { loginUser, registerUser } from "../redux/auth/authAction.js";
 
@@ -16,8 +16,10 @@ const useAuth = () => {
   };
 
   const login = async (data) => {
+    console.log("Login data in useAuth:", data); // Debugging line
     try {
       const result = await dispatch(loginUser(data)).unwrap();
+      console.log("Login result in useAuth:", result); // Debugging line
       return { success: true, data: result };
     } catch (err) {
       return { success: false, message: err };

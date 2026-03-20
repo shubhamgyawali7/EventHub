@@ -3,7 +3,7 @@ import url from "../url.js";
 
 const register = async ({ name, email, password, confirmPassword }) => {
   try {
-    const response = await axios.post(`${url}/api/auth/register`, {
+    const response = await axios.post(`${url.baseApiUrl}/api/auth/register`, {
       name,
       email,
       password,

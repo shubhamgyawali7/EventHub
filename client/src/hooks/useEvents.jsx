@@ -4,7 +4,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
-} from "../redux/events/eventAction.js";
+} from "../redux/events/eventsAction.js";
 
 const useEvents = () => {
   const dispatch = useDispatch();
@@ -51,7 +51,7 @@ const useEvents = () => {
     createEvent: createNewEvent,
     updateEvent: updateExistingEvent,
     deleteEvent: deleteExistingEvent,
-     ...event,
+    ...event,
   };
 };
 
