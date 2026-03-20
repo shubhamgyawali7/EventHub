@@ -1,8 +1,8 @@
 // src/pages/ManageEvents.jsx
 import React, { useEffect } from "react";
-import Navbar from "../components/common/Navbar";
-import Footer from "../components/common/Footer";
-import useAdmin from "../hooks/useAdmin";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
+import useAdmin from "../../hooks/useAdmin";
 
 const ManageEvents = () => {
   const { adminData, fetchEvents, approveEvent, removeUser } = useAdmin();
@@ -71,3 +71,4 @@ const ManageEvents = () => {
 };
 
 export default ManageEvents;
+

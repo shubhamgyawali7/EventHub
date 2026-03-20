@@ -1,9 +1,9 @@
 // src/pages/Events.jsx
 import React from "react";
-import Navbar from "../components/common/Navbar";
-import Footer from "../components/common/Footer";
-import EventCard from "../components/common/EventCard";
-import useEvents from "../hooks/useEvents";
+import Navbar from "../../components/common/Navbar";
+import Footer from "../../components/common/Footer";
+import EventCard from "../../components/common/EventCard";
+import useEvents from "../../hooks/useEvents";
 
 const Events = () => {
   const { events, loading, error } = useEvents();

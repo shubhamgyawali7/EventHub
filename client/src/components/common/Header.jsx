@@ -9,7 +9,7 @@ const Hero = () => {
         <div>
           <h1 className="text-4xl md:text-5xl font-semibold text-[#0F172A] leading-tight">
             Explore Events.
-            <span className="block bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
+            <span className="block bg-linear-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
               Host Experiences
             </span>
           </h1>
@@ -23,7 +23,7 @@ const Hero = () => {
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
               to="/events"
-              className="px-6 py-3 rounded-lg bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white font-medium shadow-md hover:opacity-90 transition"
+              className="px-6 py-3 rounded-lg bg-linear-to-r from-[#4F46E5] to-[#7C3AED] text-white font-medium shadow-md hover:opacity-90 transition"
             >
               Explore Events
             </Link>

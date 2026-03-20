@@ -8,7 +8,7 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Brand */}
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
+          <h2 className="text-xl font-bold bg-linear-to-r from-[#4F46E5] to-[#7C3AED] bg-clip-text text-transparent">
             EventHub
           </h2>
           <p className="mt-4 text-sm text-[#475569] leading-relaxed">

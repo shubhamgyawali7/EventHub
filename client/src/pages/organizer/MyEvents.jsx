@@ -1,7 +1,7 @@
 // src/pages/MyEvents.jsx
 import React, { useEffect } from "react";
-import useOrganizer from "../hooks/useOrganizer";
-import useAuth from "../hooks/useAuth";
+import useOrganizer from "../../hooks/useOrganizer";
+import useAuth from "../../hooks/useAuth";
 
 const MyEvents = () => {
   const { user } = useAuth();
@@ -35,3 +35,4 @@ const MyEvents = () => {
 };
 
 export default MyEvents;
+

@@ -1,6 +1,6 @@
 // src/pages/AdminPage.jsx
 import React, { useContext, useEffect } from "react";
-import { AdminContext } from "../context/AdminContext";
+import { AdminContext } from "../../context/AdminContext";
 
 const AdminPage = () => {
   const { adminData, fetchEvents, fetchUsers, approveEvent, removeUser } = useContext(AdminContext);
@@ -65,3 +65,4 @@ const AdminPage = () => {
 };
 
 export default AdminPage;
+
