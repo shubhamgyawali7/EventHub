@@ -1,6 +1,6 @@
 import { combineReducers } from "@reduxjs/toolkit";
 import authReducer from "./auth/authSlice";
-import eventsReducer from "./eventsSlice";
+import eventsReducer from "./events/eventsSlice";
 import organizerReducer from "./organizerSlice";
 import adminReducer from "./adminSlice";
 

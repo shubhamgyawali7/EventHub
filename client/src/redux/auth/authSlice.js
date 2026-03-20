@@ -1,36 +1,10 @@
-import { createSlice} from "@reduxjs/toolkit";
+import { createSlice } from "@reduxjs/toolkit";
 import { loginUser, registerUser } from "./authAction";
 
-// export const registerUser = createAsyncThunk(
-//   "auth/signup",
-//   async (formData, { rejectWithValue }) => {
-//     try {
-//       const response = await api.post("/api/auth/register", formData);
-//       return response.data;
-//     } catch (error) {
-//       return rejectWithValue(error.response?.data || "Signup failed");
-//     }
-//   },
-// );
-
-// export const loginUser = createAsyncThunk(
-//   "auth/login",
-//   async (data, { rejectWithValue }) => {
-//     const { email, password } = data;
-//     try {
-//       // const response = await login(data);
-//       const response = await api.post("/api/auth/login", { email, password });
-//       localStorage.setItem("authToken", response.data?.token); // store user token in localstorage
-
-//       return response.data;
-//     } catch (error) {
-//       return rejectWithValue(error.response?.data || "Login failed");
-//     }
-//   },
-// );
+const token = localStorage.getItem("authToken");
 
 const initialState = {
-  user: null,
+  user: token ? { token } : null,
   loading: false,
   error: null,
 };
@@ -43,7 +17,8 @@ const authSlice = createSlice({
       state.user = null;
       state.error = null;
       state.loading = false;
-       localStorage.removeItem("authToken");
+      localStorage.removeItem("authToken");
+      localStorage.clear();
     },
   },
   extraReducers: (builder) => {

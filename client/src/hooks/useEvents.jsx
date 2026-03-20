@@ -1,28 +1,57 @@
-// src/hooks/useEvents.jsx
-import { useAppDispatch, useAppSelector } from "../redux/hooks";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchEvents,
   createEvent,
   updateEvent,
   deleteEvent,
-} from "../redux/eventsSlice";
+} from "../redux/events/eventAction.js";
 
 const useEvents = () => {
-  const dispatch = useAppDispatch();
-  const {
-    items: events,
-    loading,
-    error,
-  } = useAppSelector((state) => state.events);
+  const dispatch = useDispatch();
+  const event = useSelector((state) => state.events);
+
+  const fetchAllEvents = async () => {
+    try {
+      const res = await dispatch(fetchEvents()).unwrap();
+      return { success: true, data: res };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  };
+
+  const createNewEvent = async (data) => {
+    try {
+      const res = await dispatch(createEvent(data)).unwrap();
+      return { success: true, data: res };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  };
+
+  const updateExistingEvent = async (payload) => {
+    try {
+      const res = await dispatch(updateEvent(payload)).unwrap();
+      return { success: true, data: res };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  };
+
+  const deleteExistingEvent = async (id) => {
+    try {
+      await dispatch(deleteEvent(id)).unwrap();
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  };
 
   return {
-    events,
-    loading,
-    error,
-    fetchEvents: () => dispatch(fetchEvents()),
-    createEvent: (data) => dispatch(createEvent(data)),
-    updateEvent: (payload) => dispatch(updateEvent(payload)),
-    deleteEvent: (id) => dispatch(deleteEvent(id)),
+    fetchEvents: fetchAllEvents,
+    createEvent: createNewEvent,
+    updateEvent: updateExistingEvent,
+    deleteEvent: deleteExistingEvent,
+     ...event,
   };
 };
 

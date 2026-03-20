@@ -1,25 +1,26 @@
-import { useDispatch, useSelector } from "react-redux";
-import { loginUser, signupUser, logout } from "../redux/auth/authSlice";
+import { useDispatch } from "react-redux";
+import { logout } from "../redux/auth/authSlice.js";
+import { loginUser, registerUser } from "../redux/auth/authAction.js";
 
 const useAuth = () => {
   const dispatch = useDispatch();
-  const { user, loading, error } = useSelector((state) => state.auth);
+  const auth = useSelector((state) => state.auth);
 
-  const signup = async (formData) => {
+  const register = async (formData) => {
     try {
-      const result = await dispatch(signupUser(formData)).unwrap();
+      const result = await dispatch(registerUser(formData)).unwrap();
       return { success: true, data: result };
     } catch (err) {
-      return { success: false, message: err || "Signup failed" };
+      return { success: false, message: err };
     }
   };
 
-  const login = async (email, password) => {
+  const login = async (data) => {
     try {
-      const result = await dispatch(loginUser({ email, password })).unwrap();
+      const result = await dispatch(loginUser(data)).unwrap();
       return { success: true, data: result };
     } catch (err) {
-      return { success: false, message: err || "Login failed" };
+      return { success: false, message: err };
     }
   };
 
@@ -28,13 +29,10 @@ const useAuth = () => {
   };
 
   return {
-    user,
-    loading,
-    error,
     login,
     logout: logoutUser,
-    signup,
+    register,
+    ...auth,
   };
 };
-
 export default useAuth;
