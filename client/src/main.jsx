@@ -7,6 +7,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./redux/store";
 import App from "./App";
 import "./index.css";
+import 'leaflet/dist/leaflet.css';
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -1,21 +1,82 @@
+// src/hooks/useAdmin.jsx
+import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks.js";
 import {
   fetchAdminEvents,
   fetchAdminUsers,
-  approveEvent,
-  removeUser,
+  fetchAdminClubs,
+  adminApproveClub,
+  rejectClubAdmin,
+  deleteUserAdmin,
 } from "../redux/admin/adminAction.js";
 
 const useAdmin = () => {
   const dispatch = useAppDispatch();
-  const adminData = useAppSelector((state) => state.admin);
+  const adminState = useAppSelector((state) => state.admin);
+
+  // 📥 Events
+  const fetchEvents = useCallback(() => {
+    dispatch(fetchAdminEvents());
+  }, [dispatch]);
+
+  // 👥 Users
+  const fetchUsers = useCallback(() => {
+    dispatch(fetchAdminUsers());
+  }, [dispatch]);
+
+  // 🏢 Clubs
+  const fetchClubs = useCallback(async () => {
+    try {
+      await dispatch(fetchAdminClubs()).unwrap();
+    } catch (error) {
+      console.error("Failed to fetch clubs:", error);
+    }
+  }, [dispatch]);
+
+  // ✅ Approve Club
+  const approveClub = useCallback(
+    async (clubId) => {
+      try {
+        await dispatch(adminApproveClub(clubId)).unwrap();
+        // Refresh the list after approval
+      } catch (error) {
+        console.error("Failed to approve club:", error);
+        throw error;
+      }
+    },
+    [dispatch],
+  );
+
+  // ❌ Reject Club - Add this endpoint in backend
+  const rejectClub = useCallback(
+    async (clubId) => {
+      try {
+        await dispatch(rejectClubAdmin(clubId)).unwrap();
+        await fetchClubs(); // Refresh the list after rejection
+      } catch (error) {
+        console.error("Failed to reject club:", error);
+        throw error;
+      }
+    },
+    [dispatch, fetchClubs],
+  );
+
+  // ❌ Delete User
+  const deleteUser = useCallback(
+    (id) => {
+      dispatch(deleteUserAdmin(id));
+    },
+    [dispatch],
+  );
 
   return {
-    fetchEvents: () => dispatch(fetchAdminEvents()),
-    fetchUsers: () => dispatch(fetchAdminUsers()),
-    approveEvent: (id) => dispatch(approveEvent(id)),
-    removeUser: (id) => dispatch(removeUser(id)),
-    ...adminData,
+    fetchEvents,
+    fetchUsers,
+    fetchClubs,
+    approveClub,
+    rejectClub,
+    deleteUser,
+    adminData: adminState,
   };
 };
 

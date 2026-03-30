@@ -1,24 +1,32 @@
-
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getAllEvents,
-  createEventApi,
-  updateEventApi,
-  deleteEventApi,
-} from "../../api/events";
+import eventService from "../../services/eventService";
 
 // Fetch Events
 export const fetchEvents = createAsyncThunk(
   "events/fetchEvents",
   async (_, { rejectWithValue }) => {
     try {
-      const data = await getAllEvents();
+      const data = await eventService.getAllEvents();
+   
       return Array.isArray(data) ? data : [];
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to fetch events",
+        error.message || "Failed to fetch events",
+      );
+    }
+  },
+);
+
+// Fetch Event By Id
+export const fetchEventById = createAsyncThunk(
+  "events/fetchEventById",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await eventService.getEventById();
+       return data;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch events",
       );
     }
   },
@@ -29,13 +37,11 @@ export const createEvent = createAsyncThunk(
   "events/createEvent",
   async (eventData, { rejectWithValue }) => {
     try {
-      const data = await createEventApi(eventData);
+      const data = await eventService.createEvent(eventData);
       return data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to create event",
+        error.message || "Failed to create event",
       );
     }
   },
@@ -46,13 +52,11 @@ export const updateEvent = createAsyncThunk(
   "events/updateEvent",
   async ({ eventId, updatedData }, { rejectWithValue }) => {
     try {
-      const data = await updateEventApi(eventId, updatedData);
+      const data = await eventService.updateEvent(eventId, updatedData);
       return data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to update event",
+        error.message || "Failed to update event",
       );
     }
   },
@@ -63,12 +67,10 @@ export const deleteEvent = createAsyncThunk(
   "events/deleteEvent",
   async (eventId, { rejectWithValue }) => {
     try {
-      return await deleteEventApi(eventId);
+      return await eventService.deleteEvent(eventId);
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to delete event",
+        error.message || "Failed to delete event",
       );
     }
   },

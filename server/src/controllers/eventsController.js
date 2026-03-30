@@ -2,6 +2,7 @@ import eventService from "../services/eventService.js";
 
 const addEvents = async (req, res) => {
   const eventData = req.body;
+
   const userId = req.user.id;
 
   if (
@@ -16,8 +17,9 @@ const addEvents = async (req, res) => {
   }
 
   try {
+        console.log("Event Data before database =>", eventData);
     const newEvent = await eventService.createEvents(eventData, userId);
-
+    console.log("Event Data after database =>", newData);
     res.status(201).json(newEvent);
   } catch (error) {
     res.status(500).send(error.message);
@@ -25,8 +27,21 @@ const addEvents = async (req, res) => {
 };
 
 const getAllEvents = async (req, res) => {
+  const { lat, lng, radius, limit } = req.query;
+  let events;
   try {
-    const events = await eventService.getAllEvents();
+    if (lat && lng) {
+      // Use geospatial query for nearby events
+      events = await eventService.getNearbyEvents(
+        parseFloat(lng),
+        parseFloat(lat),
+        radius ? parseFloat(radius) : 10, // Default 10km radius
+        limit ? parseInt(limit) : 100,
+      );
+    } else {
+      events = await eventService.getAllEvents();
+    }
+
     res.status(200).json(events);
   } catch (error) {
     res.status(500).send(error.message);
@@ -56,7 +71,9 @@ const updateEvent = async (req, res) => {
 
     // Check ownership
     if (event.createdBy.toString() !== userId) {
-      return res.status(403).send("Unauthorized: You can only edit your own events");
+      return res
+        .status(403)
+        .send("Unauthorized: You can only edit your own events");
     }
 
     const changeEvent = await eventService.updateEvent(eventId, updatedData);
@@ -76,7 +93,9 @@ const deleteEvent = async (req, res) => {
 
     // Check ownership
     if (event.createdBy.toString() !== userId) {
-      return res.status(403).send("Unauthorized: You can only delete your own events");
+      return res
+        .status(403)
+        .send("Unauthorized: You can only delete your own events");
     }
 
     await eventService.deleteEvent(eventId);

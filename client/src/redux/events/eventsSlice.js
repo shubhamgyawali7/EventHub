@@ -1,6 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchEvents,
+  fetchEventById,
   createEvent,
   updateEvent,
   deleteEvent,
@@ -28,13 +29,25 @@ const eventsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchEventById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEventById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.events = action.payload;
+      })
+      .addCase(fetchEventById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(createEvent.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(createEvent.fulfilled, (state, action) => {
         state.loading = false;
-        state.events.push(action.payload);
+        state.events.unshift(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;

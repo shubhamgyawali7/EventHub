@@ -1,22 +1,27 @@
+// src/redux/admin/adminSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchAdminEvents,
   fetchAdminUsers,
-  approveEvent,
-  removeUser,
-} from "./adminAction";
+  fetchAdminClubs,
+  adminApproveClub,
+  rejectClubAdmin,
+  deleteUserAdmin,
+} from "./adminAction.js";
 
 const adminSlice = createSlice({
   name: "admin",
   initialState: {
     events: [],
     users: [],
+    clubs: [],
     loading: false,
     error: null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // Fetch Events
       .addCase(fetchAdminEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -29,6 +34,8 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+
+      // Fetch Users
       .addCase(fetchAdminUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -41,25 +48,56 @@ const adminSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(approveEvent.pending, (state) => {
+
+      // Fetch Clubs
+      .addCase(fetchAdminClubs.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(approveEvent.fulfilled, (state) => {
+      .addCase(fetchAdminClubs.fulfilled, (state, action) => {
         state.loading = false;
+        state.clubs = action.payload;
       })
-      .addCase(approveEvent.rejected, (state, action) => {
+      .addCase(fetchAdminClubs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(removeUser.pending, (state) => {
+
+      // Approve Club
+      .addCase(adminApproveClub.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(removeUser.fulfilled, (state) => {
+      .addCase(adminApproveClub.fulfilled, (state) => {
         state.loading = false;
       })
-      .addCase(removeUser.rejected, (state, action) => {
+      .addCase(adminApproveClub.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Reject Club
+      .addCase(rejectClubAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(rejectClubAdmin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(rejectClubAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Delete User (new)
+      .addCase(deleteUserAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteUserAdmin.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(deleteUserAdmin.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

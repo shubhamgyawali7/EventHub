@@ -1,21 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  getAdminEvents,
-  getAdminUsers,
-  approveAdminEvent,
-  removeAdminUser,
-} from "../../api/admin";
+import adminService from "../../services/adminService"; // Make sure path is correct
 
 // 📥 Events
 export const fetchAdminEvents = createAsyncThunk(
   "admin/fetchEvents",
   async (_, { rejectWithValue }) => {
     try {
-      return await getAdminEvents();
+      const response = await adminService.getAdminEvents();
+      return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error?.response?.data?.message || error.message);
     }
-  }
+  },
 );
 
 // 👥 Users
@@ -23,37 +19,66 @@ export const fetchAdminUsers = createAsyncThunk(
   "admin/fetchUsers",
   async (_, { rejectWithValue }) => {
     try {
-      return await getAdminUsers();
+      return await adminService.getAllUsers();
     } catch (error) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error?.response?.data?.message || error.message);
     }
-  }
+  },
 );
 
-// ✅ Approve
-export const approveEvent = createAsyncThunk(
-  "admin/approveEvent",
-  async (eventId, { rejectWithValue, dispatch }) => {
+// 🏢 Clubs
+export const fetchAdminClubs = createAsyncThunk(
+  "admin/fetchClubs",
+  async (_, { rejectWithValue }) => {
     try {
-      await approveAdminEvent(eventId);
-      dispatch(fetchAdminEvents());
-      return eventId;
+      const clubs = await adminService.getAllClubs();
+      console.log("Fetched clubs in action:", clubs); // Debug log
+      return clubs;
     } catch (error) {
-      return rejectWithValue(error.message);
+      console.error("Error fetching clubs:", error);
+      return rejectWithValue(error?.response?.data?.message || error.message);
     }
-  }
+  },
 );
 
-// ❌ Remove User
-export const removeUser = createAsyncThunk(
-  "admin/removeUser",
+// ✅ Approve Club
+export const adminApproveClub = createAsyncThunk(
+  "admin/approveClub",
+  async (clubId, { rejectWithValue, dispatch }) => {
+    try {
+    const updatedClub = await adminService.approveClub(clubId);
+      // dispatch(fetchAdminClubs()); // Refresh clubs after approval
+       return updatedClub; // return updated club
+    } catch (error) {
+     return rejectWithValue(error?.response?.data?.message || error.message);
+    }
+  },
+);
+
+// ❌ Reject Club - Add this endpoint in backend
+export const rejectClubAdmin = createAsyncThunk(
+  "admin/rejectClub",
+  async (clubId, { rejectWithValue, dispatch }) => {
+    try {
+      const updatedClub = await adminService.rejectClub(clubId);
+      return updatedClub;
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error.message);
+    }
+  },
+);
+
+// ❌ Delete User
+export const deleteUserAdmin = createAsyncThunk(
+  "admin/deleteUser",
   async (userId, { rejectWithValue, dispatch }) => {
     try {
-      await removeAdminUser(userId);
+      await adminService.deleteUser(userId);
       dispatch(fetchAdminUsers());
       return userId;
     } catch (error) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
+

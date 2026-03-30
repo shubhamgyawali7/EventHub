@@ -1,9 +1,14 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchOrganizerEvents, deleteOrganizerEvent } from "./organizerAction";
+import {
+  registerClub,
+  fetchOrganizerEvents,
+  deleteOrganizerEvent,
+} from "./organizerAction";
 
 const organizerSlice = createSlice({
   name: "organizer",
   initialState: {
+    club: null,
     orgEvents: [],
     loading: false,
     error: null,
@@ -11,6 +16,21 @@ const organizerSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      .addCase(registerClub.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.club = null;
+      })
+      .addCase(registerClub.fulfilled, (state, action) => {
+        state.loading = false;
+        state.club = action.payload;
+        state.error = null;
+      })
+      .addCase(registerClub.rejected, (state, action) => {
+        state.loading = false;
+        state.club = null;
+        state.error = action.payload;
+      })
       .addCase(fetchOrganizerEvents.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -21,6 +41,7 @@ const organizerSlice = createSlice({
       })
       .addCase(fetchOrganizerEvents.rejected, (state, action) => {
         state.loading = false;
+        state.orgEvents = [];
         state.error = action.payload;
       })
       .addCase(deleteOrganizerEvent.pending, (state) => {
@@ -29,9 +50,11 @@ const organizerSlice = createSlice({
       })
       .addCase(deleteOrganizerEvent.fulfilled, (state, action) => {
         state.loading = false;
+        // Fixed: Compare with _id instead of id (based on your component using event._id)
         state.orgEvents = state.orgEvents.filter(
-          (event) => event.id !== action.payload,
+          (event) => event._id !== action.payload,
         );
+        state.error = null;
       })
       .addCase(deleteOrganizerEvent.rejected, (state, action) => {
         state.loading = false;

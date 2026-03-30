@@ -10,11 +10,15 @@ import {
 
 const router = express.Router();
 
+// GET /api/events?lat=27.717&lng=85.324&radius=10 - for nearby events
+// GET /api/events - for all events
+
+router.post("/", auth, addEvents);
+
 router.get("/", getAllEvents);
 
 router.get("/:id", getEventById);
 
-router.post("/", auth, addEvents);
 
 router.put("/:id", auth, updateEvent);
 

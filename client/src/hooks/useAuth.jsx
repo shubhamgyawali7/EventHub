@@ -1,39 +1,55 @@
+import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/auth/authSlice.js";
-import { loginUser, registerUser } from "../redux/auth/authAction.js";
+import { fetchMe, loginUser, registerUser } from "../redux/auth/authAction.js";
 
 const useAuth = () => {
   const dispatch = useDispatch();
   const auth = useSelector((state) => state.auth);
 
-  const register = async (formData) => {
+  const signup = useCallback(
+    async (formData) => {
+      try {
+        const result = await dispatch(registerUser(formData)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
+  const login = useCallback(
+    async (data) => {
+      try {
+        const result = await dispatch(loginUser(data)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
+  const getMe = useCallback(async () => {
     try {
-      const result = await dispatch(registerUser(formData)).unwrap();
+      // Correct: .unwrap() goes AFTER the dispatch
+      const result = await dispatch(fetchMe()).unwrap();
       return { success: true, data: result };
     } catch (err) {
       return { success: false, message: err };
     }
-  };
+  }, [dispatch]);
 
-  const login = async (data) => {
-    console.log("Login data in useAuth:", data); // Debugging line
-    try {
-      const result = await dispatch(loginUser(data)).unwrap();
-      console.log("Login result in useAuth:", result); // Debugging line
-      return { success: true, data: result };
-    } catch (err) {
-      return { success: false, message: err };
-    }
-  };
-
-  const logoutUser = () => {
+  const logoutUser = useCallback(() => {
     dispatch(logout());
-  };
+  }, [dispatch]);
 
   return {
     login,
     logout: logoutUser,
-    register,
+    getMe,
+    signup,
     ...auth,
   };
 };
