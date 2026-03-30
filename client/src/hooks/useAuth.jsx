@@ -1,16 +1,56 @@
-// src/hooks/useAuth.jsx
-import { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../redux/auth/authSlice.js";
+import { fetchMe, loginUser, registerUser } from "../redux/auth/authAction.js";
 
 const useAuth = () => {
-  const { user, login, logout, signup } = useContext(AuthContext);
+  const dispatch = useDispatch();
+  const auth = useSelector((state) => state.auth);
+
+  const signup = useCallback(
+    async (formData) => {
+      try {
+        const result = await dispatch(registerUser(formData)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
+  const login = useCallback(
+    async (data) => {
+      try {
+        const result = await dispatch(loginUser(data)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
+  const getMe = useCallback(async () => {
+    try {
+      // Correct: .unwrap() goes AFTER the dispatch
+      const result = await dispatch(fetchMe()).unwrap();
+      return { success: true, data: result };
+    } catch (err) {
+      return { success: false, message: err };
+    }
+  }, [dispatch]);
+
+  const logoutUser = useCallback(() => {
+    dispatch(logout());
+  }, [dispatch]);
 
   return {
-    user,
     login,
-    logout,
+    logout: logoutUser,
+    getMe,
     signup,
+    ...auth,
   };
 };
-
 export default useAuth;

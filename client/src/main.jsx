@@ -1,26 +1,22 @@
-// src/main.jsx
 import React from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import App from "./App";
-import { AuthProvider } from "./context/AuthContext"; // import provider
-import "./index.css";
-import { AdminProvider } from "./context/AdminContext";
-import { EventProvider } from "./context/EventContext";
-import { OrganizationProvider } from "./context/OrganizationContext";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 
-ReactDOM.createRoot(document.getElementById("root")).render(
+import { store, persistor } from "./redux/store";
+import App from "./App";
+import "./index.css";
+import 'leaflet/dist/leaflet.css';
+
+createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <AdminProvider>
-          <EventProvider>
-            <OrganizationProvider>
-              <App />
-            </OrganizationProvider>
-          </EventProvider>
-        </AdminProvider>
-      </AuthProvider>
-    </BrowserRouter>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </PersistGate>
+    </Provider>
   </React.StrictMode>,
 );

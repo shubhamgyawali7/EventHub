@@ -2,6 +2,7 @@ import eventService from "../services/eventService.js";
 
 const addEvents = async (req, res) => {
   const eventData = req.body;
+
   const userId = req.user.id;
 
   if (
@@ -16,8 +17,9 @@ const addEvents = async (req, res) => {
   }
 
   try {
+        console.log("Event Data before database =>", eventData);
     const newEvent = await eventService.createEvents(eventData, userId);
-
+    console.log("Event Data after database =>", newData);
     res.status(201).json(newEvent);
   } catch (error) {
     res.status(500).send(error.message);
@@ -25,8 +27,21 @@ const addEvents = async (req, res) => {
 };
 
 const getAllEvents = async (req, res) => {
+  const { lat, lng, radius, limit } = req.query;
+  let events;
   try {
-    const events = await eventService.getAllEvents();
+    if (lat && lng) {
+      // Use geospatial query for nearby events
+      events = await eventService.getNearbyEvents(
+        parseFloat(lng),
+        parseFloat(lat),
+        radius ? parseFloat(radius) : 10, // Default 10km radius
+        limit ? parseInt(limit) : 100,
+      );
+    } else {
+      events = await eventService.getAllEvents();
+    }
+
     res.status(200).json(events);
   } catch (error) {
     res.status(500).send(error.message);
@@ -48,8 +63,19 @@ const getEventById = async (req, res) => {
 const updateEvent = async (req, res) => {
   const updatedData = req.body;
   const eventId = req.params.id;
+  const userId = req.user.id;
 
   try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).send("Event Not Found");
+
+    // Check ownership
+    if (event.createdBy.toString() !== userId) {
+      return res
+        .status(403)
+        .send("Unauthorized: You can only edit your own events");
+    }
+
     const changeEvent = await eventService.updateEvent(eventId, updatedData);
     res.status(200).json(changeEvent);
   } catch (error) {
@@ -59,8 +85,19 @@ const updateEvent = async (req, res) => {
 
 const deleteEvent = async (req, res) => {
   const eventId = req.params.id;
+  const userId = req.user.id;
 
   try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).send("Event Not Found");
+
+    // Check ownership
+    if (event.createdBy.toString() !== userId) {
+      return res
+        .status(403)
+        .send("Unauthorized: You can only delete your own events");
+    }
+
     await eventService.deleteEvent(eventId);
     res.status(200).send("Event deleted successfully");
   } catch (error) {
@@ -68,4 +105,4 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-export { addEvents, getAllEvents,getEventById, updateEvent, deleteEvent };
+export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent };

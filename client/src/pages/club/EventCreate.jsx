@@ -1,0 +1,636 @@
+// EventCreate.jsx (Updated with visible Location Coordinates)
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import MapPicker from "../../components/common/MapPicker";
+import {
+  Calendar,
+  MapPin,
+  Tag,
+  Image as ImageIcon,
+  FileText,
+  Zap,
+  Clock,
+  Users,
+  Layers,
+  ArrowLeft,
+  Settings,
+  ShieldCheck,
+  Search,
+  DollarSign,
+  CreditCard,
+  Navigation,
+  Globe,
+} from "lucide-react";
+import ClubSidebar from "./ClubSidebar";
+import useEvents from "../../hooks/useEvents";
+
+const EventDeployment = () => {
+  const { loading: authLoading } = useAuth();
+  const { createEvent } = useEvents();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    poster: "",
+    category: "Workshop",
+    district: "Kathmandu",
+    venue: "",
+    eventDate: "",
+    eventTime: "",
+    deadline: "",
+    participantCount: 50,
+    tags: "",
+    isPaid: false,
+    price: 0,
+    googleMapUrl: "",
+    latitude: "", // Added for latitude
+    longitude: "", // Added for longitude
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    if (type === "checkbox") {
+      setFormData({ ...formData, [name]: checked });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
+
+  const handleLocationSelect = (location) => {
+    setSelectedLocation(location);
+
+    // Format coordinates to 6 decimal places
+    const latFormatted = location.lat.toFixed(6);
+    const lngFormatted = location.lng.toFixed(6);
+
+    if (location.address) {
+      const addressParts = location.address.split(",");
+      const suggestedVenue = addressParts[0] ? addressParts[0].trim() : "";
+
+      setFormData((prev) => ({
+        ...prev,
+        venue: suggestedVenue || prev.venue,
+        googleMapUrl: `https://www.google.com/maps?q=${latFormatted},${lngFormatted}`,
+        latitude: latFormatted,
+        longitude: lngFormatted,
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        googleMapUrl: `https://www.google.com/maps?q=${latFormatted},${lngFormatted}`,
+        latitude: latFormatted,
+        longitude: lngFormatted,
+      }));
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Image size should be less than 5MB");
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        alert("Please upload an image file");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, poster: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      "title",
+      "description",
+      "poster",
+      "category",
+      "district",
+      "venue",
+      "eventDate",
+      "eventTime",
+      "deadline",
+    ];
+    for (const field of requiredFields) {
+      if (!formData[field]) {
+        alert(
+          `Please fill in the ${field.replace(/([A-Z])/g, " $1").toLowerCase()} field`,
+        );
+        return false;
+      }
+    }
+
+    if (!selectedLocation) {
+      alert("Please select a location on the map");
+      return false;
+    }
+
+    const eventDateTime = new Date(
+      `${formData.eventDate}T${formData.eventTime}`,
+    );
+    const deadlineDate = new Date(formData.deadline);
+    const now = new Date();
+
+    if (deadlineDate < now) {
+      alert("Registration deadline cannot be in the past");
+      return false;
+    }
+
+    if (eventDateTime < deadlineDate) {
+      alert("Event date cannot be before registration deadline");
+      return false;
+    }
+
+    if (formData.participantCount < 1) {
+      alert("Participant capacity must be at least 1");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const eventData = {
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        poster: formData.poster,
+        category: formData.category,
+        district: formData.district,
+        venue: formData.venue.trim(),
+        eventDate: new Date(`${formData.eventDate}T${formData.eventTime}`),
+        deadline: new Date(formData.deadline),
+        participantCount: parseInt(formData.participantCount, 10),
+        tags: formData.tags
+          ? formData.tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag)
+          : [],
+        isPaid: formData.isPaid,
+        price: formData.isPaid ? parseFloat(formData.price) : 0,
+        googleMapUrl: formData.googleMapUrl || undefined,
+        status: "published",
+        latitude: parseFloat(formData.latitude),
+        longitude: parseFloat(formData.longitude),
+        coordinates: selectedLocation
+          ? [selectedLocation.lng, selectedLocation.lat]
+          : undefined,
+        location: selectedLocation
+          ? {
+              type: "Point",
+              coordinates: [selectedLocation.lng, selectedLocation.lat],
+            }
+          : undefined,
+      };
+
+      console.log("Sending event data:", eventData);
+
+      const result = await createEvent(eventData);
+      console.log("Event created:", result);
+
+      alert("Event created successfully!");
+      navigate("/club/dashboard");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert(error.message || "Failed to create event. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center font-black text-slate-400">
+        LOADING...
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex bg-[#FDFDFF]">
+      <ClubSidebar />
+
+      <main className="flex-1 p-10 overflow-auto">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+          <div>
+            <button
+              onClick={() => navigate(-1)}
+              className="group flex items-center gap-2 text-slate-400 hover:text-indigo-600 transition-colors mb-4"
+            >
+              <ArrowLeft size={14} />
+              <span className="text-[10px] font-black uppercase tracking-widest">
+                Go Back
+              </span>
+            </button>
+            <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
+              Create <span className="text-indigo-600">New Event</span>
+            </h1>
+            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2 mt-2">
+              <Settings size={14} /> Fill in the details to publish your event
+            </p>
+          </div>
+          <div className="bg-indigo-50 border border-indigo-100 rounded-3xl px-6 py-4 flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-600 shadow-sm">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">
+                Status
+              </p>
+              <p className="text-sm font-black text-indigo-900 tracking-tight">
+                Secure Form
+              </p>
+            </div>
+          </div>
+        </header>
+
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 lg:grid-cols-3 gap-10"
+        >
+          {/* Main Form Fields */}
+          <div className="lg:col-span-2 space-y-8">
+            <section className="bg-white p-10 rounded-[4rem] border border-slate-100 shadow-sm space-y-8">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <Tag size={12} /> Event Name *
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  placeholder="e.g. Annual Coding Workshop"
+                  className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-lg text-slate-800 placeholder:opacity-30"
+                  onChange={handleChange}
+                  value={formData.title}
+                  required
+                />
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <FileText size={12} /> About the Event *
+                </label>
+                <textarea
+                  name="description"
+                  rows={6}
+                  placeholder="Tell people what your event is about..."
+                  className="w-full bg-slate-50 border-none rounded-[2.5rem] py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800 placeholder:opacity-30"
+                  onChange={handleChange}
+                  value={formData.description}
+                  required
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <MapPin size={12} /> District *
+                  </label>
+                  <select
+                    name="district"
+                    className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
+                    onChange={handleChange}
+                    value={formData.district}
+                    required
+                  >
+                    {[
+                      "Kathmandu",
+                      "Lalitpur",
+                      "Bhaktapur",
+                      "Pokhara",
+                      "Chitwan",
+                      "Butwal",
+                    ].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <Search size={12} /> Venue Name *
+                  </label>
+                  <input
+                    type="text"
+                    name="venue"
+                    placeholder="e.g. City Hall, Room 204"
+                    className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
+                    onChange={handleChange}
+                    value={formData.venue}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Location Picker */}
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <Navigation size={12} /> Location on Map *
+                </label>
+                <MapPicker
+                  onLocationSelect={handleLocationSelect}
+                  initialLocation={selectedLocation}
+                  searchQuery={formData.district}
+                />
+                {selectedLocation && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+                    <p className="text-xs text-green-700 flex items-center gap-1">
+                      <MapPin size={12} />
+                      Location selected:{" "}
+                      {selectedLocation.address ||
+                        `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            <section className="bg-white p-10 rounded-[4rem] border border-slate-100 shadow-sm space-y-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <Calendar size={12} /> Event Date *
+                  </label>
+                  <input
+                    type="date"
+                    name="eventDate"
+                    className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                    onChange={handleChange}
+                    value={formData.eventDate}
+                    required
+                  />
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <Clock size={12} /> Start Time *
+                  </label>
+                  <input
+                    type="time"
+                    name="eventTime"
+                    className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                    onChange={handleChange}
+                    value={formData.eventTime}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <Clock size={12} /> Registration Deadline *
+                  </label>
+                  <input
+                    type="datetime-local"
+                    name="deadline"
+                    className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                    onChange={handleChange}
+                    value={formData.deadline}
+                    required
+                  />
+                </div>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <Users size={12} /> Max Participants *
+                  </label>
+                  <input
+                    type="number"
+                    name="participantCount"
+                    className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                    onChange={handleChange}
+                    value={formData.participantCount}
+                    min="1"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    name="isPaid"
+                    id="isPaid"
+                    className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    onChange={handleChange}
+                    checked={formData.isPaid}
+                  />
+                  <label
+                    htmlFor="isPaid"
+                    className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2"
+                  >
+                    <DollarSign size={12} /> Paid Event
+                  </label>
+                </div>
+
+                {formData.isPaid && (
+                  <div className="ml-8">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                      <CreditCard size={12} /> Ticket Price (NPR)
+                    </label>
+                    <input
+                      type="number"
+                      name="price"
+                      className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                      onChange={handleChange}
+                      value={formData.price}
+                      min="0"
+                      step="100"
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Sidebar Form Fields */}
+          <div className="space-y-8">
+            <section className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-sm space-y-6">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                <ImageIcon size={12} /> Event Poster *
+              </label>
+              <div className="relative group">
+                <div
+                  className={`w-full h-56 border-2 border-dashed border-slate-100 rounded-[2.5rem] overflow-hidden transition-all hover:bg-slate-50 hover:border-indigo-200 cursor-pointer flex items-center justify-center ${formData.poster ? "border-indigo-100" : ""}`}
+                >
+                  <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    required={!formData.poster}
+                  />
+                  {formData.poster ? (
+                    <img
+                      src={formData.poster}
+                      alt="Event Poster"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center group-hover:scale-105 transition-transform">
+                      <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mx-auto shadow-sm group-hover:bg-white group-hover:text-indigo-400 mb-3">
+                        <ImageIcon size={24} />
+                      </div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase">
+                        Upload Image
+                      </p>
+                      <p className="text-[8px] text-slate-300 mt-1">Max 5MB</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </section>
+
+            <section className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-sm space-y-6">
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <Tag size={12} /> Category *
+                </label>
+                <select
+                  name="category"
+                  className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                  onChange={handleChange}
+                  value={formData.category}
+                  required
+                >
+                  {[
+                    "Workshop",
+                    "Competition",
+                    "Hackathon",
+                    "Seminar",
+                    "Meetup",
+                    "Conference",
+                    "Other",
+                  ].map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <Layers size={12} /> Tags (Comma separated)
+                </label>
+                <input
+                  type="text"
+                  name="tags"
+                  placeholder="e.g. music, tech, art"
+                  className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
+                  onChange={handleChange}
+                  value={formData.tags}
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Optional: Add tags to help people find your event
+                </p>
+              </div>
+
+              {/* Location Coordinates Section - VISIBLE NOW */}
+              <div className="space-y-4 border-t border-slate-100 pt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Globe size={14} className="text-indigo-600" />
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Location Coordinates
+                  </label>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border border-slate-200">
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      Latitude
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-indigo-500" />
+                      <p className="font-mono font-bold text-slate-800 text-sm">
+                        {formData.latitude || "—"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border border-slate-200">
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">
+                      Longitude
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-indigo-500" />
+                      <p className="font-mono font-bold text-slate-800 text-sm">
+                        {formData.longitude || "—"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {formData.latitude && formData.longitude && (
+                  <a
+                    href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-xs text-indigo-600 hover:text-indigo-700 mt-2 font-medium"
+                  >
+                    <MapPin size={12} />
+                    View on Google Maps
+                  </a>
+                )}
+              </div>
+
+              <div className="space-y-4 border-t border-slate-100 pt-6">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <MapPin size={12} /> Google Maps URL
+                </label>
+                <input
+                  type="url"
+                  name="googleMapUrl"
+                  placeholder="Auto-generated from selected location"
+                  className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold text-slate-600 text-sm"
+                  value={formData.googleMapUrl || "No location selected"}
+                  readOnly
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Auto-generated when you select a location on the map
+                </p>
+              </div>
+            </section>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-slate-900 text-white py-8 rounded-[2.5rem] font-black uppercase tracking-widest text-[11px] shadow-2xl shadow-indigo-100 hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Zap size={18} /> Publish Event
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+      </main>
+    </div>
+  );
+};
+
+export default EventDeployment;
