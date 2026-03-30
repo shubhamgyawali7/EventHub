@@ -250,15 +250,12 @@ npm run start    # Start production server
 npm test         # Run tests
 ```
 
-## 📄 License
-
-This project is licensed under the ISC License - see the LICENSE file for details.
 
 ## 👥 Authors
 
-- **Shubham Gyawali**
-- **Nirmal Bashyal**
-- **Ujjal Pandey**
+- **Shubham Gyawali - FullStack Developer**
+- **Nirmal Bashyal - Frontend Developer**
+- **Ujjal Pandey - Frontend Developer**
 
 ## 🗺️ Further Updates
 
@@ -298,3 +295,8 @@ This project is licensed under the ISC License - see the LICENSE file for detail
 - [ ] Export registration data to multiple formats
 
 ---
+
+
+## 📄 License
+
+This project is licensed under the ISC License - see the LICENSE file for details.
