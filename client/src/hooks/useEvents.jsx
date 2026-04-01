@@ -4,6 +4,7 @@ import {
   fetchEvents,
   createEvent,
   updateEvent,
+  getEventById,
   deleteEvent,
 } from "../redux/events/eventsAction.js";
 import eventService from "../services/eventService.jsx";
@@ -22,7 +23,7 @@ const useEvents = () => {
 
     const fetchEventById = useCallback(async () => {
     try {
-      const res = await dispatch(fetchEventById()).unwrap();
+      const res = await dispatch(getEventById()).unwrap();
       return { success: true, data: res };
     } catch (err) {
       return { success: false, message: err };

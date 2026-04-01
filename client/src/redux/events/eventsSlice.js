@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchEvents,
-  fetchEventById,
+  getEventById,
   createEvent,
   updateEvent,
   deleteEvent,
@@ -29,15 +29,15 @@ const eventsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(fetchEventById.pending, (state) => {
+      .addCase(getEventById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEventById.fulfilled, (state, action) => {
+      .addCase(getEventById.fulfilled, (state, action) => {
         state.loading = false;
         state.events = action.payload;
       })
-      .addCase(fetchEventById.rejected, (state, action) => {
+      .addCase(getEventById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -48,6 +48,7 @@ const eventsSlice = createSlice({
       .addCase(createEvent.fulfilled, (state, action) => {
         state.loading = false;
         state.events.unshift(action.payload);
+        // state.events.push(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;
