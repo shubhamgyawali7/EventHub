@@ -29,12 +29,16 @@ const EventDeployment = () => {
   const { loading: authLoading } = useAuth();
   const { createEvent } = useEvents();
   const navigate = useNavigate();
+  
   const [loading, setLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [posterFile, setPosterFile] = useState(null);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    poster: "",
+    poster: null,
+    posterPreview: null,
     category: "Workshop",
     district: "Kathmandu",
     venue: "",
@@ -52,12 +56,13 @@ const EventDeployment = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (type === "checkbox") {
-      setFormData({ ...formData, [name]: checked });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+
+      setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
   };
+ 
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
@@ -87,24 +92,33 @@ const EventDeployment = () => {
     }
   };
 
+  // Handle image upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
+
     if (file) {
+      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("Image size should be less than 5MB");
+        alert("File size should be less than 5MB");
         return;
       }
 
+      // Validate file type
       if (!file.type.startsWith("image/")) {
         alert("Please upload an image file");
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData({ ...formData, poster: reader.result });
-      };
-      reader.readAsDataURL(file);
+      // Create preview URL
+      const preview = URL.createObjectURL(file);
+    
+      setPosterFile(file);
+
+      setFormData({
+        ...formData,
+        poster: file,
+        posterPreview: preview,
+      });
     }
   };
 
@@ -127,6 +141,10 @@ const EventDeployment = () => {
         );
         return false;
       }
+    }
+    if (!formData.poster) {
+      alert("Please upload a poster image");
+      return;
     }
 
     if (!selectedLocation) {
@@ -164,46 +182,32 @@ const EventDeployment = () => {
     if (!validateForm()) {
       return;
     }
-
+    // setUploading(true);
     setLoading(true);
 
     try {
-      const eventData = {
-        title: formData.title.trim(),
-        description: formData.description.trim(),
-        poster: formData.poster,
-        category: formData.category,
-        district: formData.district,
-        venue: formData.venue.trim(),
-        eventDate: new Date(`${formData.eventDate}T${formData.eventTime}`),
-        deadline: new Date(formData.deadline),
-        participantCount: parseInt(formData.participantCount, 10),
-        tags: formData.tags
-          ? formData.tags
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter((tag) => tag)
-          : [],
-        isPaid: formData.isPaid,
-        price: formData.isPaid ? parseFloat(formData.price) : 0,
-        googleMapUrl: formData.googleMapUrl || undefined,
-        status: "published",
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-        coordinates: selectedLocation
-          ? [selectedLocation.lng, selectedLocation.lat]
-          : undefined,
-        location: selectedLocation
-          ? {
-              type: "Point",
-              coordinates: [selectedLocation.lng, selectedLocation.lat],
-            }
-          : undefined,
-      };
+      const formDataToSend = new FormData();
+      formDataToSend.append("poster", posterFile);
+      // Append all form fields
+      formDataToSend.append("title", formData.title.trim());
+      formDataToSend.append("description", formData.description.trim());
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("district", formData.district);
+      formDataToSend.append("venue", formData.venue.trim());
+      formDataToSend.append("eventDate", formData.eventDate);
+      formDataToSend.append("eventTime", formData.eventTime);
+      formDataToSend.append("deadline", formData.deadline);
+      formDataToSend.append("participantCount", formData.participantCount);
+      formDataToSend.append("tags", formData.tags);
+      formDataToSend.append("isPaid", formData.isPaid);
+      formDataToSend.append("price", formData.price);
+      formDataToSend.append("googleMapUrl", formData.googleMapUrl);
+      formDataToSend.append("latitude", formData.latitude);
+      formDataToSend.append("longitude", formData.longitude);
 
-      console.log("Sending event data:", eventData);
+      console.log("Sending event data with FormData", formDataToSend);
 
-      const result = await createEvent(eventData);
+      const result = await createEvent(formDataToSend);
       console.log("Event created:", result);
 
       alert("Event created successfully!");
@@ -478,10 +482,11 @@ const EventDeployment = () => {
                     accept="image/*"
                     onChange={handleImageUpload}
                     required={!formData.poster}
+                    // disabled={uploading}
                   />
-                  {formData.poster ? (
+                  {formData.posterPreview ? (
                     <img
-                      src={formData.poster}
+                      src={formData.posterPreview}
                       alt="Event Poster"
                       className="w-full h-full object-cover"
                     />
@@ -553,7 +558,7 @@ const EventDeployment = () => {
                     Location Coordinates
                   </label>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-4 border border-slate-200">
                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">
@@ -578,7 +583,7 @@ const EventDeployment = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 {formData.latitude && formData.longitude && (
                   <a
                     href={`https://www.google.com/maps?q=${formData.latitude},${formData.longitude}`}

@@ -3,7 +3,7 @@ import { login, register, getMe } from "../controllers/authController.js";
 import { submitClubRegistration } from "../controllers/clubController.js";
 import auth from "../middlewares/auth.js";
 import roleBasedAuth from "../middlewares/roleBasedAuth.js";
-import upload from "../middlewares/upload.js";
+// import upload from "../middlewares/upload.js";
 
 const router = express.Router();
 

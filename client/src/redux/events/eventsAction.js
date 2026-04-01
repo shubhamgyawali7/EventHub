@@ -18,7 +18,7 @@ export const fetchEvents = createAsyncThunk(
 );
 
 // Fetch Event By Id
-export const fetchEventById = createAsyncThunk(
+export const getEventById = createAsyncThunk(
   "events/fetchEventById",
   async (_, { rejectWithValue }) => {
     try {
@@ -37,7 +37,9 @@ export const createEvent = createAsyncThunk(
   "events/createEvent",
   async (eventData, { rejectWithValue }) => {
     try {
+      console.log("Redux sending event data:", eventData);
       const data = await eventService.createEvent(eventData);
+       console.log("Redux received response:", data);
       return data;
     } catch (error) {
       return rejectWithValue(

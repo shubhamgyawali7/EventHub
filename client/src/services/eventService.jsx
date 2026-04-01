@@ -32,14 +32,18 @@ const eventService = {
   },
 
   /**
-   * 📤 Deploy New Event
+   * 📤 Create New Event
    * Submits a fresh event manifest to the central oversight node.
    */
   createEvent: async (eventData) => {
     try {
-      console.log("Data before sending to backednd ", eventData);
-      const response = await api.post("/api/events", eventData);
-      console.log("gone form Service to backend");
+      console.log("EventsService sending data:", eventData);
+      const response = await api.post("/api/events/create", eventData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Often optional, but good to be explicit
+        },
+      });
+      console.log("EventsService received response:", response.data);
       return response.data;
     } catch (error) {
       throw new Error(
