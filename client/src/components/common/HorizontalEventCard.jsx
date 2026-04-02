@@ -8,6 +8,7 @@ import {
   AlertCircle,
   Edit3,
   Map as MapIcon,
+  Globe,
 } from "lucide-react";
 
 // Normalize poster URLs
@@ -111,22 +112,34 @@ const HorizontalEventCard = ({
 
         {/* Event Details - Compact Layout */}
         <div className="space-y-2 text-xs sm:text-sm">
-          {/* Venue */}
-          {event.venue && (
+          {/* Online Event Badge or Venue */}
+          {event.eventType === "online" ? (
             <div className="flex items-start gap-2">
-              <MapPin
-                size={14}
-                className="text-amber-600 flex-shrink-0 mt-0.5"
-              />
+              <Globe size={14} className="text-blue-600 flex-shrink-0 mt-0.5" />
               <div className="min-w-0">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
-                  Venue
+                  Event Type
                 </p>
-                <p className="font-bold text-slate-800 truncate">
-                  {event.venue}
-                </p>
+                <p className="font-bold text-blue-700">🌐 Online Event</p>
               </div>
             </div>
+          ) : (
+            event.venue && (
+              <div className="flex items-start gap-2">
+                <MapPin
+                  size={14}
+                  className="text-amber-600 flex-shrink-0 mt-0.5"
+                />
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
+                    Venue
+                  </p>
+                  <p className="font-bold text-slate-800 truncate">
+                    {event.venue}
+                  </p>
+                </div>
+              </div>
+            )
           )}
 
           {/* Event Date */}
@@ -195,15 +208,17 @@ const HorizontalEventCard = ({
               <span>Edit</span>
             </button>
 
-            {/* Map Button */}
-            <button
-              onClick={openGoogleMaps}
-              className="flex-1 min-w-fit flex items-center justify-center gap-1 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 px-2 py-2 sm:px-3 rounded-lg font-bold text-[9px] xs:text-[10px] sm:text-xs uppercase tracking-tight transition-all active:scale-95"
-              title="Open location on Google Maps"
-            >
-              <MapIcon size={13} />
-              <span>Map</span>
-            </button>
+            {/* Map Button - Only show for physical events */}
+            {event.eventType !== "online" && (
+              <button
+                onClick={openGoogleMaps}
+                className="flex-1 min-w-fit flex items-center justify-center gap-1 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 text-emerald-600 px-2 py-2 sm:px-3 rounded-lg font-bold text-[9px] xs:text-[10px] sm:text-xs uppercase tracking-tight transition-all active:scale-95"
+                title="Open location on Google Maps"
+              >
+                <MapIcon size={13} />
+                <span>Map</span>
+              </button>
+            )}
 
             {/* Delete Button */}
             <button

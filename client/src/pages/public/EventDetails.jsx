@@ -12,6 +12,7 @@ import {
   Building2,
   Mail,
   CheckCircle2,
+  Globe,
 } from "lucide-react";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
@@ -186,28 +187,53 @@ const EventDetails = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600 mt-1">
-                        <MapPin size={20} />
+                      <div
+                        className={`p-3 rounded-2xl mt-1 ${
+                          event.eventType === "online"
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-indigo-50 text-indigo-600"
+                        }`}
+                      >
+                        {event.eventType === "online" ? (
+                          <Globe size={20} />
+                        ) : (
+                          <MapPin size={20} />
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">
-                          Location
+                          {event.eventType === "online"
+                            ? "Event Type"
+                            : "Location"}
                         </p>
-                        <p className="text-slate-700 font-semibold">
-                          {event.district}
-                        </p>
-                        <p className="text-slate-500 text-sm">
-                          {event.venue || "To be announced"}
-                        </p>
-                        {event.googleMapUrl && (
-                          <a
-                            href={event.googleMapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 text-xs font-medium hover:underline mt-1 inline-block"
-                          >
-                            View on Maps →
-                          </a>
+                        {event.eventType === "online" ? (
+                          <>
+                            <p className="text-slate-700 font-semibold text-lg">
+                              🌐 Online Event
+                            </p>
+                            <p className="text-slate-500 text-sm mt-1">
+                              Join from anywhere, {event.district}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-slate-700 font-semibold">
+                              {event.district}
+                            </p>
+                            <p className="text-slate-500 text-sm">
+                              {event.venue || "To be announced"}
+                            </p>
+                            {event.googleMapUrl && (
+                              <a
+                                href={event.googleMapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-600 text-xs font-medium hover:underline mt-1 inline-block"
+                              >
+                                View on Maps →
+                              </a>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
