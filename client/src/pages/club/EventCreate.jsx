@@ -1,6 +1,6 @@
-// EventCreate.jsx (Updated with visible Location Coordinates)
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+// EventCreate.jsx (Updated with Edit Mode Support)
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import MapPicker from "../../components/common/MapPicker";
 import {
@@ -27,12 +27,17 @@ import useEvents from "../../hooks/useEvents";
 
 const EventDeployment = () => {
   const { loading: authLoading } = useAuth();
-  const { createEvent } = useEvents();
+  const { createEvent, updateEvent, fetchEventById } = useEvents();
   const navigate = useNavigate();
-  
+  const [searchParams] = useSearchParams();
+
+  const eventId = searchParams.get("id"); // Get event ID from URL param
+  const isEditMode = !!eventId; // Boolean flag for edit mode
+
   const [loading, setLoading] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
+  const [loadingEvent, setLoadingEvent] = useState(isEditMode); // Loading event data
 
   const [formData, setFormData] = useState({
     title: "",
@@ -50,19 +55,67 @@ const EventDeployment = () => {
     isPaid: false,
     price: 0,
     googleMapUrl: "",
-    latitude: "", // Added for latitude
-    longitude: "", // Added for longitude
+    latitude: "",
+    longitude: "",
   });
+
+  // Load event data if editing
+  useEffect(() => {
+    if (isEditMode && eventId) {
+      const loadEvent = async () => {
+        try {
+          const result = await fetchEventById(eventId);
+          if (result.success && result.data) {
+            const event = result.data;
+            setFormData({
+              title: event.title || "",
+              description: event.description || "",
+              poster: null, // Keep null since it's binary
+              posterPreview: event.poster || null,
+              category: event.category || "Workshop",
+              district: event.district || "Kathmandu",
+              venue: event.venue || "",
+              eventDate: event.eventDate ? event.eventDate.split("T")[0] : "",
+              eventTime: event.eventTime || "",
+              deadline: event.deadline ? event.deadline.split("T")[0] : "",
+              participantCount: event.participantCount || 50,
+              tags: event.tags?.join(",") || "",
+              isPaid: event.isPaid || false,
+              price: event.price || 0,
+              googleMapUrl: event.googleMapUrl || "",
+              latitude: event.location?.coordinates[1] || "",
+              longitude: event.location?.coordinates[0] || "",
+            });
+
+            // Set location if available
+            if (event.location?.coordinates) {
+              setSelectedLocation({
+                lat: event.location.coordinates[1],
+                lng: event.location.coordinates[0],
+                address: event.venue || "",
+              });
+            }
+          }
+        } catch (error) {
+          console.error("Error loading event:", error);
+          alert("Failed to load event. Redirecting...");
+          navigate("/club/my-events");
+        } finally {
+          setLoadingEvent(false);
+        }
+      };
+      loadEvent();
+    }
+  }, [isEditMode, eventId, fetchEventById, navigate]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
-      setFormData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
   };
- 
 
   const handleLocationSelect = (location) => {
     setSelectedLocation(location);
@@ -111,7 +164,7 @@ const EventDeployment = () => {
 
       // Create preview URL
       const preview = URL.createObjectURL(file);
-    
+
       setPosterFile(file);
 
       setFormData({
@@ -126,7 +179,6 @@ const EventDeployment = () => {
     const requiredFields = [
       "title",
       "description",
-      "poster",
       "category",
       "district",
       "venue",
@@ -142,12 +194,19 @@ const EventDeployment = () => {
         return false;
       }
     }
-    if (!formData.poster) {
+
+    // For CREATE: require new poster file
+    // For EDIT: allow existing posterPreview OR new poster file
+    if (!isEditMode && !formData.poster) {
       alert("Please upload a poster image");
-      return;
+      return false;
+    }
+    if (isEditMode && !posterFile && !formData.posterPreview) {
+      alert("Please add a poster image for this event");
+      return false;
     }
 
-    if (!selectedLocation) {
+    if (!selectedLocation && !isEditMode) {
       alert("Please select a location on the map");
       return false;
     }
@@ -182,12 +241,22 @@ const EventDeployment = () => {
     if (!validateForm()) {
       return;
     }
-    // setUploading(true);
+
     setLoading(true);
 
     try {
       const formDataToSend = new FormData();
-      formDataToSend.append("poster", posterFile);
+
+      // Append poster: new file if selected, otherwise keep existing (backend handles)
+      if (posterFile) {
+        formDataToSend.append("poster", posterFile);
+        console.log("✅ New poster file selected");
+      } else if (isEditMode) {
+        console.log(
+          "⚠️ Edit mode without new poster - backend will keep existing",
+        );
+      }
+
       // Append all form fields
       formDataToSend.append("title", formData.title.trim());
       formDataToSend.append("description", formData.description.trim());
@@ -201,29 +270,48 @@ const EventDeployment = () => {
       formDataToSend.append("tags", formData.tags);
       formDataToSend.append("isPaid", formData.isPaid);
       formDataToSend.append("price", formData.price);
-      formDataToSend.append("googleMapUrl", formData.googleMapUrl);
-      formDataToSend.append("latitude", formData.latitude);
-      formDataToSend.append("longitude", formData.longitude);
 
-      console.log("Sending event data with FormData", formDataToSend);
+      // Location data - always include if available (can be updated)
+      if (formData.googleMapUrl) {
+        formDataToSend.append("googleMapUrl", formData.googleMapUrl);
+      }
+      if (formData.latitude) {
+        formDataToSend.append("latitude", formData.latitude);
+      }
+      if (formData.longitude) {
+        formDataToSend.append("longitude", formData.longitude);
+      }
 
-      const result = await createEvent(formDataToSend);
-      console.log("Event created:", result);
+      console.log(
+        `${isEditMode ? "📝 Updating" : "✨ Creating"} event with FormData`,
+      );
 
-      alert("Event created successfully!");
-      navigate("/club/dashboard");
+      let result;
+      if (isEditMode && eventId) {
+        // Update existing event
+        result = await updateEvent({ id: eventId, data: formDataToSend });
+        console.log("✅ Event updated:", result);
+        alert("Event updated successfully!");
+      } else {
+        // Create new event
+        result = await createEvent(formDataToSend);
+        console.log("✅ Event created:", result);
+        alert("Event created successfully!");
+      }
+
+      navigate("/club/my-events");
     } catch (error) {
-      console.error("Error creating event:", error);
-      alert(error.message || "Failed to create event. Please try again.");
+      console.error("❌ Error saving event:", error);
+      alert(error.message || "Failed to save event. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (authLoading) {
+  if (authLoading || loadingEvent) {
     return (
       <div className="h-screen flex items-center justify-center font-black text-slate-400">
-        LOADING...
+        {loadingEvent ? "Loading event..." : "LOADING..."}
       </div>
     );
   }
@@ -245,7 +333,10 @@ const EventDeployment = () => {
               </span>
             </button>
             <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
-              Create <span className="text-indigo-600">New Event</span>
+              {isEditMode ? "Edit" : "Create"}{" "}
+              <span className="text-indigo-600">
+                {isEditMode ? "Event" : "New Event"}
+              </span>
             </h1>
             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest flex items-center gap-2 mt-2">
               <Settings size={14} /> Fill in the details to publish your event
@@ -623,11 +714,12 @@ const EventDeployment = () => {
               {loading ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Creating...
+                  {isEditMode ? "Updating..." : "Creating..."}
                 </>
               ) : (
                 <>
-                  <Zap size={18} /> Publish Event
+                  <Zap size={18} />{" "}
+                  {isEditMode ? "Update Event" : "Publish Event"}
                 </>
               )}
             </button>

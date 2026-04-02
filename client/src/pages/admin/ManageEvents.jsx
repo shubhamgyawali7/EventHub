@@ -1,12 +1,12 @@
 // src/pages/admin/AdminManageEvents.jsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  ShieldAlert, 
-  Calendar, 
-  MapPin, 
-  Building2, 
-  User, 
+import {
+  ShieldAlert,
+  Calendar,
+  MapPin,
+  Building2,
+  User,
   Tag,
   Search,
   Eye,
@@ -16,13 +16,22 @@ import {
   CheckCircle2,
   Clock,
   Users,
-  DollarSign
+  DollarSign,
 } from "lucide-react";
 import useAdmin from "../../hooks/useAdmin";
 import Footer from "../../components/common/Footer";
 
+// Normalize poster URLs
+const normalizePoster = (poster) => {
+  if (!poster) return null;
+  if (poster.startsWith("http")) return poster;
+  const BASE_URL = import.meta.env.VITE_BASE_API_URL || "http://localhost:5000";
+  return `${BASE_URL}${poster}`;
+};
+
 const AdminManageEvents = () => {
-  const { adminData, fetchEvents, approveEvent, rejectEvent, deleteEvent } = useAdmin();
+  const { adminData, fetchEvents, approveEvent, rejectEvent, deleteEvent } =
+    useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -40,7 +49,9 @@ const AdminManageEvents = () => {
   }, [adminData]);
 
   const handleApproveEvent = async (eventId) => {
-    if (window.confirm("Approve this event? It will be visible to all users.")) {
+    if (
+      window.confirm("Approve this event? It will be visible to all users.")
+    ) {
       try {
         await approveEvent(eventId);
         alert("Event approved successfully!");
@@ -64,7 +75,11 @@ const AdminManageEvents = () => {
   };
 
   const handleDeleteEvent = async (eventId, eventTitle) => {
-    if (window.confirm(`⚠️ WARNING: This will permanently delete "${eventTitle}". This action cannot be undone. Are you sure?`)) {
+    if (
+      window.confirm(
+        `⚠️ WARNING: This will permanently delete "${eventTitle}". This action cannot be undone. Are you sure?`,
+      )
+    ) {
       try {
         await deleteEvent(eventId);
         alert("Event deleted successfully!");
@@ -75,38 +90,39 @@ const AdminManageEvents = () => {
     }
   };
 
-  const filteredEvents = adminData.events?.filter(event => {
-    // Status filter - based on isVerified field
-    const eventStatus = event.isVerified ? "approved" : "pending";
-    if (statusFilter !== "all" && eventStatus !== statusFilter) {
-      return false;
-    }
+  const filteredEvents =
+    adminData.events?.filter((event) => {
+      // Status filter - based on isVerified field
+      const eventStatus = event.isVerified ? "approved" : "pending";
+      if (statusFilter !== "all" && eventStatus !== statusFilter) {
+        return false;
+      }
 
-    // Search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase();
-      const organizerName = event.organizer?.name || "";
-      const createdByName = event.createdBy?.name || "";
-      
-      return (
-        event.title?.toLowerCase().includes(searchLower) ||
-        organizerName.toLowerCase().includes(searchLower) ||
-        createdByName.toLowerCase().includes(searchLower) ||
-        event.category?.toLowerCase().includes(searchLower) ||
-        event.district?.toLowerCase().includes(searchLower) ||
-        event.venue?.toLowerCase().includes(searchLower)
-      );
-    }
-    
-    return true;
-  }) || [];
+      // Search filter
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        const organizerName = event.organizer?.name || "";
+        const createdByName = event.createdBy?.name || "";
+
+        return (
+          event.title?.toLowerCase().includes(searchLower) ||
+          organizerName.toLowerCase().includes(searchLower) ||
+          createdByName.toLowerCase().includes(searchLower) ||
+          event.category?.toLowerCase().includes(searchLower) ||
+          event.district?.toLowerCase().includes(searchLower) ||
+          event.venue?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    }) || [];
 
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
-      day: "numeric"
+      day: "numeric",
     });
   };
 
@@ -116,7 +132,7 @@ const AdminManageEvents = () => {
       month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
@@ -133,7 +149,7 @@ const AdminManageEvents = () => {
         </span>
       );
     }
-    
+
     // Check if event date has passed
     if (isEventExpired(event.eventDate)) {
       return (
@@ -142,7 +158,7 @@ const AdminManageEvents = () => {
         </span>
       );
     }
-    
+
     return (
       <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100">
         <AlertCircle size={12} /> Pending Verification
@@ -157,7 +173,9 @@ const AdminManageEvents = () => {
         <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-10">
           <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
             <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-black text-red-700 mb-2">Error Loading Events</h2>
+            <h2 className="text-xl font-black text-red-700 mb-2">
+              Error Loading Events
+            </h2>
             <p className="text-red-600 mb-4">{adminData.error}</p>
             <button
               onClick={() => fetchEvents()}
@@ -192,19 +210,27 @@ const AdminManageEvents = () => {
           {/* Stats */}
           <div className="flex gap-3">
             <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400">Total Events</p>
-              <p className="text-2xl font-black text-slate-800">{adminData.events?.length || 0}</p>
-            </div>
-            <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400">Pending</p>
-              <p className="text-2xl font-black text-amber-600">
-                {adminData.events?.filter(e => !e.isVerified).length || 0}
+              <p className="text-[10px] font-black uppercase text-slate-400">
+                Total Events
+              </p>
+              <p className="text-2xl font-black text-slate-800">
+                {adminData.events?.length || 0}
               </p>
             </div>
             <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
-              <p className="text-[10px] font-black uppercase text-slate-400">Verified</p>
+              <p className="text-[10px] font-black uppercase text-slate-400">
+                Pending
+              </p>
+              <p className="text-2xl font-black text-amber-600">
+                {adminData.events?.filter((e) => !e.isVerified).length || 0}
+              </p>
+            </div>
+            <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400">
+                Verified
+              </p>
               <p className="text-2xl font-black text-emerald-600">
-                {adminData.events?.filter(e => e.isVerified).length || 0}
+                {adminData.events?.filter((e) => e.isVerified).length || 0}
               </p>
             </div>
           </div>
@@ -214,7 +240,10 @@ const AdminManageEvents = () => {
         <div className="mb-8 space-y-4">
           <div className="flex gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+              <Search
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"
+                size={18}
+              />
               <input
                 type="text"
                 placeholder="Search by title, club, category, district, or venue..."
@@ -245,7 +274,9 @@ const AdminManageEvents = () => {
           {showFilters && (
             <div className="bg-white rounded-2xl border border-slate-200 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-black text-slate-700">Status Filter</h3>
+                <h3 className="text-sm font-black text-slate-700">
+                  Status Filter
+                </h3>
                 {statusFilter !== "all" && (
                   <button
                     onClick={() => setStatusFilter("all")}
@@ -258,8 +289,16 @@ const AdminManageEvents = () => {
               <div className="flex gap-2">
                 {[
                   { value: "all", label: "All Events", color: "slate" },
-                  { value: "pending", label: "Pending Verification", color: "amber" },
-                  { value: "approved", label: "Verified & Published", color: "emerald" }
+                  {
+                    value: "pending",
+                    label: "Pending Verification",
+                    color: "amber",
+                  },
+                  {
+                    value: "approved",
+                    label: "Verified & Published",
+                    color: "emerald",
+                  },
                 ].map((filter) => (
                   <button
                     key={filter.value}
@@ -273,11 +312,13 @@ const AdminManageEvents = () => {
                     {filter.label}
                     {filter.value !== "all" && (
                       <span className="ml-2 text-xs opacity-75">
-                        ({adminData.events?.filter(e => {
+                        (
+                        {adminData.events?.filter((e) => {
                           if (filter.value === "pending") return !e.isVerified;
                           if (filter.value === "approved") return e.isVerified;
                           return 0;
-                        }).length || 0})
+                        }).length || 0}
+                        )
                       </span>
                     )}
                   </button>
@@ -291,7 +332,10 @@ const AdminManageEvents = () => {
         {adminData.loading ? (
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100" />
+              <div
+                key={i}
+                className="h-32 bg-slate-50 animate-pulse rounded-2xl border border-slate-100"
+              />
             ))}
           </div>
         ) : filteredEvents.length === 0 ? (
@@ -300,9 +344,11 @@ const AdminManageEvents = () => {
             <div className="w-24 h-24 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
               <Calendar className="text-slate-300" size={48} />
             </div>
-            <h2 className="text-2xl font-black text-slate-800 mb-2">No Events Found</h2>
+            <h2 className="text-2xl font-black text-slate-800 mb-2">
+              No Events Found
+            </h2>
             <p className="text-slate-500">
-              {searchTerm || statusFilter !== "all" 
+              {searchTerm || statusFilter !== "all"
                 ? `No events matching your ${searchTerm ? `search "${searchTerm}"` : "filters"}`
                 : "No events have been created yet"}
             </p>
@@ -338,7 +384,7 @@ const AdminManageEvents = () => {
                       <div className="w-24 h-24 rounded-xl overflow-hidden shadow-md shrink-0 bg-linear-to-br from-indigo-100 to-purple-100">
                         {event.poster ? (
                           <img
-                            src={event.poster}
+                            src={normalizePoster(event.poster)}
                             alt={event.title}
                             className="w-full h-full object-cover"
                           />
@@ -357,40 +403,60 @@ const AdminManageEvents = () => {
                           </h3>
                           {getStatusBadge(event)}
                         </div>
-                        
+
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
                           {/* Organizer/Club */}
                           <div className="flex items-center gap-2 text-sm">
-                            <Building2 size={14} className="text-indigo-500 shrink-0" />
+                            <Building2
+                              size={14}
+                              className="text-indigo-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">Organizer:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                Organizer:
+                              </span>{" "}
                               {event.organizer?.name || "N/A"}
                             </span>
                           </div>
 
                           {/* Category */}
                           <div className="flex items-center gap-2 text-sm">
-                            <Tag size={14} className="text-emerald-500 shrink-0" />
+                            <Tag
+                              size={14}
+                              className="text-emerald-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">Category:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                Category:
+                              </span>{" "}
                               {event.category || "General"}
                             </span>
                           </div>
 
                           {/* Created By */}
                           <div className="flex items-center gap-2 text-sm">
-                            <User size={14} className="text-purple-500 shrink-0" />
+                            <User
+                              size={14}
+                              className="text-purple-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">Created by:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                Created by:
+                              </span>{" "}
                               {event.createdBy?.name || "Unknown"}
                             </span>
                           </div>
 
                           {/* District */}
                           <div className="flex items-center gap-2 text-sm">
-                            <MapPin size={14} className="text-red-500 shrink-0" />
+                            <MapPin
+                              size={14}
+                              className="text-red-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">District:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                District:
+                              </span>{" "}
                               {event.district || "N/A"}
                             </span>
                           </div>
@@ -398,9 +464,14 @@ const AdminManageEvents = () => {
                           {/* Venue */}
                           {event.venue && (
                             <div className="flex items-center gap-2 text-sm">
-                              <MapPin size={14} className="text-orange-500 shrink-0" />
+                              <MapPin
+                                size={14}
+                                className="text-orange-500 shrink-0"
+                              />
                               <span className="text-slate-600">
-                                <span className="font-medium text-slate-700">Venue:</span>{' '}
+                                <span className="font-medium text-slate-700">
+                                  Venue:
+                                </span>{" "}
                                 {event.venue}
                               </span>
                             </div>
@@ -408,9 +479,14 @@ const AdminManageEvents = () => {
 
                           {/* Event Date */}
                           <div className="flex items-center gap-2 text-sm">
-                            <Calendar size={14} className="text-slate-500 shrink-0" />
+                            <Calendar
+                              size={14}
+                              className="text-slate-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">Event Date:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                Event Date:
+                              </span>{" "}
                               {formatDateTime(event.eventDate)}
                             </span>
                           </div>
@@ -418,9 +494,14 @@ const AdminManageEvents = () => {
                           {/* Registration Deadline */}
                           {event.deadline && (
                             <div className="flex items-center gap-2 text-sm">
-                              <Clock size={14} className="text-slate-500 shrink-0" />
+                              <Clock
+                                size={14}
+                                className="text-slate-500 shrink-0"
+                              />
                               <span className="text-slate-600">
-                                <span className="font-medium text-slate-700">Deadline:</span>{' '}
+                                <span className="font-medium text-slate-700">
+                                  Deadline:
+                                </span>{" "}
                                 {formatDateTime(event.deadline)}
                               </span>
                             </div>
@@ -428,9 +509,14 @@ const AdminManageEvents = () => {
 
                           {/* Participant Count */}
                           <div className="flex items-center gap-2 text-sm">
-                            <Users size={14} className="text-blue-500 shrink-0" />
+                            <Users
+                              size={14}
+                              className="text-blue-500 shrink-0"
+                            />
                             <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">Participants:</span>{' '}
+                              <span className="font-medium text-slate-700">
+                                Participants:
+                              </span>{" "}
                               {event.participantCount || 0}
                             </span>
                           </div>
@@ -446,10 +532,11 @@ const AdminManageEvents = () => {
                       >
                         <Eye size={14} /> View Details
                       </Link>
-                      
-                                           
+
                       <button
-                        onClick={() => handleDeleteEvent(event._id, event.title)}
+                        onClick={() =>
+                          handleDeleteEvent(event._id, event.title)
+                        }
                         className="text-red-400 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
                         title="Delete Event"
                       >

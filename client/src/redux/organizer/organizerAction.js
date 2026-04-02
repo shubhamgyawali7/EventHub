@@ -5,7 +5,7 @@ export const registerClub = createAsyncThunk(
   "organizer/registerClub",
   async (clubData, { rejectWithValue }) => {
     try {
-      // console.log("Redux sending data to backend:", clubData);  
+      // console.log("Redux sending data to backend:", clubData);
       const response = await clubService.registerClub(clubData);
       // console.log("Redux received data:", response);
       return response;
@@ -22,7 +22,7 @@ export const fetchOrganizerEvents = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await clubService.getAllCreatedEvents();
-      return response.data;
+      return response; // ✅ FIX: response is already the array, not a wrapper object
     } catch (error) {
       return rejectWithValue(error.message || "Event data retrieved failed");
     }

@@ -11,6 +11,7 @@ const eventsSlice = createSlice({
   name: "events",
   initialState: {
     events: [],
+    selectedEvent: null, // for getEventById
     loading: false,
     error: null,
   },
@@ -35,7 +36,7 @@ const eventsSlice = createSlice({
       })
       .addCase(getEventById.fulfilled, (state, action) => {
         state.loading = false;
-        state.events = action.payload;
+        state.selectedEvent = action.payload; // single event, not the list
       })
       .addCase(getEventById.rejected, (state, action) => {
         state.loading = false;
@@ -48,20 +49,20 @@ const eventsSlice = createSlice({
       .addCase(createEvent.fulfilled, (state, action) => {
         state.loading = false;
         state.events.unshift(action.payload);
-        // state.events.push(action.payload);
       })
       .addCase(createEvent.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
       .addCase(updateEvent.fulfilled, (state, action) => {
+        const updated = action.payload;
         state.events = state.events.map((item) =>
-          item.id === action.payload.id ? action.payload : item,
+          (item._id || item.id) === (updated._id || updated.id) ? updated : item
         );
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.events = state.events.filter(
-          (item) => item.id !== action.payload,
+          (item) => (item._id || item.id) !== action.payload
         );
       });
   },
