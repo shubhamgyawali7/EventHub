@@ -27,7 +27,7 @@ const useOrganizer = () => {
   );
 
   // Memoize the fetch function to prevent recreation on every render
-  const fetchEvents = useCallback(() => {
+  const fetchClubEvents = useCallback(() => {
     return dispatch(fetchOrganizerEvents());
   }, [dispatch]);
 
@@ -40,7 +40,7 @@ const useOrganizer = () => {
 
   return {
     clubRegister,
-    fetchOrganizerEvents: fetchEvents,
+    fetchOrganizerEvents: fetchClubEvents,
     deleteOrganizerEvent: deleteEvent,
     ...orgEvents,
   };

@@ -76,7 +76,7 @@ const Events = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-[#4F46E5]/10 to-transparent pt-32 pb-16 px-6 text-center">
+      <section className="bg-linear-to-b from-[#4F46E5]/10 to-transparent pt-32 pb-16 px-6 text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-[#0F172A] mb-4">
           Discover <span className="text-[#4F46E5]">Amazing</span> Events
         </h1>
