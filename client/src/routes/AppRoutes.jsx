@@ -27,7 +27,7 @@ import ClubDashboard from "../pages/club/Dashboard";
 import ClubCreateEvent from "../pages/club/EventCreate";
 import ClubEventList from "../pages/club/EventList";
 import ClubEventDetails from "../pages/club/EventDetails";
-import ClubPortal from "../components/organizer/ClubPortal.jsx";
+import ClubPortal from "../components/organizer/ClubRedirection.jsx";
 import ClubRegistration from "../pages/club/Register.jsx";
 
 // Admin Pages
@@ -130,7 +130,7 @@ const AppRoutes = () => {
         }
       />
 
-       <Route
+      <Route
         path="/club/my-events/:id"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
