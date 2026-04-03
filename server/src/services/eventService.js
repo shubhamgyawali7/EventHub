@@ -60,13 +60,16 @@ const createEvent = async (data) => {
 };
 
 const getAllEvents = async () => {
-  return await Events.find().populate("organizer", "name logo district");
+  return await Events.find().populate(
+    "organizer",
+    "name logo district email website facebook github instagram twitter linkedin youtube",
+  );
 };
 
 const getEventById = async (eventId) => {
   return await Events.findById(eventId).populate(
     "organizer",
-    "name logo district email website",
+    "name logo district email website facebook github instagram twitter linkedin youtube",
   );
 };
 

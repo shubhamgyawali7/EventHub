@@ -1,5 +1,5 @@
 // src/pages/admin/AdminManageEvents.jsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ShieldAlert,
@@ -13,7 +13,6 @@ import {
   Filter,
   X,
   AlertCircle,
-  CheckCircle2,
   Clock,
   Users,
   DollarSign,
@@ -30,11 +29,34 @@ const normalizePoster = (poster) => {
 };
 
 const AdminManageEvents = () => {
-  const { adminData, fetchEvents, approveEvent, rejectEvent, deleteEvent } =
-    useAdmin();
+  const { adminData, fetchEvents, deleteEvent } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 5;
+
+  const now = useMemo(() => new Date(), []);
+
+  const isEventCompleted = useMemo(
+    () => (event) =>
+      event.eventDate ? new Date(event.eventDate) < now : false,
+    [now],
+  );
+
+  const isDeadlineCompleted = useMemo(
+    () => (event) => (event.deadline ? new Date(event.deadline) < now : false),
+    [now],
+  );
+
+  const getEventStatus = useMemo(
+    () => (event) => {
+      if (isEventCompleted(event)) return "completed";
+      if (isDeadlineCompleted(event)) return "deadline";
+      return "active";
+    },
+    [isEventCompleted, isDeadlineCompleted],
+  );
 
   useEffect(() => {
     console.log("Fetching events...");
@@ -47,32 +69,6 @@ const AdminManageEvents = () => {
     console.log("Loading state:", adminData.loading);
     console.log("Error state:", adminData.error);
   }, [adminData]);
-
-  const handleApproveEvent = async (eventId) => {
-    if (
-      window.confirm("Approve this event? It will be visible to all users.")
-    ) {
-      try {
-        await approveEvent(eventId);
-        alert("Event approved successfully!");
-      } catch (error) {
-        console.error("Failed to approve event:", error);
-        alert(error.message || "Failed to approve event. Please try again.");
-      }
-    }
-  };
-
-  const handleRejectEvent = async (eventId) => {
-    if (window.confirm("Reject this event? The club will be notified.")) {
-      try {
-        await rejectEvent(eventId);
-        alert("Event rejected successfully!");
-      } catch (error) {
-        console.error("Failed to reject event:", error);
-        alert(error.message || "Failed to reject event. Please try again.");
-      }
-    }
-  };
 
   const handleDeleteEvent = async (eventId, eventTitle) => {
     if (
@@ -90,41 +86,48 @@ const AdminManageEvents = () => {
     }
   };
 
-  const filteredEvents =
-    adminData.events?.filter((event) => {
-      // Status filter - based on isVerified field
-      const eventStatus = event.isVerified ? "approved" : "pending";
-      if (statusFilter !== "all" && eventStatus !== statusFilter) {
-        return false;
-      }
+  const filteredEvents = useMemo(() => {
+    return (
+      adminData.events?.filter((event) => {
+        const status = getEventStatus(event);
+        if (statusFilter !== "all" && status !== statusFilter) {
+          return false;
+        }
 
-      // Search filter
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const organizerName = event.organizer?.name || "";
-        const createdByName = event.createdBy?.name || "";
+        if (searchTerm) {
+          const searchLower = searchTerm.toLowerCase();
+          const organizerName = event.organizer?.name || "";
+          const createdByName = event.createdBy?.name || "";
 
-        return (
-          event.title?.toLowerCase().includes(searchLower) ||
-          organizerName.toLowerCase().includes(searchLower) ||
-          createdByName.toLowerCase().includes(searchLower) ||
-          event.category?.toLowerCase().includes(searchLower) ||
-          event.district?.toLowerCase().includes(searchLower) ||
-          event.venue?.toLowerCase().includes(searchLower)
-        );
-      }
+          return (
+            event.title?.toLowerCase().includes(searchLower) ||
+            organizerName.toLowerCase().includes(searchLower) ||
+            createdByName.toLowerCase().includes(searchLower) ||
+            event.category?.toLowerCase().includes(searchLower) ||
+            event.district?.toLowerCase().includes(searchLower) ||
+            event.venue?.toLowerCase().includes(searchLower)
+          );
+        }
 
-      return true;
-    }) || [];
+        return true;
+      }) || []
+    );
+  }, [adminData.events, searchTerm, statusFilter, getEventStatus]);
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredEvents.length / eventsPerPage),
+  );
+  const pageToShow = Math.min(currentPage, totalPages);
+
+  const paginatedEvents = useMemo(
+    () =>
+      filteredEvents.slice(
+        (pageToShow - 1) * eventsPerPage,
+        pageToShow * eventsPerPage,
+      ),
+    [filteredEvents, pageToShow, eventsPerPage],
+  );
 
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
@@ -136,32 +139,26 @@ const AdminManageEvents = () => {
     });
   };
 
-  const isEventExpired = (eventDate) => {
-    if (!eventDate) return false;
-    return new Date(eventDate) < new Date();
-  };
-
   const getStatusBadge = (event) => {
-    if (event.isVerified) {
+    if (isEventCompleted(event)) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-          <CheckCircle2 size={12} /> Verified & Published
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-gray-50 text-gray-500 border border-gray-100">
+          <Clock size={12} /> Completed
         </span>
       );
     }
 
-    // Check if event date has passed
-    if (isEventExpired(event.eventDate)) {
+    if (isDeadlineCompleted(event)) {
       return (
-        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-gray-50 text-gray-500 border border-gray-100">
-          <Clock size={12} /> Expired
+        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100">
+          <AlertCircle size={12} /> Deadline Passed
         </span>
       );
     }
 
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-600 border border-amber-100">
-        <AlertCircle size={12} /> Pending Verification
+      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
+        <Users size={12} /> Active Event
       </span>
     );
   };
@@ -219,18 +216,31 @@ const AdminManageEvents = () => {
             </div>
             <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
               <p className="text-[10px] font-black uppercase text-slate-400">
-                Pending
+                Active Events
               </p>
-              <p className="text-2xl font-black text-amber-600">
-                {adminData.events?.filter((e) => !e.isVerified).length || 0}
+              <p className="text-2xl font-black text-indigo-600">
+                {adminData.events?.filter(
+                  (e) => !isEventCompleted(e) && !isDeadlineCompleted(e),
+                ).length || 0}
               </p>
             </div>
             <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
               <p className="text-[10px] font-black uppercase text-slate-400">
-                Verified
+                Completed Events
               </p>
               <p className="text-2xl font-black text-emerald-600">
-                {adminData.events?.filter((e) => e.isVerified).length || 0}
+                {adminData.events?.filter((e) => isEventCompleted(e)).length ||
+                  0}
+              </p>
+            </div>
+            <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm">
+              <p className="text-[10px] font-black uppercase text-slate-400">
+                Deadline Passed
+              </p>
+              <p className="text-2xl font-black text-amber-600">
+                {adminData.events?.filter(
+                  (e) => isDeadlineCompleted(e) && !isEventCompleted(e),
+                ).length || 0}
               </p>
             </div>
           </div>
@@ -248,7 +258,10 @@ const AdminManageEvents = () => {
                 type="text"
                 placeholder="Search by title, club, category, district, or venue..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none transition bg-white"
               />
             </div>
@@ -289,20 +302,20 @@ const AdminManageEvents = () => {
               <div className="flex gap-2">
                 {[
                   { value: "all", label: "All Events", color: "slate" },
+                  { value: "active", label: "Active", color: "indigo" },
+                  { value: "completed", label: "Completed", color: "emerald" },
                   {
-                    value: "pending",
-                    label: "Pending Verification",
+                    value: "deadline",
+                    label: "Deadline Passed",
                     color: "amber",
-                  },
-                  {
-                    value: "approved",
-                    label: "Verified & Published",
-                    color: "emerald",
                   },
                 ].map((filter) => (
                   <button
                     key={filter.value}
-                    onClick={() => setStatusFilter(filter.value)}
+                    onClick={() => {
+                      setStatusFilter(filter.value);
+                      setCurrentPage(1);
+                    }}
                     className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
                       statusFilter === filter.value
                         ? `bg-${filter.color}-100 text-${filter.color}-700 border border-${filter.color}-200`
@@ -313,11 +326,9 @@ const AdminManageEvents = () => {
                     {filter.value !== "all" && (
                       <span className="ml-2 text-xs opacity-75">
                         (
-                        {adminData.events?.filter((e) => {
-                          if (filter.value === "pending") return !e.isVerified;
-                          if (filter.value === "approved") return e.isVerified;
-                          return 0;
-                        }).length || 0}
+                        {adminData.events?.filter(
+                          (e) => getEventStatus(e) === filter.value,
+                        ).length || 0}
                         )
                       </span>
                     )}
@@ -365,189 +376,220 @@ const AdminManageEvents = () => {
             )}
           </div>
         ) : (
-          // Horizontal Cards Grid
-          <div className="space-y-4">
-            {filteredEvents.map((event) => (
-              <div
-                key={event._id}
-                className={`bg-white rounded-2xl border transition-all hover:shadow-md ${
-                  !event.isVerified
-                    ? "border-amber-200 shadow-amber-50/50"
-                    : "border-slate-200"
-                }`}
-              >
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-4">
-                    {/* Left Section - Event Image & Basic Info */}
-                    <div className="flex gap-5 flex-1">
-                      {/* Event Poster/Image */}
-                      <div className="w-24 h-24 rounded-xl overflow-hidden shadow-md shrink-0 bg-linear-to-br from-indigo-100 to-purple-100">
-                        {event.poster ? (
-                          <img
-                            src={normalizePoster(event.poster)}
-                            alt={event.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <Calendar className="text-indigo-400" size={32} />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Event Details */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="text-lg font-black text-slate-800">
-                            {event.title}
-                          </h3>
-                          {getStatusBadge(event)}
+          <>
+            {/* Horizontal Cards Grid */}
+            <div className="space-y-4">
+              {paginatedEvents.map((event) => (
+                <div
+                  key={event._id}
+                  className={`bg-white rounded-2xl border transition-all hover:shadow-md ${
+                    isEventCompleted(event)
+                      ? "border-slate-200"
+                      : isDeadlineCompleted(event)
+                        ? "border-amber-200 shadow-amber-50/50"
+                        : "border-indigo-200"
+                  }`}
+                >
+                  <div className="p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      {/* Left Section - Event Image & Basic Info */}
+                      <div className="flex gap-5 flex-1">
+                        {/* Event Poster/Image */}
+                        <div className="w-24 h-24 rounded-xl overflow-hidden shadow-md shrink-0 bg-linear-to-br from-indigo-100 to-purple-100">
+                          {event.poster ? (
+                            <img
+                              src={normalizePoster(event.poster)}
+                              alt={event.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Calendar className="text-indigo-400" size={32} />
+                            </div>
+                          )}
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
-                          {/* Organizer/Club */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <Building2
-                              size={14}
-                              className="text-indigo-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                Organizer:
-                              </span>{" "}
-                              {event.organizer?.name || "N/A"}
-                            </span>
+                        {/* Event Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-3 mb-2 flex-wrap">
+                            <h3 className="text-lg font-black text-slate-800">
+                              {event.title}
+                            </h3>
+                            {getStatusBadge(event)}
                           </div>
 
-                          {/* Category */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <Tag
-                              size={14}
-                              className="text-emerald-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                Category:
-                              </span>{" "}
-                              {event.category || "General"}
-                            </span>
-                          </div>
-
-                          {/* Created By */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <User
-                              size={14}
-                              className="text-purple-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                Created by:
-                              </span>{" "}
-                              {event.createdBy?.name || "Unknown"}
-                            </span>
-                          </div>
-
-                          {/* District */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <MapPin
-                              size={14}
-                              className="text-red-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                District:
-                              </span>{" "}
-                              {event.district || "N/A"}
-                            </span>
-                          </div>
-
-                          {/* Venue */}
-                          {event.venue && (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-2">
+                            {/* Organizer/Club */}
                             <div className="flex items-center gap-2 text-sm">
-                              <MapPin
+                              <Building2
                                 size={14}
-                                className="text-orange-500 shrink-0"
+                                className="text-indigo-500 shrink-0"
                               />
                               <span className="text-slate-600">
                                 <span className="font-medium text-slate-700">
-                                  Venue:
+                                  Organizer:
                                 </span>{" "}
-                                {event.venue}
+                                {event.organizer?.name || "N/A"}
                               </span>
                             </div>
-                          )}
 
-                          {/* Event Date */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <Calendar
-                              size={14}
-                              className="text-slate-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                Event Date:
-                              </span>{" "}
-                              {formatDateTime(event.eventDate)}
-                            </span>
-                          </div>
-
-                          {/* Registration Deadline */}
-                          {event.deadline && (
+                            {/* Category */}
                             <div className="flex items-center gap-2 text-sm">
-                              <Clock
+                              <Tag
+                                size={14}
+                                className="text-emerald-500 shrink-0"
+                              />
+                              <span className="text-slate-600">
+                                <span className="font-medium text-slate-700">
+                                  Category:
+                                </span>{" "}
+                                {event.category || "General"}
+                              </span>
+                            </div>
+
+                            {/* Created By */}
+                            <div className="flex items-center gap-2 text-sm">
+                              <User
+                                size={14}
+                                className="text-purple-500 shrink-0"
+                              />
+                              <span className="text-slate-600">
+                                <span className="font-medium text-slate-700">
+                                  Created by:
+                                </span>{" "}
+                                {event.createdBy?.name || "Unknown"}
+                              </span>
+                            </div>
+
+                            {/* District */}
+                            <div className="flex items-center gap-2 text-sm">
+                              <MapPin
+                                size={14}
+                                className="text-red-500 shrink-0"
+                              />
+                              <span className="text-slate-600">
+                                <span className="font-medium text-slate-700">
+                                  District:
+                                </span>{" "}
+                                {event.district || "N/A"}
+                              </span>
+                            </div>
+
+                            {/* Venue */}
+                            {event.venue && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <MapPin
+                                  size={14}
+                                  className="text-orange-500 shrink-0"
+                                />
+                                <span className="text-slate-600">
+                                  <span className="font-medium text-slate-700">
+                                    Venue:
+                                  </span>{" "}
+                                  {event.venue}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Event Date */}
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar
                                 size={14}
                                 className="text-slate-500 shrink-0"
                               />
                               <span className="text-slate-600">
                                 <span className="font-medium text-slate-700">
-                                  Deadline:
+                                  Event Date:
                                 </span>{" "}
-                                {formatDateTime(event.deadline)}
+                                {formatDateTime(event.eventDate)}
                               </span>
                             </div>
-                          )}
 
-                          {/* Participant Count */}
-                          <div className="flex items-center gap-2 text-sm">
-                            <Users
-                              size={14}
-                              className="text-blue-500 shrink-0"
-                            />
-                            <span className="text-slate-600">
-                              <span className="font-medium text-slate-700">
-                                Participants:
-                              </span>{" "}
-                              {event.participantCount || 0}
-                            </span>
+                            {/* Registration Deadline */}
+                            {event.deadline && (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Clock
+                                  size={14}
+                                  className="text-slate-500 shrink-0"
+                                />
+                                <span className="text-slate-600">
+                                  <span className="font-medium text-slate-700">
+                                    Deadline:
+                                  </span>{" "}
+                                  {formatDateTime(event.deadline)}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Participant Count */}
+                            <div className="flex items-center gap-2 text-sm">
+                              <Users
+                                size={14}
+                                className="text-blue-500 shrink-0"
+                              />
+                              <span className="text-slate-600">
+                                <span className="font-medium text-slate-700">
+                                  Participants:
+                                </span>{" "}
+                                {event.participantCount || 0}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right Section - Actions */}
-                    <div className="flex flex-col items-end gap-2">
-                      <Link
-                        to={`/admin/event/${event._id}`}
-                        className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap"
-                      >
-                        <Eye size={14} /> View Details
-                      </Link>
+                      {/* Right Section - Actions */}
+                      <div className="flex flex-col items-end gap-2">
+                        <Link
+                          to={`/admin/event/${event._id}`}
+                          className="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <Eye size={14} /> View Details
+                        </Link>
 
-                      <button
-                        onClick={() =>
-                          handleDeleteEvent(event._id, event.title)
-                        }
-                        className="text-red-400 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-                        title="Delete Event"
-                      >
-                        Delete
-                      </button>
+                        <button
+                          onClick={() =>
+                            handleDeleteEvent(event._id, event.title)
+                          }
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                          title="Delete Event"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-6 flex items-center justify-center gap-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Prev
+                </button>
+                <span className="text-xs font-bold text-slate-600">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </main>
 

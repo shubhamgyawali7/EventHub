@@ -136,7 +136,7 @@ const ClubEventList = () => {
           <div className="space-y-8">
             {/* Section Title */}
             <div className="flex items-center gap-4">
-              <div className="h-1 w-12 bg-gradient-to-r from-indigo-600 to-indigo-300 rounded-full"></div>
+              <div className="h-1 w-12 bg-linear-to-r from-indigo-600 to-indigo-300 rounded-full"></div>
               <h2 className="text-2xl font-black text-slate-900 tracking-tight">
                 Your Events (Card View)
               </h2>

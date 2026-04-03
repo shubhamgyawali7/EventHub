@@ -1,12 +1,5 @@
-import React, { useState, useEffect } from "react";
-import {
-  Users,
-  Calendar,
-  MapPin,
-  Clock,
-  AlertCircle,
-  Globe,
-} from "lucide-react";
+import React, { useMemo } from "react";
+import { Users, Calendar, MapPin, Clock, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CountdownTimer from "./CountdownTimer";
 
@@ -21,15 +14,10 @@ const EventCard = ({
   capacity,
   participantCount,
   currentParticipants,
-  direction = "left",
   eventType = "physical",
 }) => {
   const navigate = useNavigate();
   const eventId = _id || id;
-  const animationClass =
-    direction === "left" ? "animate-slideInLeft" : "animate-slideInRight";
-  const [timeUntilDeadline, setTimeUntilDeadline] = useState(null);
-  const [showUrgentDeadline, setShowUrgentDeadline] = useState(false);
 
   const formatDate = (dateString) => {
     if (!dateString) return "TBD";
@@ -48,43 +36,6 @@ const EventCard = ({
     });
   };
 
-  // Calculate time until deadline
-  useEffect(() => {
-    if (deadline) {
-      const calculateTimeLeft = () => {
-        const now = new Date();
-        const deadlineDate = new Date(deadline);
-        const difference = deadlineDate - now;
-
-        if (difference > 0) {
-          const hoursLeft = Math.floor(difference / (1000 * 60 * 60));
-          const minutesLeft = Math.floor(
-            (difference % (1000 * 60 * 60)) / (1000 * 60),
-          );
-
-          // Check if deadline is within 24 hours
-          if (hoursLeft < 24) {
-            setShowUrgentDeadline(true);
-            if (hoursLeft < 1) {
-              setTimeUntilDeadline(`${minutesLeft} minutes`);
-            } else {
-              setTimeUntilDeadline(`${hoursLeft} hours`);
-            }
-          } else {
-            setShowUrgentDeadline(false);
-          }
-        } else {
-          setShowUrgentDeadline(false);
-        }
-      };
-
-      calculateTimeLeft();
-      const timer = setInterval(calculateTimeLeft, 60000); // Update every minute
-
-      return () => clearInterval(timer);
-    }
-  }, [deadline]);
-
   const totalCapacity = capacity || participantCount || 100;
   const currentParticipantsCount = currentParticipants || 0;
   const availableSeats = totalCapacity - currentParticipantsCount;
@@ -93,6 +44,13 @@ const EventCard = ({
     : 0;
 
   const isDeadlinePassed = deadline ? new Date(deadline) < new Date() : false;
+
+  const isEventCompleted = useMemo(() => {
+    if (!eventDate) return false;
+    const now = new Date();
+    const eventDateTime = new Date(eventDate);
+    return eventDateTime < new Date(now.getTime() - 24 * 60 * 60 * 1000); // More than 24 hours ago
+  }, [eventDate]);
 
   return (
     <div
@@ -104,7 +62,9 @@ const EventCard = ({
           <img
             src={poster}
             alt={title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${
+              isEventCompleted ? "grayscale" : ""
+            }`}
           />
         ) : (
           <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
@@ -114,18 +74,18 @@ const EventCard = ({
 
         {/* Event Date Badge */}
         <div className="absolute top-3 left-3 z-10">
-          <CountdownTimer targetDate={eventDate} />
+          <CountdownTimer targetDate={eventDate} deadline={deadline} />
         </div>
 
-        {/* Urgent Deadline Badge - Only shows if within 24 hours */}
-        {showUrgentDeadline && !isDeadlinePassed && (
+        {/* Urgent Deadline Badge - Now handled by CountdownTimer */}
+        {/* {showUrgentDeadline && !isDeadlinePassed && (
           <div className="absolute top-3 right-3 z-10">
             <div className="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg animate-pulse flex items-center gap-1.5">
               <AlertCircle size={12} />
               <span>Closes in {timeUntilDeadline}</span>
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
@@ -154,23 +114,19 @@ const EventCard = ({
             </span>
           </div>
 
-          {/* Deadline Section - Shows differently based on urgency */}
+          {/* Deadline Section */}
           {deadline && (
             <div
               className={`flex items-center text-sm gap-2 font-medium p-1.5 rounded-lg border ${
-                showUrgentDeadline && !isDeadlinePassed
-                  ? "bg-red-50 text-red-600 border-red-100"
-                  : isDeadlinePassed
-                    ? "bg-gray-50 text-gray-500 border-gray-100"
-                    : "bg-amber-50 text-amber-600 border-amber-100"
+                isDeadlinePassed
+                  ? "bg-gray-50 text-gray-500 border-gray-100"
+                  : "bg-amber-50 text-amber-600 border-amber-100"
               }`}
             >
               <Clock size={16} />
               <span className="truncate">
                 {isDeadlinePassed ? (
                   "Registration Closed"
-                ) : showUrgentDeadline ? (
-                  <>⚠️ Registration closes in {timeUntilDeadline}</>
                 ) : (
                   <>Deadline: {formatDate(deadline)}</>
                 )}
