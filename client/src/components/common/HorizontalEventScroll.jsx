@@ -87,7 +87,7 @@ const HorizontalEventScroll = ({
   return (
     <div className="relative group">
       {/* Left Arrow */}
-      {showLeftArrow && (
+      {/* {showLeftArrow && (
         <button
           onClick={() => scroll("left")}
           className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-slate-900 p-2 sm:p-3 rounded-full shadow-lg transition-all active:scale-95 backdrop-blur-sm border border-slate-200"
@@ -98,7 +98,7 @@ const HorizontalEventScroll = ({
       )}
 
       {/* Right Arrow */}
-      {showRightArrow && (
+      {/* {showRightArrow && (
         <button
           onClick={() => scroll("right")}
           className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white text-slate-900 p-2 sm:p-3 rounded-full shadow-lg transition-all active:scale-95 backdrop-blur-sm border border-slate-200"
@@ -106,7 +106,7 @@ const HorizontalEventScroll = ({
         >
           <ChevronRight size={20} />
         </button>
-      )}
+      )}  */}
 
       {/* Scrollable Container */}
       <div

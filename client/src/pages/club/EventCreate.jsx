@@ -46,6 +46,7 @@ const EventDeployment = () => {
     posterPreview: null,
     category: "Workshop",
     district: "Kathmandu",
+    eventType: "physical",
     venue: "",
     eventDate: "",
     eventTime: "",
@@ -74,9 +75,12 @@ const EventDeployment = () => {
               posterPreview: event.poster || null,
               category: event.category || "Workshop",
               district: event.district || "Kathmandu",
+              eventType: event.eventType || "physical",
               venue: event.venue || "",
               eventDate: event.eventDate ? event.eventDate.split("T")[0] : "",
-              eventTime: event.eventTime || "",
+              eventTime: event.eventDate
+                ? event.eventDate.split("T")[1]?.substring(0, 5) || ""
+                : "",
               deadline: event.deadline ? event.deadline.split("T")[0] : "",
               participantCount: event.participantCount || 50,
               tags: event.tags?.join(",") || "",
@@ -181,11 +185,16 @@ const EventDeployment = () => {
       "description",
       "category",
       "district",
-      "venue",
       "eventDate",
       "eventTime",
       "deadline",
     ];
+
+    // Venue is required only for physical events
+    if (formData.eventType === "physical") {
+      requiredFields.push("venue");
+    }
+
     for (const field of requiredFields) {
       if (!formData[field]) {
         alert(
@@ -206,7 +215,8 @@ const EventDeployment = () => {
       return false;
     }
 
-    if (!selectedLocation && !isEditMode) {
+    // Location selection required only for physical events
+    if (formData.eventType === "physical" && !selectedLocation && !isEditMode) {
       alert("Please select a location on the map");
       return false;
     }
@@ -245,12 +255,16 @@ const EventDeployment = () => {
     setLoading(true);
 
     try {
+      console.log(
+        "🚀 [FRONTEND] handleSubmit called, eventType=",
+        formData.eventType,
+      );
       const formDataToSend = new FormData();
 
       // Append poster: new file if selected, otherwise keep existing (backend handles)
       if (posterFile) {
         formDataToSend.append("poster", posterFile);
-        console.log("✅ New poster file selected");
+        console.log("✅ [FRONTEND] Poster file selected:", posterFile.name);
       } else if (isEditMode) {
         console.log(
           "⚠️ Edit mode without new poster - backend will keep existing",
@@ -262,7 +276,13 @@ const EventDeployment = () => {
       formDataToSend.append("description", formData.description.trim());
       formDataToSend.append("category", formData.category);
       formDataToSend.append("district", formData.district);
-      formDataToSend.append("venue", formData.venue.trim());
+      formDataToSend.append("eventType", formData.eventType);
+
+      // Only append venue for physical events
+      if (formData.eventType === "physical") {
+        formDataToSend.append("venue", formData.venue.trim());
+      }
+
       formDataToSend.append("eventDate", formData.eventDate);
       formDataToSend.append("eventTime", formData.eventTime);
       formDataToSend.append("deadline", formData.deadline);
@@ -271,37 +291,53 @@ const EventDeployment = () => {
       formDataToSend.append("isPaid", formData.isPaid);
       formDataToSend.append("price", formData.price);
 
-      // Location data - always include if available (can be updated)
-      if (formData.googleMapUrl) {
-        formDataToSend.append("googleMapUrl", formData.googleMapUrl);
-      }
-      if (formData.latitude) {
-        formDataToSend.append("latitude", formData.latitude);
-      }
-      if (formData.longitude) {
-        formDataToSend.append("longitude", formData.longitude);
+      // Location data - only for physical events
+      if (formData.eventType === "physical") {
+        if (formData.googleMapUrl) {
+          formDataToSend.append("googleMapUrl", formData.googleMapUrl);
+        }
+        if (formData.latitude) {
+          formDataToSend.append("latitude", formData.latitude);
+        }
+        if (formData.longitude) {
+          formDataToSend.append("longitude", formData.longitude);
+        }
       }
 
       console.log(
-        `${isEditMode ? "📝 Updating" : "✨ Creating"} event with FormData`,
+        `${isEditMode ? "📝 [FRONTEND] Updating" : "✨ [FRONTEND] Creating"} event`,
       );
+      console.log("📦 [FRONTEND] Form data:", {
+        eventType: formData.eventType,
+        title: formData.title,
+        eventDate: formData.eventDate,
+        eventTime: formData.eventTime,
+        deadline: formData.deadline,
+        venue: formData.venue,
+      });
 
       let result;
       if (isEditMode && eventId) {
         // Update existing event
+        console.log("🔄 [FRONTEND] Sending UPDATE request to backend...");
         result = await updateEvent({ id: eventId, data: formDataToSend });
-        console.log("✅ Event updated:", result);
+        console.log("✅ [FRONTEND] UPDATE response:", result);
         alert("Event updated successfully!");
       } else {
         // Create new event
+        console.log("🔄 [FRONTEND] Sending CREATE request to backend...");
         result = await createEvent(formDataToSend);
-        console.log("✅ Event created:", result);
+        console.log("✅ [FRONTEND] CREATE response:", result);
         alert("Event created successfully!");
       }
 
       navigate("/club/my-events");
     } catch (error) {
-      console.error("❌ Error saving event:", error);
+      console.error("❌ [FRONTEND] Error in handleSubmit:");
+      console.error("Message:", error.message);
+      console.error("Full error:", error);
+      console.error("Response data:", error.response?.data);
+      console.error("Response status:", error.response?.status);
       alert(error.message || "Failed to save event. Please try again.");
     } finally {
       setLoading(false);
@@ -394,69 +430,168 @@ const EventDeployment = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                    <MapPin size={12} /> District *
-                  </label>
-                  <select
-                    name="district"
-                    className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
-                    onChange={handleChange}
-                    value={formData.district}
-                    required
+              {/* Event Type Toggle */}
+              <div className="space-y-4 p-8 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-3xl border border-indigo-100">
+                <label className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <Globe size={12} /> Event Type *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`relative cursor-pointer group`}
+                    onClick={() =>
+                      setFormData({ ...formData, eventType: "physical" })
+                    }
                   >
-                    {[
-                      "Kathmandu",
-                      "Lalitpur",
-                      "Bhaktapur",
-                      "Pokhara",
-                      "Chitwan",
-                      "Butwal",
-                    ].map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                    <Search size={12} /> Venue Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="venue"
-                    placeholder="e.g. City Hall, Room 204"
-                    className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
-                    onChange={handleChange}
-                    value={formData.venue}
-                    required
-                  />
+                    <input
+                      type="radio"
+                      name="eventType"
+                      value="physical"
+                      checked={formData.eventType === "physical"}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.eventType === "physical"
+                          ? "border-indigo-600 bg-white shadow-lg"
+                          : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
+                      }`}
+                    >
+                      <MapPin
+                        size={20}
+                        className={`mx-auto mb-2 ${
+                          formData.eventType === "physical"
+                            ? "text-indigo-600"
+                            : "text-indigo-400"
+                        }`}
+                      />
+                      <p className="text-sm font-black text-indigo-900">
+                        Physical
+                      </p>
+                      <p className="text-[9px] text-slate-500 mt-1">In-venue</p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`relative cursor-pointer group`}
+                    onClick={() =>
+                      setFormData({ ...formData, eventType: "online" })
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="eventType"
+                      value="online"
+                      checked={formData.eventType === "online"}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.eventType === "online"
+                          ? "border-blue-600 bg-white shadow-lg"
+                          : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
+                      }`}
+                    >
+                      <Globe
+                        size={20}
+                        className={`mx-auto mb-2 ${
+                          formData.eventType === "online"
+                            ? "text-blue-600"
+                            : "text-indigo-400"
+                        }`}
+                      />
+                      <p className="text-sm font-black text-indigo-900">
+                        Online
+                      </p>
+                      <p className="text-[9px] text-slate-500 mt-1">Virtual</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Location Picker */}
+              {/* Always show District */}
               <div className="space-y-4">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                  <Navigation size={12} /> Location on Map *
+                  <MapPin size={12} /> District *
                 </label>
-                <MapPicker
-                  onLocationSelect={handleLocationSelect}
-                  initialLocation={selectedLocation}
-                  searchQuery={formData.district}
-                />
-                {selectedLocation && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
-                    <p className="text-xs text-green-700 flex items-center gap-1">
-                      <MapPin size={12} />
-                      Location selected:{" "}
-                      {selectedLocation.address ||
-                        `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}
+                <select
+                  name="district"
+                  className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
+                  onChange={handleChange}
+                  value={formData.district}
+                  required
+                >
+                  {[
+                    "Kathmandu",
+                    "Lalitpur",
+                    "Bhaktapur",
+                    "Pokhara",
+                    "Chitwan",
+                    "Butwal",
+                  ].map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.eventType === "physical" && (
+                <>
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                      <Search size={12} /> Venue Name *
+                    </label>
+                    <input
+                      type="text"
+                      name="venue"
+                      placeholder="e.g. City Hall, Room 204"
+                      className="w-full bg-slate-50 border-none rounded-3xl py-6 px-8 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800"
+                      onChange={handleChange}
+                      value={formData.venue}
+                      required={formData.eventType === "physical"}
+                    />
+                  </div>
+
+                  {/* Location Picker */}
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                      <Navigation size={12} /> Location on Map *
+                    </label>
+                    <MapPicker
+                      onLocationSelect={handleLocationSelect}
+                      initialLocation={selectedLocation}
+                      searchQuery={formData.district}
+                    />
+                    {selectedLocation && (
+                      <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-2xl">
+                        <p className="text-xs text-green-700 flex items-center gap-1">
+                          <MapPin size={12} />
+                          Location selected:{" "}
+                          {selectedLocation.address ||
+                            `${selectedLocation.lat.toFixed(6)}, ${selectedLocation.lng.toFixed(6)}`}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {formData.eventType === "online" && (
+                <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl border border-blue-100 flex items-center gap-4">
+                  <Globe size={24} className="text-blue-600 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-black text-blue-900">
+                      Online Event Confirmed
+                    </p>
+                    <p className="text-xs text-slate-600 mt-1">
+                      Venue and location are not required for this event.
+                      Participants will join online.
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </section>
 
             <section className="bg-white p-10 rounded-[4rem] border border-slate-100 shadow-sm space-y-8">

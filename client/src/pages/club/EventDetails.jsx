@@ -18,6 +18,7 @@ import {
   DollarSign,
   Zap,
   Eye,
+  Globe,
 } from "lucide-react";
 import ClubSidebar from "./ClubSidebar";
 import useEvents from "../../hooks/useEvents";
@@ -224,17 +225,40 @@ const ClubEventDetails = () => {
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
-                  <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600">
-                    <MapPin size={20} />
+                  <div
+                    className={`p-3 rounded-2xl ${
+                      event.eventType === "online"
+                        ? "bg-blue-50 text-blue-600"
+                        : "bg-indigo-50 text-indigo-600"
+                    }`}
+                  >
+                    {event.eventType === "online" ? (
+                      <Globe size={20} />
+                    ) : (
+                      <MapPin size={20} />
+                    )}
                   </div>
                   <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Location
+                      {event.eventType === "online" ? "Event Type" : "Location"}
                     </p>
-                    <p className="text-slate-700 font-semibold">
-                      {event.district}
-                    </p>
-                    <p className="text-slate-500 text-sm">{event.venue}</p>
+                    {event.eventType === "online" ? (
+                      <>
+                        <p className="text-slate-700 font-semibold text-lg">
+                          🌐 Online Event
+                        </p>
+                        <p className="text-slate-500 text-sm mt-1">
+                          Join from anywhere, {event.district}
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-slate-700 font-semibold">
+                          {event.district}
+                        </p>
+                        <p className="text-slate-500 text-sm">{event.venue}</p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

@@ -6,6 +6,14 @@ const eventSchema = new mongoose.Schema(
     description: { type: String, required: true, trim: true },
     poster: { type: String, required: true },
 
+    // Event Type: Online or Physical
+    eventType: {
+      type: String,
+      enum: ["online", "physical"],
+      required: true,
+      default: "physical",
+    },
+
     // 1. Added Enum for data integrity
     category: {
       type: String,
@@ -22,7 +30,8 @@ const eventSchema = new mongoose.Schema(
     },
 
     district: { type: String, required: true, trim: true },
-    venue: { type: String, required: true, trim: true },
+    // Venue is optional - only required for physical events
+    venue: { type: String, trim: true },
     eventDate: { type: Date, required: true },
     deadline: { type: Date, required: true },
 
@@ -54,10 +63,10 @@ const eventSchema = new mongoose.Schema(
     isPaid: { type: Boolean, default: false },
     price: { type: Number, default: 0, min: 0 },
 
-    // 5. Geospatial Data
+    // 5. Geospatial Data - Optional, only for physical events
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
-      coordinates: { type: [Number], required: true }, // [Long, Lat]
+      coordinates: { type: [Number] }, // [Long, Lat] - Optional
     },
     googleMapUrl: { type: String, trim: true },
   },
@@ -65,14 +74,8 @@ const eventSchema = new mongoose.Schema(
 );
 
 // 6. Middleware & Indexing
-// eventSchema.pre('save', function(next) {
-//   this.updatedAt = Date.now();
-//   next();
-// });
-
-// This allows you to perform "Events near me" queries. Without this, you can only filter by text (like District);
-// with this, you can find events within a 5km radius of a user's GPS coordinates.
-eventSchema.index({ location: "2dsphere" });
+// Only create geospatial index if coordinates exist
+eventSchema.index({ location: "2dsphere", sparse: true });
 eventSchema.index({ district: 1, category: 1, eventDate: 1 });
 
 export default mongoose.model("Event", eventSchema);

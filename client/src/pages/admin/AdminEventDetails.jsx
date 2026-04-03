@@ -281,33 +281,69 @@ const AdminEventDetails = () => {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
-                      <MapPin size={18} />
+                    <div
+                      className={`p-2 rounded-xl ${
+                        event.eventType === "online"
+                          ? "bg-blue-50 text-blue-600"
+                          : "bg-indigo-50 text-indigo-600"
+                      }`}
+                    >
+                      {event.eventType === "online" ? (
+                        <Globe size={18} />
+                      ) : (
+                        <MapPin size={18} />
+                      )}
                     </div>
                     <div>
                       <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        District
+                        {event.eventType === "online"
+                          ? "Event Type"
+                          : "District"}
                       </p>
-                      <p className="text-slate-800 font-semibold text-sm">
-                        {event.district || "N/A"}
-                      </p>
+                      {event.eventType === "online" ? (
+                        <p className="text-slate-800 font-semibold text-sm">
+                          🌐 Online Event
+                        </p>
+                      ) : (
+                        <p className="text-slate-800 font-semibold text-sm">
+                          {event.district || "N/A"}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {event.venue && (
-                    <div className="flex items-start gap-3">
-                      <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
-                        <MapPin size={18} />
+                  {event.eventType === "physical" && (
+                    <>
+                      <div className="flex items-start gap-3">
+                        <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
+                          <MapPin size={18} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                            District
+                          </p>
+                          <p className="text-slate-800 font-semibold text-sm">
+                            {event.district || "N/A"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                          Venue
-                        </p>
-                        <p className="text-slate-800 font-semibold text-sm">
-                          {event.venue}
-                        </p>
-                      </div>
-                    </div>
+
+                      {event.venue && (
+                        <div className="flex items-start gap-3">
+                          <div className="bg-indigo-50 p-2 rounded-xl text-indigo-600">
+                            <MapPin size={18} />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                              Venue
+                            </p>
+                            <p className="text-slate-800 font-semibold text-sm">
+                              {event.venue}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div className="flex items-start gap-3">

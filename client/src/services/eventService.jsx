@@ -37,17 +37,26 @@ const eventService = {
    */
   createEvent: async (eventData) => {
     try {
-      console.log("EventsService sending data:", eventData);
+      console.log("🔌 [SERVICE] createEvent called");
+      console.log("📤 [SERVICE] POST /api/events/create - sending FormData");
       const response = await api.post("/api/events/create", eventData, {
         headers: {
           "Content-Type": "multipart/form-data", // Often optional, but good to be explicit
         },
       });
-      console.log("EventsService received response:", response.data);
+      console.log("✅ [SERVICE] Response status:", response.status);
+      console.log("✅ [SERVICE] Response data:", response.data);
       return response.data;
     } catch (error) {
+      console.error("❌ [SERVICE] API Error:");
+      console.error("❌ Status:", error.response?.status);
+      console.error("❌ Data:", error.response?.data);
+      console.error("❌ Message:", error.message);
       throw new Error(
-        error.response?.data?.message || "Event deployment failure",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          error.message ||
+          "Event deployment failure",
       );
     }
   },

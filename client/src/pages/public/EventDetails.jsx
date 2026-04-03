@@ -8,11 +8,20 @@ import {
   ExternalLink,
   ChevronLeft,
   Share2,
+  QrCode,
   Info,
   Building2,
   Mail,
   CheckCircle2,
+  Globe,
+  Facebook,
+  Instagram,
+  Twitter,
+  Github,
+  Linkedin,
+  Youtube,
 } from "lucide-react";
+import QRCode from "qrcode";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import CountdownTimer from "../../components/common/CountdownTimer";
@@ -32,6 +41,8 @@ const EventDetails = () => {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showQrModal, setShowQrModal] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState("");
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -55,6 +66,18 @@ const EventDetails = () => {
 
     loadEvent();
   }, [id]); // only re-runs when URL id changes
+
+  useEffect(() => {
+    if (!showQrModal || !event) return;
+
+    const currentUrl = window.location.href;
+    QRCode.toDataURL(currentUrl, { width: 300, margin: 2 })
+      .then((dataUrl) => setQrDataUrl(dataUrl))
+      .catch((err) => {
+        console.error("QRCode generation failed:", err);
+        setQrDataUrl("");
+      });
+  }, [showQrModal, event]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "TBD";
@@ -186,28 +209,53 @@ const EventDetails = () => {
                       </div>
                     </div>
                     <div className="flex items-start gap-4">
-                      <div className="bg-indigo-50 p-3 rounded-2xl text-indigo-600 mt-1">
-                        <MapPin size={20} />
+                      <div
+                        className={`p-3 rounded-2xl mt-1 ${
+                          event.eventType === "online"
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-indigo-50 text-indigo-600"
+                        }`}
+                      >
+                        {event.eventType === "online" ? (
+                          <Globe size={20} />
+                        ) : (
+                          <MapPin size={20} />
+                        )}
                       </div>
                       <div>
                         <p className="text-sm font-bold text-slate-400 uppercase tracking-wide">
-                          Location
+                          {event.eventType === "online"
+                            ? "Event Type"
+                            : "Location"}
                         </p>
-                        <p className="text-slate-700 font-semibold">
-                          {event.district}
-                        </p>
-                        <p className="text-slate-500 text-sm">
-                          {event.venue || "To be announced"}
-                        </p>
-                        {event.googleMapUrl && (
-                          <a
-                            href={event.googleMapUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 text-xs font-medium hover:underline mt-1 inline-block"
-                          >
-                            View on Maps →
-                          </a>
+                        {event.eventType === "online" ? (
+                          <>
+                            <p className="text-slate-700 font-semibold text-lg">
+                              🌐 Online Event
+                            </p>
+                            <p className="text-slate-500 text-sm mt-1">
+                              Join from anywhere, {event.district}
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-slate-700 font-semibold">
+                              {event.district}
+                            </p>
+                            <p className="text-slate-500 text-sm">
+                              {event.venue || "To be announced"}
+                            </p>
+                            {event.googleMapUrl && (
+                              <a
+                                href={event.googleMapUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-600 text-xs font-medium hover:underline mt-1 inline-block"
+                              >
+                                View on Maps →
+                              </a>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -311,7 +359,7 @@ const EventDetails = () => {
                       {availableSeats > 0 ? "Book My Spot Now" : "Event Full"}
                     </button>
 
-                    <div className="flex justify-center">
+                    <div className="flex justify-center gap-4">
                       <button
                         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
                         onClick={() => {
@@ -321,9 +369,55 @@ const EventDetails = () => {
                       >
                         <Share2 size={16} /> Share Event
                       </button>
+
+                      <button
+                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
+                        onClick={() => setShowQrModal(true)}
+                      >
+                        <QrCode size={16} /> QR Code
+                      </button>
                     </div>
                   </div>
                 </div>
+
+                {showQrModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+                    <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+                      <button
+                        className="absolute top-3 right-3 rounded-full p-2 text-slate-500 hover:bg-slate-100"
+                        onClick={() => setShowQrModal(false)}
+                      >
+                        ✕
+                      </button>
+                      <h3 className="text-lg font-bold text-slate-900">
+                        Share Event via QR
+                      </h3>
+                      <p className="text-sm text-slate-500 mt-1">
+                        Scan this code to open the event page.
+                      </p>
+                      {qrDataUrl ? (
+                        <div className="mt-4 flex flex-col items-center">
+                          <img
+                            src={qrDataUrl}
+                            alt="Event QR code"
+                            className="h-52 w-52 rounded-lg border border-slate-200"
+                          />
+                          <a
+                            href={qrDataUrl}
+                            download={`${event.title}-EventHub-qr.png`}
+                            className="mt-4 inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white hover:bg-indigo-700"
+                          >
+                            Download QR
+                          </a>
+                        </div>
+                      ) : (
+                        <p className="mt-4 text-sm text-slate-500">
+                          Generating QR code…
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {event.organizer && (
                   <div className="bg-indigo-600 rounded-3xl p-8 shadow-xl text-white">
@@ -352,11 +446,95 @@ const EventDetails = () => {
                         </div>
                       </div>
                     )}
+
+                    {event.organizer.website && (
+                      <div className="flex items-center gap-3 text-sm mt-3">
+                        <Globe size={16} className="opacity-60" />
+                        <a
+                          href={event.organizer.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="underline hover:text-white"
+                        >
+                          {event.organizer.website}
+                        </a>
+                      </div>
+                    )}
+
+                    <div className="space-y-2 mt-4">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
+                        Connect with organizer
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          {
+                            key: "facebook",
+                            label: "Facebook",
+                            icon: Facebook,
+                            url: event.organizer.facebook,
+                          },
+                          {
+                            key: "instagram",
+                            label: "Instagram",
+                            icon: Instagram,
+                            url: event.organizer.instagram,
+                          },
+                          {
+                            key: "twitter",
+                            label: "Twitter",
+                            icon: Twitter,
+                            url: event.organizer.twitter,
+                          },
+                          {
+                            key: "github",
+                            label: "GitHub",
+                            icon: Github,
+                            url: event.organizer.github,
+                          },
+                          {
+                            key: "linkedin",
+                            label: "LinkedIn",
+                            icon: Linkedin,
+                            url: event.organizer.linkedin,
+                          },
+                          {
+                            key: "youtube",
+                            label: "YouTube",
+                            icon: Youtube,
+                            url: event.organizer.youtube,
+                          },
+                        ]
+                          .filter((platform) => Boolean(platform.url))
+                          .map((platform) => {
+                            const Icon = platform.icon;
+                            return (
+                              <a
+                                key={platform.key}
+                                href={platform.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold"
+                              >
+                                <Icon size={14} /> {platform.label}
+                              </a>
+                            );
+                          })}
+                      </div>
+                    </div>
+
                     <button
                       className="w-full mt-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 whitespace-nowrap rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-                      onClick={() =>
-                        navigate(`/organizer/${event.organizer._id}`)
-                      }
+                      onClick={() => {
+                        if (event.organizer.website) {
+                          window.open(
+                            event.organizer.website,
+                            "_blank",
+                            "noopener,noreferrer",
+                          );
+                        } else {
+                          navigate(`/organizer/${event.organizer._id}`);
+                        }
+                      }}
                     >
                       Visit Profile <ExternalLink size={14} />
                     </button>
