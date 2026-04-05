@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchEvents,
-  fetchEventById,
+  getEventById,
   createEvent,
   updateEvent,
   deleteEvent,
@@ -11,6 +11,7 @@ const eventsSlice = createSlice({
   name: "events",
   initialState: {
     events: [],
+    selectedEvent: null, // for getEventById
     loading: false,
     error: null,
   },
@@ -29,15 +30,15 @@ const eventsSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      .addCase(fetchEventById.pending, (state) => {
+      .addCase(getEventById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchEventById.fulfilled, (state, action) => {
+      .addCase(getEventById.fulfilled, (state, action) => {
         state.loading = false;
-        state.events = action.payload;
+        state.selectedEvent = action.payload; // single event, not the list
       })
-      .addCase(fetchEventById.rejected, (state, action) => {
+      .addCase(getEventById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
@@ -54,13 +55,14 @@ const eventsSlice = createSlice({
         state.error = action.payload;
       })
       .addCase(updateEvent.fulfilled, (state, action) => {
+        const updated = action.payload;
         state.events = state.events.map((item) =>
-          item.id === action.payload.id ? action.payload : item,
+          (item._id || item.id) === (updated._id || updated.id) ? updated : item
         );
       })
       .addCase(deleteEvent.fulfilled, (state, action) => {
         state.events = state.events.filter(
-          (item) => item.id !== action.payload,
+          (item) => (item._id || item.id) !== action.payload
         );
       });
   },

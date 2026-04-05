@@ -26,8 +26,8 @@ import Profile from "../pages/user/Profile";
 import ClubDashboard from "../pages/club/Dashboard";
 import ClubCreateEvent from "../pages/club/EventCreate";
 import ClubEventList from "../pages/club/EventList";
-import ClubDetails from "../pages/club/ClubDetails";
-import ClubPortal from "../components/organizer/ClubPortal.jsx";
+import ClubEventDetails from "../pages/club/EventDetails";
+import ClubPortal from "../components/Organizer/ClubRedirection.jsx";
 import ClubRegistration from "../pages/club/Register.jsx";
 
 // Admin Pages
@@ -45,7 +45,7 @@ const AppRoutes = () => {
       {/* 🌍 Public Routes */}
       <Route path="/" element={<Home />} />
       <Route path="/events" element={<Events />} />
-      <Route path="/event/:eventId" element={<EventDetails />} />
+      <Route path="/event/:id" element={<EventDetails />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
 
@@ -131,6 +131,15 @@ const AppRoutes = () => {
       />
 
       <Route
+        path="/club/my-events/:id"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
+            <ClubEventDetails />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
         path="/club/my-events"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
@@ -139,14 +148,14 @@ const AppRoutes = () => {
         }
       />
 
-      <Route
+      {/* <Route
         path="/club/profile"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubDetails />
+            <ClubEventList />
           </ProtectedRoute>
         }
-      />
+      /> */}
 
       {/* 🛡️ Admin Routes (Nested Layout) */}
       <Route

@@ -1,5 +1,7 @@
 import express from "express";
 import auth from "../middlewares/auth.js";
+import roleBasedAuth from "../middlewares/roleBasedAuth.js";
+import { uploadEventPoster, handleMulterError } from "../middlewares/upload.js";
 import {
   addEvents,
   getAllEvents,
@@ -13,7 +15,7 @@ const router = express.Router();
 // GET /api/events?lat=27.717&lng=85.324&radius=10 - for nearby events
 // GET /api/events - for all events
 
-router.post("/", auth, addEvents);
+router.post("/create", auth, uploadEventPoster, handleMulterError, addEvents);
 
 router.get("/", getAllEvents);
 

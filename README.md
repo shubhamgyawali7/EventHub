@@ -295,8 +295,8 @@ npm test         # Run tests
 - [ ] Export registration data to multiple formats
 
 ---
-
-
 ## 📄 License
 
 This project is licensed under the ISC License - see the LICENSE file for details.
+
+---

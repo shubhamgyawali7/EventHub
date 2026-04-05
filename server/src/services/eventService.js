@@ -1,67 +1,89 @@
 import Events from "../models/Events.js";
-import User from "../models/User.js";
+import RegisterClub from "../models/RegisterClub.js";
 
-const createEvents = async (data, userId) => {
-  const user = await User.findById(userId);
+// ─── Helpers ───────────────────────────────────────────────────────────────
 
-  // If coordinates are provided, set location properly
-  let location = null;
-  if (data.coordinates && data.coordinates.length === 2) {
-    location = {
+const buildLocation = (data) => {
+  // For online events, don't build location
+  if (data.eventType === "online") {
+    return null;
+  }
+
+  if (data.coordinates?.length === 2) {
+    return {
       type: "Point",
-      coordinates: data.coordinates, // [longitude, latitude]
+      coordinates: [
+        parseFloat(data.coordinates[0]),
+        parseFloat(data.coordinates[1]),
+      ],
     };
-  } else if (data.latitude && data.longitude) {
-    location = {
+  }
+  if (data.latitude && data.longitude) {
+    return {
       type: "Point",
-      coordinates: [data.longitude, data.latitude],
+      coordinates: [parseFloat(data.longitude), parseFloat(data.latitude)], // ← parseFloat here
     };
   }
 
-  try {
-    return await Events.create({
-      ...data,
-      createdBy: userId,
-      organizer: user?.club || null,
-      location: location || {
-        type: "Point",
-        coordinates: [85.324, 27.717], // Default to Kathmandu
-      },
-    });
-  } catch (error) {
-    return error;
+  // Only return default location for physical events
+  if (data.eventType === "physical") {
+    return { type: "Point", coordinates: [85.324, 27.717] };
   }
+
+  return null;
+};
+
+// ─── Club ──────────────────────────────────────────────────────────────────
+
+const getClubByUser = async (userId) => {
+  return await RegisterClub.findOne({ createdBy: userId });
+};
+
+// ─── Events ────────────────────────────────────────────────────────────────
+
+const createEvent = async (data) => {
+  console.log("🔌 [SERVICE] createEvent called");
+  const location = buildLocation(data);
+  console.log("📍 [SERVICE] Location prepared:", location);
+
+  // Remove raw coordinate fields before saving
+  const { coordinates, latitude, longitude, ...eventData } = data;
+  console.log("📦 [SERVICE] Cleaned event data keys:", Object.keys(eventData));
+  console.log("📦 [SERVICE] About to call Events.create()...");
+
+  const savedEvent = await Events.create({ ...eventData, location });
+  console.log(
+    "✅ [SERVICE] Event.create() returned successfully, ID:",
+    savedEvent._id,
+  );
+  return savedEvent;
 };
 
 const getAllEvents = async () => {
-  return await Events.find().populate("organizer", "name logo district");
+  return await Events.find().populate(
+    "organizer",
+    "name logo district email website facebook github instagram twitter linkedin youtube",
+  );
 };
 
 const getEventById = async (eventId) => {
   return await Events.findById(eventId).populate(
     "organizer",
-    "name logo district email website",
+    "name logo district email website facebook github instagram twitter linkedin youtube",
   );
 };
 
-const updateEvent = async (eventId, updatedData) => {
-  // Handle location update if coordinates are provided
-  if (updatedData.coordinates && updatedData.coordinates.length === 2) {
-    updatedData.location = {
-      type: "Point",
-      coordinates: updatedData.coordinates,
-    };
-    delete updatedData.coordinates;
-  } else if (updatedData.latitude && updatedData.longitude) {
-    updatedData.location = {
-      type: "Point",
-      coordinates: [updatedData.longitude, updatedData.latitude],
-    };
-    delete updatedData.latitude;
-    delete updatedData.longitude;
-  }
+const updateEvent = async (eventId, data) => {
+  const location = buildLocation(data);
 
-  return await Events.findByIdAndUpdate(eventId, updatedData, { new: true });
+  // Remove raw coordinate fields before saving
+  const { coordinates, latitude, longitude, ...updatedData } = data;
+
+  return await Events.findByIdAndUpdate(
+    eventId,
+    { ...updatedData, location },
+    { new: true },
+  );
 };
 
 const deleteEvent = async (eventId) => {
@@ -74,27 +96,24 @@ const getNearbyEvents = async (
   radiusKm = 10,
   limit = 100,
 ) => {
-  // Convert radius from km to meters (MongoDB uses meters)
   const radiusMeters = radiusKm * 1000;
 
   return await Events.find({
     location: {
       $near: {
-        $geometry: {
-          type: "Point",
-          coordinates: [longitude, latitude],
-        },
+        $geometry: { type: "Point", coordinates: [longitude, latitude] },
         $maxDistance: radiusMeters,
       },
     },
-    status: "published", // Only show published events
+    status: "published",
   })
     .populate("organizer", "name logo district")
     .limit(limit);
 };
 
 export default {
-  createEvents,
+  getClubByUser,
+  createEvent,
   getAllEvents,
   getEventById,
   updateEvent,

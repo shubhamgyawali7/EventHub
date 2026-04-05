@@ -1,4 +1,5 @@
 // src/components/admin/SideBar.jsx
+import React, { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -7,12 +8,37 @@ import {
   CheckSquare,
   ShieldAlert,
   LogOut,
+  Clock,
+  MapPin,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import eventService from "../../services/eventService";
 
 const SideBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [loadingEvents, setLoadingEvents] = useState(true);
+
+  useEffect(() => {
+    const fetchUpcomingEvents = async () => {
+      try {
+        const events = await eventService.getAllEvents();
+        const now = new Date();
+        const upcoming = events
+          .filter((event) => new Date(event.eventDate) > now)
+          .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
+          .slice(0, 5);
+        setUpcomingEvents(upcoming);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setLoadingEvents(false);
+      }
+    };
+
+    fetchUpcomingEvents();
+  }, []);
 
   const menuItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
@@ -23,7 +49,7 @@ const SideBar = () => {
       label: "Club Verification",
       icon: CheckSquare,
       path: "/admin/club/verification",
-      highlight: true
+      highlight: true,
     },
   ];
 
@@ -59,7 +85,7 @@ const SideBar = () => {
           />
         ))}
       </nav>
-
+   
       {/* Logout */}
       <button
         onClick={() => {
