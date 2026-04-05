@@ -124,7 +124,7 @@ const AdminDashboard = () => {
           </span>
           <h1 className="text-3xl font-black text-slate-800 tracking-tight leading-snug">
             {greeting},&nbsp;
-            <span className="bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
               Administrator
             </span>
           </h1>

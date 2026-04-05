@@ -32,7 +32,7 @@ import Footer from "../../components/common/Footer";
 import { NEPAL_DISTRICTS } from "../../utils/districts";
 import useAuth from "../../hooks/useAuth";
 import useOrganizer from "../../hooks/useOrganizer";
-import ClubPortal from "../../components/organizer/ClubRedirection";
+import ClubPortal from "../../components/Organizer/ClubRedirection";
 
 console.log("Register.jsx is loading");
 
