@@ -20,6 +20,7 @@ district:{
   email: {
     type: String,
     require: true,
+    unique: true, // Recommended for authentication
   },
 
   password: {
@@ -27,7 +28,22 @@ district:{
     require: true,
   },
 
- roles: {
+  profilePicture: {
+    type: String,
+    default: "", // Path to the uploaded photo
+  },
+
+  bio: {
+    type: String,
+    maxlength: 250,
+  },
+
+  interestedSkills: {
+    type: [String],
+    default: [], // Array of skills like ['React', 'Node.js', etc.]
+  },
+
+  roles: {
     type: [String],
     enum: ["Student", "Club", "Admin"], 
     default: ["Student"], // Default to Student during first registration
@@ -41,7 +57,7 @@ district:{
 
   createdAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 });
 

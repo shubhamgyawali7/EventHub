@@ -37,3 +37,15 @@ export const registerUser = createAsyncThunk(
     }
   },
 );
+
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateProfile",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const response = await authService.updateProfile(formData);
+      return response.user; // Return the updated user object
+    } catch (error) {
+      return rejectWithValue(error.message || "Profile update failed");
+    }
+  },
+);

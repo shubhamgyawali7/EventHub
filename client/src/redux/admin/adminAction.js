@@ -15,7 +15,7 @@ export const fetchAdminEvents = createAsyncThunk(
 );
 
 // 👥 Users
-export const fetchAdminUsers = createAsyncThunk(
+export const fetchAllUsers = createAsyncThunk(
   "admin/fetchUsers",
   async (_, { rejectWithValue }) => {
     try {
@@ -46,11 +46,11 @@ export const adminApproveClub = createAsyncThunk(
   "admin/approveClub",
   async (clubId, { rejectWithValue, dispatch }) => {
     try {
-    const updatedClub = await adminService.approveClub(clubId);
+      const updatedClub = await adminService.approveClub(clubId);
       // dispatch(fetchAdminClubs()); // Refresh clubs after approval
-       return updatedClub; // return updated club
+      return updatedClub; // return updated club
     } catch (error) {
-     return rejectWithValue(error?.response?.data?.message || error.message);
+      return rejectWithValue(error?.response?.data?.message || error.message);
     }
   },
 );

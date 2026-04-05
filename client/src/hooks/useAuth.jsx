@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../redux/auth/authSlice.js";
-import { fetchMe, loginUser, registerUser } from "../redux/auth/authAction.js";
+import { fetchMe, loginUser, registerUser, updateUserProfile } from "../redux/auth/authAction.js";
 
 const useAuth = () => {
   const dispatch = useDispatch();
@@ -11,6 +11,18 @@ const useAuth = () => {
     async (formData) => {
       try {
         const result = await dispatch(registerUser(formData)).unwrap();
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
+  const updateProfile = useCallback(
+    async (formData) => {
+      try {
+        const result = await dispatch(updateUserProfile(formData)).unwrap();
         return { success: true, data: result };
       } catch (err) {
         return { success: false, message: err };
@@ -50,6 +62,7 @@ const useAuth = () => {
     logout: logoutUser,
     getMe,
     signup,
+    updateProfile,
     ...auth,
   };
 };
