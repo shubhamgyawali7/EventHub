@@ -25,7 +25,5 @@ router.delete('/events/:id', [auth,roleBasedAuth("Club","Admin")], deleteEvent);
 // Admin routes
 router.get("/pending", [auth, roleBasedAuth("Admin")], getPendingClubs);
 router.get("/all", [auth, roleBasedAuth("Admin")], getAllClubs);
-router.patch("/approve/:id", [auth, roleBasedAuth("Admin")], adminApproveClub);
-router.patch("/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub);
 
 export default router;

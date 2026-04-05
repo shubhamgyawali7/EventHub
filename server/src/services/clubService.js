@@ -1,7 +1,8 @@
-import mongoose from "mongoose";
-import RegisterClub from "../models/RegisterClub.js";
-import User from "../models/User.js";
-import Events from "../models/Events.js";
+import mongoose from 'mongoose';
+import RegisterClub from '../models/RegisterClub.js';
+import User from '../models/User.js';
+import Events from '../models/Events.js';
+import { sendVerificationEmail } from '../utils/emailService.js';
 
 const applyForClub = async (userId, clubData) => {
   console.log("I am at Service of Club !!!");
@@ -26,7 +27,7 @@ const updateClubProfile = async (userId, updateData) => {
   const updatedClub = await RegisterClub.findByIdAndUpdate(
     club._id,
     { ...updateData },
-    { new: true },
+    { returnDocument: 'after' },
   ).populate("createdBy", "name email district college");
 
   return updatedClub;
@@ -36,13 +37,16 @@ const approveClub = async (clubId) => {
   const club = await RegisterClub.findByIdAndUpdate(
     clubId,
     { status: "Approved", isVerified: true },
-    { new: true },
+    { returnDocument: 'after' },
   ).populate("createdBy", "name email district college");
 
   if (club && club.createdBy) {
     await User.findByIdAndUpdate(club.createdBy._id, {
       $addToSet: { roles: "Club" },
     });
+    
+    // 📧 Phase 4: Send the welcome email
+    await sendVerificationEmail(club.email, club.name);
   }
   return club;
 };
@@ -51,7 +55,7 @@ const rejectClub = async (clubId) => {
   const club = await RegisterClub.findByIdAndUpdate(
     clubId,
     { status: "Rejected", isVerified: false },
-    { new: true },
+    { returnDocument: 'after' },
   ).populate("createdBy", "name email district college");
 
   if (club && club.createdBy) {

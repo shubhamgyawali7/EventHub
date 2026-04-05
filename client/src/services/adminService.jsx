@@ -25,7 +25,7 @@ const adminService = {
 
   approveClub: async (clubId) => {
     try {
-      const response = await api.patch(`/api/clubs/approve/${clubId}`);
+      const response = await api.put(`/api/admin/clubs/approve/${clubId}`);
       return response.data;
     } catch (error) {
       console.error("Error approving club:", error);
@@ -37,7 +37,7 @@ const adminService = {
 
   rejectClub: async (clubId) => {
     try {
-      const response = await api.patch(`/api/clubs/reject/${clubId}`);
+      const response = await api.put(`/api/admin/clubs/reject/${clubId}`);
       return response.data;
     } catch (error) {
       console.error("Error rejecting club:", error);

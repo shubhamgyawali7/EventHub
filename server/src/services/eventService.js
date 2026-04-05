@@ -36,7 +36,7 @@ const buildLocation = (data) => {
 // ─── Club ──────────────────────────────────────────────────────────────────
 
 const getClubByUser = async (userId) => {
-  return await RegisterClub.findOne({ createdBy: userId });
+  return await RegisterClub.findOne({ createdBy: userId, status: "Approved" });
 };
 
 // ─── Events ────────────────────────────────────────────────────────────────
