@@ -1,336 +1,339 @@
 // src/pages/admin/AllUsers.jsx
 import React, { useEffect, useState } from "react";
-import { Users, Search, Trash2, Shield, Mail, Calendar, AlertCircle } from "lucide-react";
+import {
+  Users,
+  Search,
+  Trash2,
+  Mail,
+  Calendar,
+  AlertCircle,
+  Building,
+  Map,
+  Link,
+  Code,
+  Info,
+  X,
+  ChevronRight,
+  Fingerprint
+} from "lucide-react";
 import useAdmin from "../../hooks/useAdmin";
 
 const AdminAllUsers = () => {
-  const { adminData, fetchUsers, deleteUser } = useAdmin(); // Use deleteUser instead of removeUser
+  const { users, loading, error, fetchUsers, deleteUser } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
+  const [selectedUser, setSelectedUser] = useState(null); // For detailed view modal
+
+  const VITE_BASE_API_URL = import.meta.env.VITE_BASE_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
-    console.log("Fetching users...");
     fetchUsers();
   }, [fetchUsers]);
 
-  // Debug log to see what data we're getting
-  useEffect(() => {
-    console.log("Admin data in AllUsers:", adminData);
-    console.log("Users data:", adminData.users);
-  }, [adminData]);
-
   const handleDeleteUser = async (userId) => {
-    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone and will delete all associated data.")) {
+    if (window.confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
       try {
         await deleteUser(userId);
-        alert("User deleted successfully!");
+        alert("User removed successfully.");
       } catch (error) {
-        console.error("Failed to delete user:", error);
-        alert(error.message || "Failed to delete user. Please try again.");
+        alert(error.message || "Failed to delete user.");
       }
     }
   };
 
-  // Filter users based on search term and role
-  const filteredUsers = adminData.users?.filter(user => {
+  const filteredUsers = (users || []).filter(user => {
+    const searchStr = searchTerm.toLowerCase();
     const matchesSearch = 
-      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.college?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.district?.toLowerCase().includes(searchTerm.toLowerCase());
+      user.name?.toLowerCase().includes(searchStr) ||
+      user.email?.toLowerCase().includes(searchStr) ||
+      user.college?.toLowerCase().includes(searchStr) ||
+      user.district?.toLowerCase().includes(searchStr);
     
-    // Handle role filtering - users might have multiple roles in an array
     let userRole = "student";
     if (user.roles) {
       if (Array.isArray(user.roles)) {
         if (user.roles.includes("Admin")) userRole = "admin";
         else if (user.roles.includes("Club")) userRole = "club";
-        else userRole = "student";
-      } else {
-        userRole = user.roles?.toLowerCase() || "student";
       }
     }
     
     const matchesRole = roleFilter === "all" || userRole === roleFilter;
     return matchesSearch && matchesRole;
-  }) || [];
+  });
 
   const getRoleBadge = (user) => {
     let role = "student";
-    let roleLabel = "Student";
+    let label = "Student";
     
-    if (user.roles) {
-      if (Array.isArray(user.roles)) {
-        if (user.roles.includes("Admin")) {
-          role = "admin";
-          roleLabel = "Admin";
-        } else if (user.roles.includes("Club")) {
-          role = "club";
-          roleLabel = "Club";
-        } else {
-          role = "student";
-          roleLabel = "Student";
-        }
-      } else {
-        const roleValue = user.roles?.toLowerCase();
-        if (roleValue === "admin") {
-          role = "admin";
-          roleLabel = "Admin";
-        } else if (roleValue === "club") {
-          role = "club";
-          roleLabel = "Club";
-        } else {
-          role = "student";
-          roleLabel = "Student";
-        }
-      }
-    }
+    if (user.roles?.includes("Admin")) { role = "admin"; label = "Admin"; }
+    else if (user.roles?.includes("Club")) { role = "club"; label = "Club"; }
     
-    const badgeStyles = {
-      admin: "bg-purple-50 text-purple-600 border border-purple-100",
-      club: "bg-indigo-50 text-indigo-600 border border-indigo-100",
-      student: "bg-emerald-50 text-emerald-600 border border-emerald-100"
+    const colors = {
+      admin: "bg-purple-50 text-purple-600 border-purple-100",
+      club: "bg-indigo-50 text-indigo-600 border-indigo-100",
+      student: "bg-emerald-50 text-emerald-600 border-emerald-100"
     };
     
     return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold ${badgeStyles[role]}`}>
-        {roleLabel}
+      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${colors[role]}`}>
+        {label}
       </span>
     );
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric"
-    });
+  // Helper to get counts for filters
+  const getCount = (role) => {
+    if (!users) return 0;
+    if (role === 'all') return users.length;
+    return users.filter(u => {
+      if (role === 'student') return !u.roles?.includes("Admin") && !u.roles?.includes("Club");
+      if (role === 'club') return u.roles?.includes("Club");
+      if (role === 'admin') return u.roles?.includes("Admin");
+      return false;
+    }).length;
   };
 
-  // Show loading state
-  if (adminData.loading && !adminData.users) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading users...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-800 mb-2">All Users</h1>
-        <p className="text-slate-500">Manage and moderate platform users</p>
-        {adminData.error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm flex items-center gap-2">
-            <AlertCircle size={16} />
-            Error: {adminData.error}
+    <div className="pb-10">
+      <div className="mb-10">
+        <h1 className="text-4xl font-black text-slate-800 mb-2 tracking-tighter">User Directory</h1>
+        <p className="text-slate-500 font-medium italic">Oversee all members registered on the EventHub network.</p>
+        
+        {error && (
+          <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-3xl text-red-500 text-sm flex items-center gap-3">
+            <AlertCircle size={18} />
+            <span className="font-bold">Sync Error:</span> {error}
           </div>
         )}
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
-        <div className="flex-1 relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400" size={18} />
+      {/* Filters Bar */}
+      <div className="flex flex-col lg:flex-row gap-4 mb-10">
+        <div className="flex-1 relative group">
+          <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={20} />
           <input
             type="text"
-            placeholder="Search users by name, email, college, or district..."
+            placeholder="Search by name, email, or college..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-2xl border border-slate-200 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none transition"
+            className="w-full pl-14 pr-6 py-4 rounded-[2rem] border-none bg-white shadow-sm focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-medium text-slate-700"
           />
         </div>
-        <div className="flex gap-2 bg-white p-1 rounded-2xl border border-slate-100">
+        
+        <div className="flex bg-white p-2 rounded-[2rem] shadow-sm border border-slate-50">
           {[
-            { value: "all", label: "All" },
-            { value: "student", label: "Student" },
-            { value: "club", label: "Club" },
-            { value: "admin", label: "Admin" }
-          ].map(role => (
+            { id: "all", label: "ALL" },
+            { id: "student", label: "STUDENT" },
+            { id: "club", label: "CLUB" },
+            { id: "admin", label: "ADMIN" }
+          ].map(r => (
             <button
-              key={role.value}
-              onClick={() => setRoleFilter(role.value)}
-              className={`px-6 py-2 rounded-xl text-sm font-bold uppercase tracking-wider transition ${
-                roleFilter === role.value
-                  ? "bg-slate-900 text-white"
-                  : "text-slate-500 hover:bg-slate-50"
+              key={r.id}
+              onClick={() => setRoleFilter(r.id)}
+              className={`px-6 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center gap-2 ${
+                roleFilter === r.id ? "bg-slate-900 text-white shadow-lg" : "text-slate-400 hover:text-slate-600"
               }`}
             >
-              {role.label}
-              {role.value !== "all" && (
-                <span className="ml-2 text-xs">
-                  ({adminData.users?.filter(user => {
-                    if (user.roles) {
-                      if (Array.isArray(user.roles)) {
-                        if (role.value === "admin") return user.roles.includes("Admin");
-                        if (role.value === "club") return user.roles.includes("Club");
-                        if (role.value === "student") return !user.roles.includes("Admin") && !user.roles.includes("Club");
-                      } else {
-                        return user.roles?.toLowerCase() === role.value;
-                      }
-                    }
-                    return role.value === "student";
-                  }).length || 0})
-                </span>
-              )}
+              {r.label}
+              <span className={`px-2 py-0.5 rounded-lg text-[9px] ${roleFilter === r.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                {getCount(r.id)}
+              </span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Users Table */}
-      {adminData.loading ? (
-        <div className="space-y-4">
-          {[1,2,3,4].map(i => (
-            <div key={i} className="h-20 bg-slate-50 animate-pulse rounded-xl" />
-          ))}
-        </div>
-      ) : filteredUsers.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-2xl border border-slate-100">
-          <Users className="mx-auto mb-4 text-slate-300" size={48} />
-          <p className="text-slate-500 font-medium">
-            {searchTerm || roleFilter !== "all" 
-              ? "No users match your search criteria"
-              : "No users found in the system"}
-          </p>
-          {(searchTerm || roleFilter !== "all") && (
-            <button
-              onClick={() => {
-                setSearchTerm("");
-                setRoleFilter("all");
-              }}
-              className="mt-4 text-indigo-600 hover:text-indigo-700 text-sm font-medium"
-            >
-              Clear filters
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-slate-50 border-b border-slate-100">
+      {/* Main Table Container */}
+      <div className="bg-white rounded-[3.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="bg-slate-50/50 border-b border-slate-100">
+                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Identity</th>
+                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Contact Info</th>
+                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">College & District</th>
+                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Role & Skills</th>
+                <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {loading ? (
+                Array(5).fill(0).map((_, i) => (
+                  <tr key={i} className="animate-pulse">
+                    <td colSpan="5" className="px-8 py-8 h-20 bg-slate-50/30"></td>
+                  </tr>
+                ))
+              ) : filteredUsers.length === 0 ? (
                 <tr>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    User
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    Email
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    College/District
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    Role
-                  </th>
-                  <th className="text-left px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    Joined
-                  </th>
-                  <th className="text-right px-6 py-4 text-xs font-black uppercase tracking-wider text-slate-500">
-                    Actions
-                  </th>
+                  <td colSpan="5" className="px-8 py-32 text-center">
+                    <Users className="mx-auto mb-6 text-slate-200" size={80} strokeWidth={1} />
+                    <p className="text-xl font-black text-slate-300 tracking-tighter uppercase italic">No users found</p>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {filteredUsers.map((user) => (
-                  <tr key={user._id || user.id} className="hover:bg-slate-50/50 transition group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                          {user.name?.charAt(0).toUpperCase()}
+              ) : (
+                filteredUsers.map((u) => (
+                  <tr key={u.id || u._id} className="hover:bg-indigo-50/30 transition-colors group">
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-3xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 overflow-hidden border-2 border-white">
+                          {u.profilePicture ? (
+                            <img src={`${VITE_BASE_API_URL}${u.profilePicture}`} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            u.name?.charAt(0).toUpperCase()
+                          )}
                         </div>
                         <div>
-                          <span className="font-medium text-slate-800 block">{user.name}</span>
-                          <span className="text-xs text-slate-400">
-                            ID: {user._id?.slice(-6) || user.id?.slice(-6) || "N/A"}
+                          <span className="font-black text-slate-800 tracking-tight block text-lg">{u.name}</span>
+                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md mt-1 inline-block">
+                            ID: {u._id?.slice(-8) || "GEN-NODE"}
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-2 text-sm text-slate-600">
-                        <Mail size={14} className="text-slate-400" />
-                        {user.email}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-slate-600">
-                        <div>{user.college || "N/A"}</div>
-                        <div className="text-xs text-slate-400">{user.district || "N/A"}</div>
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-2 text-sm font-semibold text-slate-600">
+                          <Mail size={14} className="text-indigo-400" /> {u.email}
+                        </span>
+                        <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <Calendar size={12} /> Joined {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A"}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      {getRoleBadge(user)}
-                      {user.club && user.club.status === "Pending" && (
-                        <div className="text-xs text-amber-600 mt-1">
-                          Club Pending
-                        </div>
-                      )}
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+                          <Building size={14} className="text-slate-400" /> {u.college || "N/A"}
+                        </span>
+                        <span className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          <Map size={12} /> {u.district || "Global"}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-2 text-sm text-slate-500">
-                        <Calendar size={14} />
-                        {formatDate(user.createdAt)}
-                      </span>
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col items-start gap-2">
+                        {getRoleBadge(u)}
+                        {u.interestedSkills?.length > 0 && (
+                          <div className="flex gap-1 flex-wrap mt-1">
+                            {u.interestedSkills.slice(0, 2).map((s, idx) => (
+                              <span key={idx} className="text-[8px] bg-slate-900 text-white font-black px-1.5 py-0.5 rounded-xs uppercase">
+                                {s}
+                              </span>
+                            ))}
+                            {u.interestedSkills.length > 2 && <span className="text-[8px] text-slate-400">+{u.interestedSkills.length - 2}</span>}
+                          </div>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteUser(user._id || user.id)}
-                        className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition opacity-0 group-hover:opacity-100"
-                        title="Delete user"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                    <td className="px-8 py-6 text-right">
+                      <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          onClick={() => setSelectedUser(u)}
+                          className="p-3 bg-white text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-2xl border border-slate-100 transition-all shadow-sm"
+                          title="View Profile"
+                        >
+                          <Info size={18} />
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteUser(u.id || u._id)}
+                          className="p-3 bg-white text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl border border-slate-100 transition-all shadow-sm"
+                          title="Delete User"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        
+        {/* Lighter Footer Stats */}
+        <div className="bg-slate-50/80 backdrop-blur-sm p-8 flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] font-black uppercase tracking-[0.2em] border-t border-slate-100">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-white rounded-2xl shadow-sm border border-slate-100">
+               <Users size={16} className="text-indigo-600" />
+            </div>
+            <div>
+               <span className="text-slate-400 block mb-0.5">Total Members</span>
+               <span className="text-lg text-slate-800 leading-none tracking-tighter font-black">{filteredUsers.length}</span>
+            </div>
           </div>
-          
-          {/* Summary */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-slate-600">
-                Showing {filteredUsers.length} of {adminData.users?.length || 0} users
-              </span>
-              <div className="flex gap-4">
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-slate-500">Student: {adminData.users?.filter(u => {
-                    if (u.roles) {
-                      if (Array.isArray(u.roles)) return !u.roles.includes("Admin") && !u.roles.includes("Club");
-                      return u.roles?.toLowerCase() === "student";
-                    }
-                    return true;
-                  }).length || 0}</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                  <span className="text-slate-500">Club: {adminData.users?.filter(u => {
-                    if (u.roles) {
-                      if (Array.isArray(u.roles)) return u.roles.includes("Club");
-                      return u.roles?.toLowerCase() === "club";
-                    }
-                    return false;
-                  }).length || 0}</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                  <span className="text-slate-500">Admin: {adminData.users?.filter(u => {
-                    if (u.roles) {
-                      if (Array.isArray(u.roles)) return u.roles.includes("Admin");
-                      return u.roles?.toLowerCase() === "admin";
-                    }
-                    return false;
-                  }).length || 0}</span>
-                </span>
-              </div>
+
+          <div className="flex gap-8 bg-white px-8 py-4 rounded-[2rem] border border-slate-100 shadow-sm">
+            <span className="flex items-center gap-2 group">
+               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div> 
+               <span className="text-slate-600">Students <b className="text-slate-900 ml-1">{getCount('student')}</b></span>
+            </span>
+            <span className="flex items-center gap-2">
+               <div className="w-2.5 h-2.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.5)]"></div> 
+               <span className="text-slate-600">Clubs <b className="text-slate-900 ml-1">{getCount('club')}</b></span>
+            </span>
+            <span className="flex items-center gap-2">
+               <div className="w-2.5 h-2.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div> 
+               <span className="text-slate-600">Admins <b className="text-slate-900 ml-1">{getCount('admin')}</b></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* User Details Modal */}
+      {selectedUser && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-6" onClick={() => setSelectedUser(null)}>
+          <div className="bg-white rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300" onClick={e => e.stopPropagation()}>
+            <div className="h-48 bg-linear-to-br from-indigo-600 to-purple-800 p-10 flex items-end relative">
+               <button onClick={() => setSelectedUser(null)} className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full backdrop-blur-md"><X size={24}/></button>
+               <div className="w-32 h-32 rounded-[2.5rem] bg-white absolute -bottom-16 left-12 p-1.5 shadow-xl">
+                 <div className="w-full h-full rounded-[2rem] bg-indigo-100 flex items-center justify-center font-black text-4xl text-indigo-600 overflow-hidden">
+                    {selectedUser.profilePicture ? (
+                      <img src={`${VITE_BASE_API_URL}${selectedUser.profilePicture}`} className="w-full h-full object-cover" />
+                    ) : selectedUser.name?.charAt(0).toUpperCase()}
+                 </div>
+               </div>
+            </div>
+            <div className="pt-24 px-12 pb-12">
+               <div className="flex justify-between items-start mb-10">
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-800 tracking-tighter flex items-center gap-4">{selectedUser.name} {getRoleBadge(selectedUser)}</h2>
+                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px] mt-1">{selectedUser.email}</p>
+                  </div>
+               </div>
+               
+               <div className="space-y-8">
+                  <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 flex items-center gap-2">
+                       <Fingerprint size={12}/> User Biography
+                    </h4>
+                    <p className="text-slate-600 font-medium italic bg-slate-50 p-6 rounded-3xl border border-dashed border-slate-200 leading-relaxed">
+                      {selectedUser.bio || "No biography provided."}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-8">
+                     <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-3">Skill Protocol</h4>
+                        <div className="flex flex-wrap gap-1.5">
+                           {selectedUser.interestedSkills?.map((s, i) => (
+                             <span key={i} className="bg-indigo-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">{s}</span>
+                           )) || <span className="text-xs text-slate-400 font-medium">None Listed.</span>}
+                        </div>
+                     </div>
+                     <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-3">Institute Node</h4>
+                        <p className="text-sm font-black text-slate-800">{selectedUser.college || "Independent"}</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{selectedUser.district || "Regional Hub"}</p>
+                     </div>
+                  </div>
+               </div>
+
+               <button 
+                 onClick={() => setSelectedUser(null)}
+                 className="mt-12 w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-[10px] hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-100"
+               >
+                 Close Detail View <ChevronRight size={14}/>
+               </button>
             </div>
           </div>
         </div>

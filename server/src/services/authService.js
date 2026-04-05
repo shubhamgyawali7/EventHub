@@ -57,6 +57,8 @@ const login = async (data) => {
 
 const me = async (userId) => {
   const user = await User.findById(userId).populate("club").select("-password");
+  if (!user) throw new Error("User not found");
+  
   return {
     id: user._id,
     name: user.name,
@@ -66,8 +68,38 @@ const me = async (userId) => {
     college: user.college,
     club: user.club,
     roles: user.roles,
-    // token: user.token,
+    profilePicture: user.profilePicture,
+    bio: user.bio,
+    interestedSkills: user.interestedSkills,
+    createdAt: user.createdAt,
   };
 };
 
-export default { register, login, me };
+const updateProfile = async (userId, updateData) => {
+  // Ensure email is not updatable
+  const { email, ...safeData } = updateData;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    userId,
+    { $set: safeData },
+    { new: true, runValidators: true }
+  ).populate("club").select("-password");
+
+  if (!updatedUser) throw new Error("User not found during update");
+
+  return {
+    id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    address: updatedUser.address,
+    district: updatedUser.district,
+    college: updatedUser.college,
+    club: updatedUser.club,
+    roles: updatedUser.roles,
+    profilePicture: updatedUser.profilePicture,
+    bio: updatedUser.bio,
+    interestedSkills: updatedUser.interestedSkills,
+  };
+};
+
+export default { register, login, me, updateProfile };

@@ -50,14 +50,52 @@ const getMe = async (req, res) => {
   const userId = req.user.id;
   try {
     const meData = await authService.me(userId);
-    console.log("Backend ME Data=>", meData);
-
     if (!meData) return res.status(404).send("User not found");
-    console.log("User data sent to client:", meData);
     res.status(200).json(meData);
   } catch (error) {
     res.status(500).send(error.message);
   }
 };
 
-export { register, login, getMe };
+const updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    // Collect updated data from body
+    // interestedSkills might come as a stringified array if sent via FormData
+    let { name, address, district, college, bio, interestedSkills } = req.body;
+    
+    // Parse skills if stringified
+    if (typeof interestedSkills === "string") {
+      try {
+        interestedSkills = JSON.parse(interestedSkills);
+      } catch (e) {
+        interestedSkills = interestedSkills.split(",").map(s => s.trim());
+      }
+    }
+
+    const updateData = {
+      name,
+      address,
+      district,
+      college,
+      bio,
+      interestedSkills
+    };
+
+    // Add profile picture path if a new file was uploaded
+    if (req.file) {
+      updateData.profilePicture = `/uploads/profiles/${req.file.filename}`;
+    }
+
+    const updatedUser = await authService.updateProfile(userId, updateData);
+    res.status(200).json({
+      message: "Profile updated successfully",
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error("Profile Update Error:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export { register, login, getMe, updateProfile };

@@ -47,6 +47,27 @@ const authService = {
   },
 
   /**
+   * 🛠️ Update Profile Entity
+   * Modifies the user profile metadata including profile picture upload.
+   */
+  updateProfile: async (formData) => {
+    try {
+      const response = await api.put("/api/auth/profile", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || 
+        error.response?.data?.message || 
+        "Profile update failed"
+      );
+    }
+  },
+
+  /**
    * ❌ Terminate Session
    * Clears the current authentication token from local storage, effectively ending the user session.
    */

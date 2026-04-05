@@ -9,6 +9,7 @@ import auth from "./routes/auth.js";
 import events from "./routes/events.js";
 import registrationRoute from "./routes/registration.js";
 import clubs from "./routes/clubs.js";
+import admin from "./routes/admin.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -25,7 +26,7 @@ connectDB();
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
     optionsSuccessStatus: 200,
@@ -56,6 +57,7 @@ app.use("/api/auth", auth);
 app.use("/api/events", events);
 app.use("/api/registrations", registrationRoute);
 app.use("/api/clubs", clubs);
+app.use("/api/admin", admin);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

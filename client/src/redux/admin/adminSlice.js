@@ -2,7 +2,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import {
   fetchAdminEvents,
-  fetchAdminUsers,
+  fetchAllUsers,
   fetchAdminClubs,
   adminApproveClub,
   rejectClubAdmin,
@@ -36,15 +36,15 @@ const adminSlice = createSlice({
       })
 
       // Fetch Users
-      .addCase(fetchAdminUsers.pending, (state) => {
+      .addCase(fetchAllUsers.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchAdminUsers.fulfilled, (state, action) => {
+      .addCase(fetchAllUsers.fulfilled, (state, action) => {
         state.loading = false;
         state.users = action.payload;
       })
-      .addCase(fetchAdminUsers.rejected, (state, action) => {
+      .addCase(fetchAllUsers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

@@ -3,16 +3,17 @@ import { useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../redux/hooks.js";
 import {
   fetchAdminEvents,
-  fetchAdminUsers,
+  fetchAllUsers,
   fetchAdminClubs,
   adminApproveClub,
   rejectClubAdmin,
   deleteUserAdmin,
 } from "../redux/admin/adminAction.js";
+import { useDispatch, useSelector } from "react-redux";
 
 const useAdmin = () => {
-  const dispatch = useAppDispatch();
-  const adminState = useAppSelector((state) => state.admin);
+  const dispatch = useDispatch();
+  const adminState = useSelector((state) => state.admin);
 
   // 📥 Events
   const fetchEvents = useCallback(() => {
@@ -21,7 +22,7 @@ const useAdmin = () => {
 
   // 👥 Users
   const fetchUsers = useCallback(() => {
-    dispatch(fetchAdminUsers());
+    dispatch(fetchAllUsers());
   }, [dispatch]);
 
   // 🏢 Clubs
@@ -76,6 +77,9 @@ const useAdmin = () => {
     approveClub,
     rejectClub,
     deleteUser,
+    users: adminState.users || [],
+    loading: adminState.loading,
+    error: adminState.error,
     adminData: adminState,
   };
 };
