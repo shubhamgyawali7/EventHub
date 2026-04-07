@@ -4,11 +4,14 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, // IMPORTANT
   auth: {
     user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS, // Standard App Password from Gmail
+    pass: process.env.EMAIL_PASS,
   },
+  family: 4,
 });
 
 const frontendUrl = process.env.FRONTEND_URL;
