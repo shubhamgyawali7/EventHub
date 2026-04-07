@@ -29,12 +29,15 @@ router.put("/clubs/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub)
 
 router.get("/test-email", async (req, res) => {
     const nodemailer = await import("nodemailer");
-    const transporter = nodemailer.default.createTransport({
-        service: "gmail",
+    const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // IMPORTANT
         auth: {
             user: process.env.EMAIL_USER,
             pass: process.env.EMAIL_PASS,
         },
+        family: 4,
     });
 
     console.log("EMAIL_USER:", process.env.EMAIL_USER);
