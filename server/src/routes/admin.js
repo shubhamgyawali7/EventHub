@@ -63,7 +63,7 @@ router.get("/resend/test-email", async (req, res) => {
     try {
         await resend.emails.send({
             from: 'EventHub <onboarding@resend.dev>',
-            to: 'shubhamgyawali11@gmail.com',
+            to: ['shubahmgyawali11@gmail.com'],
             subject: 'Test from EventHub',
             html: '<p>If you see this, email works!</p>',
         });
