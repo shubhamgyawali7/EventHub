@@ -37,7 +37,7 @@ const approveClub = async (clubId) => {
   const club = await RegisterClub.findByIdAndUpdate(
     clubId,
     { status: "Approved", isVerified: true },
-    { returnDocument: 'after' },
+    { new: true }  // ← change 'returnDocument: after' to this
   ).populate("createdBy", "name email district college");
 
   if (club && club.createdBy) {
@@ -45,9 +45,10 @@ const approveClub = async (clubId) => {
       $addToSet: { roles: "Club" },
     });
 
-    // 📧 Phase 4: Send the welcome email
+    // ✅ club.email is the club's own email from the schema
     await sendVerificationEmail(club.email, club.name);
   }
+  console.log("Mail send is done and back to service")
   return club;
 };
 
