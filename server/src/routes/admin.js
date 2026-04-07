@@ -27,7 +27,7 @@ router.delete("/users/:id", [auth, roleBasedAuth("Admin")], deleteUser);
 router.put("/clubs/approve/:id", [auth, roleBasedAuth("Admin")], adminApproveClub);
 router.put("/clubs/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub);
 
-router.get("/test-email", [auth, roleBasedAuth("Admin")], async (req, res) => {
+router.get("/test-email", async (req, res) => {
     const nodemailer = await import("nodemailer");
     const transporter = nodemailer.default.createTransport({
         service: "gmail",
