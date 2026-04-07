@@ -27,4 +27,30 @@ router.delete("/users/:id", [auth, roleBasedAuth("Admin")], deleteUser);
 router.put("/clubs/approve/:id", [auth, roleBasedAuth("Admin")], adminApproveClub);
 router.put("/clubs/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub);
 
+router.get("/test-email", [auth, roleBasedAuth("Admin")], async (req, res) => {
+    const nodemailer = await import("nodemailer");
+    const transporter = nodemailer.default.createTransport({
+        service: "gmail",
+        auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+        },
+    });
+
+    console.log("EMAIL_USER:", process.env.EMAIL_USER);
+    console.log("EMAIL_PASS length:", process.env.EMAIL_PASS?.length);
+
+    try {
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: process.env.EMAIL_USER, // send to yourself
+            subject: "Test from EventHub",
+            text: "If you see this, email works!",
+        });
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, error: err.message });
+    }
+});
+
 export default router;
