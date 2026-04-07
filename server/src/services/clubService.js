@@ -44,7 +44,7 @@ const approveClub = async (clubId) => {
     await User.findByIdAndUpdate(club.createdBy._id, {
       $addToSet: { roles: "Club" },
     });
-    
+
     // 📧 Phase 4: Send the welcome email
     await sendVerificationEmail(club.email, club.name);
   }
@@ -146,16 +146,16 @@ const deleteEvent = async (eventId, userId) => {
   try {
     // First find the event
     const event = await Events.findById(eventId);
-    
+
     if (!event) {
       throw new Error("Event not found");
     }
-    
+
     // Check if the user owns this event
     if (event.createdBy.toString() !== userId) {
       throw new Error("Not authorized to delete this event");
     }
-    
+
     // Delete the event
     await Events.findByIdAndDelete(eventId);
     return { success: true, message: "Event deleted successfully" };
