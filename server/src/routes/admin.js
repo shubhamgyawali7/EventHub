@@ -4,7 +4,8 @@ import auth from "../middlewares/auth.js";
 import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 import { adminApproveClub, adminRejectClub } from "../controllers/clubController.js";
-import { sendVerificationEmail } from "../utils/emailService.js";
+// import { sendVerificationEmail } from "../utils/emailService.js";
+import { sendClubVerificationEmail } from "../utils/testemailService.js";
 
 
 
@@ -46,11 +47,13 @@ router.get("/test-verification-email", async (req, res) => {
         // Change this to your own email to see the result!
         const testEmail = 'shubhamgyawali2061@gmail.com';
         const testClubName = "Test Adventure Club";
+        const token = '521487'
 
         console.log("🧪 Starting Email Test...");
 
         // 2. Call the function
-        const result = await sendVerificationEmail(testEmail, testClubName);
+        // const result = await sendVerificationEmail(testEmail, testClubName);
+        const result = await sendClubVerificationEmail(testEmail, token);
 
         // 3. Handle the response
         if (result.success) {
