@@ -11,10 +11,13 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+const frontendUrl = process.env.FRONTEND_URL;
+
 /**
  * 📧 Send Club Verification Email
  * Notifies the club owner that their organization has been verified.
  */
+
 export const sendVerificationEmail = async (userEmail, clubName) => {
   const mailOptions = {
     from: `"EventHub" <${process.env.EMAIL_USER}>`,
@@ -31,7 +34,7 @@ export const sendVerificationEmail = async (userEmail, clubName) => {
           <p>You can now log in to your dashboard and start creating amazing IT events for our community.</p>
           
           <div style="text-align: center; margin: 40px 0;">
-            <a href="http://localhost:5173/profile" style="background-color: #6366f1; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
+            <a href="${frontendUrl}/profile" style="background-color: #6366f1; color: white; padding: 15px 25px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">
               Access Your Dashboard
             </a>
           </div>
