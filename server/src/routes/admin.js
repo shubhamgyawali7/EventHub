@@ -3,6 +3,7 @@ import auth from "../middlewares/auth.js";
 import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 import { adminApproveClub, adminRejectClub } from "../controllers/clubController.js";
+import { Resend } from 'resend';
 
 const router = express.Router();
 
@@ -48,7 +49,23 @@ router.get("/test-email", async (req, res) => {
             from: process.env.EMAIL_USER,
             to: process.env.EMAIL_USER, // send to yourself
             subject: "Test from EventHub",
-            text: "If you see this, email works!",
+            text: "If you see this, email works now!",
+        });
+        res.json({ success: true });
+    } catch (err) {
+        res.json({ success: false, error: err.message });
+    }
+});
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+router.get("/resend/test-email", async (req, res) => {
+    try {
+        await resend.emails.send({
+            from: 'EventHub <onboarding@resend.dev>',
+            to: 'shubhamgyawali11@gmail.com',
+            subject: 'Test from EventHub',
+            html: '<p>If you see this, email works!</p>',
         });
         res.json({ success: true });
     } catch (err) {
