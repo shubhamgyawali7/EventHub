@@ -44,7 +44,7 @@ const approveClub = async (clubId) => {
     await User.findByIdAndUpdate(club.createdBy._id, {
       $addToSet: { roles: "Club" },
     });
-
+    console.log('Club email and club name =>', club.email, club.name);
     // ✅ club.email is the club's own email from the schema
     await sendVerificationEmail(club.email, club.name);
   }

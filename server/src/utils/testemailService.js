@@ -1,46 +1,62 @@
-import { Resend } from 'resend';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const FROM_EMAIL = process.env.EMAIL_FROM || 'EventHub <support@mail.aakashbhandari.info.np>';
+// Create transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
 
-export const sendClubVerificationEmail = async (email, token) => {
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+export const sendVerificationEmail = async (userEmail, clubName) => {
+    const dashboardUrl = `${process.env.FRONTEND_URL}/club/dashboard`;
+
+    console.log(`📧 Nodemailer: Attempting to notify: ${userEmail} regarding ${clubName}`);
 
     try {
-        console.log(`📨 Resend: Sending verification email to: ${email}`);
-        const { data, error } = await resend.emails.send({
-            from: FROM_EMAIL,
-            to: [email],
-            subject: 'Verify your EventHub account',
+        const info = await transporter.sendMail({
+            from: `"EventHub Support" <${process.env.EMAIL_USER}>`,
+            to: userEmail,
+            subject: `Successfully Verified Your Club! ${clubName} is now Verified on EventHub`,
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e1e1; border-radius: 10px; overflow: hidden;">
-                    <div style="background-color: #6366f1; padding: 20px; text-align: center;">
-                        <h1 style="color: white; margin: 0;">EventHub</h1>
-                    </div>
-                    <div style="padding: 20px;">
-                        <h2>Verify Your Email</h2>
-                        <p>Thank you for joining EventHub! Please verify your email address to complete your registration.</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="${verificationUrl}" style="background-color: #6366f1; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Verify Email Address</a>
-                        </div>
-                        <p>This link will expire in 24 hours.</p>
-                    </div>
-                    <div style="background-color: #f9f9f9; padding: 20px; text-align: center; font-size: 12px; color: #777;">
-                        <p>&copy; 2026 EventHub. All rights reserved.</p>
-                    </div>
-                </div>
-            `
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e1e1e1; border-radius: 12px; overflow: hidden; color: #333;">
+          <div style="background-color: #6366f1; padding: 30px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 28px; letter-spacing: 1px;">EventHub</h1>
+          </div>
+          <div style="padding: 40px; line-height: 1.6;">
+            <h2 style="color: #1f2937; margin-top: 0;">Verification Approved!</h2>
+            <p>Great news! Your club, <span style="color: #6366f1; font-weight: bold;">${clubName}</span>, has been officially verified by our team.</p>
+            <p>You can now start posting events, managing members, and growing your community on our platform.</p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="${dashboardUrl}" 
+                 style="background-color: #6366f1; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);">
+                 Access Your Dashboard
+              </a>
+            </div>
+
+            <p style="font-size: 0.9em; color: #6b7280;">If you didn't request this, or believe this was an error, please contact our support team immediately.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 30px 0;">
+            <p style="margin-bottom: 0;">Cheers,</p>
+            <p style="margin-top: 5px; font-weight: bold; color: #4b5563;">The EventHub Team</p>
+          </div>
+          <div style="background-color: #f9fafb; padding: 15px; text-align: center; font-size: 12px; color: #9ca3af;">
+            &copy; 2026 EventHub. All rights reserved.
+          </div>
+        </div>
+      `,
         });
 
-        if (error) throw error;
-        console.log(`✅ Resend: Email sent. ID: ${data.id}`);
-        return data;
-    } catch (error) {
-        console.error('❌ Resend Error:', error.message);
-        throw error;
+        console.log("✅ Nodemailer: Verification notification sent. ID:", info.messageId);
+        return { success: true, messageId: info.messageId };
+    } catch (err) {
+        console.error("❌ Nodemailer Error:", err.message);
+        return { success: false, error: err.message };
     }
 };
-

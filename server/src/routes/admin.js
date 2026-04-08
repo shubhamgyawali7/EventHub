@@ -33,6 +33,7 @@ router.delete("/users/:id", [auth, roleBasedAuth("Admin")], deleteUser);
  */
 router.put("/clubs/approve/:id", [auth, roleBasedAuth("Admin")], adminApproveClub);
 router.put("/clubs/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub);
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 router.get("/test-resend", async (req, res) => {
