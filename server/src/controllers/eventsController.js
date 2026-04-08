@@ -224,18 +224,39 @@ const getEventById = async (req, res) => {
 };
 
 const updateEvent = async (req, res) => {
-  const updatedData = req.body;
   const eventId = req.params.id;
   const userId = req.user.id;
+  const updatedData = { ...req.body };
 
   try {
     const event = await eventService.getEventById(eventId);
-    if (!event) return res.status(404).send("Event Not Found");
+    if (!event) return res.status(404).json({ error: "Event Not Found" });
 
     if (event.createdBy.toString() !== userId) {
       return res
         .status(403)
-        .send("Unauthorized: You can only edit your own events");
+        .json({ error: "Unauthorized: You can only edit your own events" });
+    }
+
+    // Handle new poster if uploaded
+    if (req.file) {
+      updatedData.poster = `/uploads/events/${req.file.filename}`;
+    }
+
+    // Parse numeric/boolean fields from FormData
+    if (updatedData.participantCount !== undefined) {
+      updatedData.participantCount = parseInt(updatedData.participantCount) || 0;
+    }
+    if (updatedData.isPaid !== undefined) {
+      updatedData.isPaid = updatedData.isPaid === "true" || updatedData.isPaid === true;
+    }
+    if (updatedData.price !== undefined) {
+      updatedData.price = parseFloat(updatedData.price) || 0;
+    }
+
+    // Parse tags if provided as string
+    if (typeof updatedData.tags === "string") {
+      updatedData.tags = updatedData.tags.split(",").map((t) => t.trim()).filter(Boolean);
     }
 
     // Validate eventType if provided
@@ -253,7 +274,7 @@ const updateEvent = async (req, res) => {
     // Combine eventDate and eventTime if both provided
     if (updatedData.eventDate && updatedData.eventTime) {
       updatedData.eventDate = new Date(
-        `${updatedData.eventDate}T${updatedData.eventTime}`,
+        `${updatedData.eventDate}T${updatedData.eventTime}`
       );
     } else if (updatedData.eventDate) {
       updatedData.eventDate = new Date(updatedData.eventDate);
@@ -261,14 +282,15 @@ const updateEvent = async (req, res) => {
 
     // For online events, remove venue and location
     if (eventType === "online") {
-      delete updatedData.venue;
-      delete updatedData.location;
+      updatedData.venue = "";
+      updatedData.location = null;
     }
 
-    const updatedEvent = await eventService.updateEvent(eventId, updatedData);
-    res.status(200).json(updatedEvent);
+    const result = await eventService.updateEvent(eventId, updatedData);
+    res.status(200).json(result);
   } catch (error) {
-    res.status(500).send(error.message);
+    console.error("Error in updateEvent:", error);
+    res.status(500).json({ error: error.message });
   }
 };
 

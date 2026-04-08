@@ -31,6 +31,7 @@ const Events = () => {
   const handleNearMeClick = () => {
     if (useNearby) {
       setUseNearby(false);
+      fetchEvents(); // Fetch all events when toggling off
       return;
     }
 
@@ -43,12 +44,16 @@ const Events = () => {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        setUserCoords({
+        const coords = {
           lng: position.coords.longitude,
           lat: position.coords.latitude,
-        });
+        };
+        setUserCoords(coords);
         setUseNearby(true);
         setIsLocating(false);
+        
+        // Fetch events near these coordinates (10km radius by default)
+        fetchEvents({ lat: coords.lat, lng: coords.lng, radius: 20 });
       },
       () => {
         alert("Unable to retrieve your location");
@@ -59,16 +64,16 @@ const Events = () => {
 
   const filteredEvents = Array.isArray(events)
     ? events.filter((event) => {
-        const matchesSearch =
-          event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.venue?.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        const matchesCategory =
-          selectedCategory === "All" || event.category === selectedCategory;
-        
-        return matchesSearch && matchesCategory;
-      })
+      const matchesSearch =
+        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.venue?.toLowerCase().includes(searchTerm.toLowerCase());
+
+      const matchesCategory =
+        selectedCategory === "All" || event.category === selectedCategory;
+
+      return matchesSearch && matchesCategory;
+    })
     : [];
 
   return (
@@ -107,11 +112,10 @@ const Events = () => {
             {/* Near Me Button */}
             <button
               onClick={handleNearMeClick}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all border ${
-                useNearby
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all border ${useNearby
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-              }`}
+                }`}
             >
               {isLocating ? (
                 <Loader2 className="animate-spin" size={18} />
@@ -127,11 +131,10 @@ const Events = () => {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${
-                  selectedCategory === cat
+                className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${selectedCategory === cat
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                     : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100"
-                }`}
+                  }`}
               >
                 {cat}
               </button>

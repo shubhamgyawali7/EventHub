@@ -22,7 +22,7 @@ router.get("/", getAllEvents);
 router.get("/:id", getEventById);
 
 
-router.put("/:id", auth, updateEvent);
+router.put("/:id", auth, uploadEventPoster, handleMulterError, updateEvent);
 
 router.delete("/:id", auth, deleteEvent);
 
