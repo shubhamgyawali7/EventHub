@@ -4,19 +4,12 @@ import auth from "../middlewares/auth.js";
 import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 import { adminApproveClub, adminRejectClub } from "../controllers/clubController.js";
-// import { sendVerificationEmail } from "../utils/emailService.js";
+import { sendVerificationEmail } from "../utils/emailService.js";
 import { sendClubVerificationEmail } from "../utils/testemailService.js";
 
-
+import { Resend } from 'resend';
 
 dotenv.config();
-
-console.log('📧 Email Config:');
-console.log('  Email User:', process.env.EMAIL_USER);
-console.log('  Email Pass:', process.env.EMAIL_PASS ? '✓ Set' : '✗ Missing');
-console.log("EMAIL_PASS length:", process.env.EMAIL_PASS?.length);
-console.log('  Client URL:', process.env.FRONTEND_URL);
-
 
 const router = express.Router();
 
@@ -40,43 +33,35 @@ router.delete("/users/:id", [auth, roleBasedAuth("Admin")], deleteUser);
  */
 router.put("/clubs/approve/:id", [auth, roleBasedAuth("Admin")], adminApproveClub);
 router.put("/clubs/reject/:id", [auth, roleBasedAuth("Admin")], adminRejectClub);
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-router.get("/test-verification-email", async (req, res) => {
+router.get("/test-resend", async (req, res) => {
     try {
-        // 1. Define test data
-        // Change this to your own email to see the result!
-        const testEmail = 'shubhamgyawali2061@gmail.com';
-        const testClubName = "Test Adventure Club";
-        const token = '521487'
+        console.log("🚀 Testing Resend Email...");
+        const { data, error } = await resend.emails.send({
+            from: process.env.EMAIL_FROM || 'EventHub <support@mail.aakashbhandari.info.np>',
+            to: 'ffgyawali7@gmail.com',
+            subject: 'Resend Test - EventHub',
+            html: `
+                <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+                    <h2 style="color: #4f46e5;">Email Service Test</h2>
+                    <p>If you are reading this, <strong>Resend</strong> is working correctly in your EventHub backend!</p>
+                    <p>Sent at: ${new Date().toLocaleString()}</p>
+                </div>
+            `,
+        });
 
-        console.log("🧪 Starting Email Test...");
-
-        // 2. Call the function
-        // const result = await sendVerificationEmail(testEmail, testClubName);
-        const result = await sendClubVerificationEmail(testEmail, token);
-
-        // 3. Handle the response
-        if (result.success) {
-            return res.status(200).json({
-                success: true,
-                message: `Test email sent successfully to ${testEmail}`,
-                messageId: result.messageId
-            });
-        } else {
-            return res.status(500).json({
-                success: false,
-                message: "Failed to send test email.",
-                error: result.error
-            });
+        if (error) {
+            console.error("❌ Resend Error:", error);
+            return res.status(400).json({ success: false, error });
         }
 
+        console.log("✅ Email sent successfully:", data);
+        res.status(200).json({ success: true, message: "Email sent!", data });
     } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
+        console.error("💥 Server Error:", error);
+        res.status(500).json({ success: false, error: error.message });
     }
 });
-
 
 export default router;
