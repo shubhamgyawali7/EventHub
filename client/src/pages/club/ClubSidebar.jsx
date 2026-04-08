@@ -11,14 +11,22 @@ import {
   Calendar,
   Clock,
   MapPin,
+  Home,
 } from "lucide-react";
 import useOrganizer from "../../hooks/useOrganizer";
+import useAuth from "../../hooks/useAuth";
 
 const ClubSidebar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { orgEvents, fetchOrganizerEvents } = useOrganizer();
+  const { logout } = useAuth();
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   useEffect(() => {
     // Fetch organizer events
@@ -55,6 +63,16 @@ const ClubSidebar = () => {
       </div>
 
       <nav className="flex-1 px-4 space-y-2">
+        <Link
+          to="/"
+          className="flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 mb-4 border-b border-slate-50 rounded-b-none"
+        >
+          <Home size={20} className="group-hover:scale-110 transition-transform" />
+          <span className="text-sm font-black tracking-tight uppercase">
+            Back to Home
+          </span>
+        </Link>
+
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -157,7 +175,7 @@ const ClubSidebar = () => {
       {/* Logout */}
       <div className="p-6 border-t border-slate-50">
         <button
-          onClick={() => console.log("Logout triggered")}
+          onClick={handleLogout}
           className="w-full flex items-center gap-4 px-6 py-4 text-red-500 hover:bg-red-50 rounded-2xl transition-all font-bold text-sm"
         >
           <LogOut size={20} />

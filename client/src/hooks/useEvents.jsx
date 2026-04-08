@@ -15,9 +15,9 @@ const useEvents = () => {
   const loading = useSelector((state) => state.events.loading);
   const error = useSelector((state) => state.events.error);
 
-  const fetchAllEvents = useCallback(async () => {
+  const fetchAllEvents = useCallback(async (params = {}) => {
     try {
-      const res = await dispatch(fetchEvents()).unwrap();
+      const res = await dispatch(fetchEvents(params)).unwrap();
       return { success: true, data: res };
     } catch (err) {
       return { success: false, message: err };

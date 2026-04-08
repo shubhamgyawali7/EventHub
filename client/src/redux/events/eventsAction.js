@@ -22,11 +22,11 @@ const normalizeEvent = (event) => ({
 // Fetch All Events
 export const fetchEvents = createAsyncThunk(
   "events/fetchEvents",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const data = await eventService.getAllEvents();
+      const data = await eventService.getAllEvents(params);
       const events = Array.isArray(data) ? data : [];
-      return events.map(normalizeEvent); // ← normalize every event's poster
+      return events.map(normalizeEvent);
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch events");
     }
@@ -62,10 +62,10 @@ export const createEvent = createAsyncThunk(
 // Update Event
 export const updateEvent = createAsyncThunk(
   "events/updateEvent",
-  async ({ eventId, updatedData }, { rejectWithValue }) => {
+  async ({ id, data }, { rejectWithValue }) => {
     try {
-      const data = await eventService.updateEvent(eventId, updatedData);
-      return normalizeEvent(data);
+      const result = await eventService.updateEvent(id, data);
+      return normalizeEvent(result);
     } catch (error) {
       return rejectWithValue(error.message || "Failed to update event");
     }
