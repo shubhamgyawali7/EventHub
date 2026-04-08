@@ -5,9 +5,9 @@ const eventService = {
    * 📥 Get All Events
    * Retrieves a list of all publicly available events.
    */
-  getAllEvents: async () => {
+  getAllEvents: async (params = {}) => {
     try {
-      const response = await api.get("/api/events");
+      const response = await api.get("/api/events", { params });
       return response.data;
     } catch (error) {
       throw new Error(
