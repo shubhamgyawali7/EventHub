@@ -4,8 +4,7 @@ import auth from "../middlewares/auth.js";
 import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 import { getAllUsers, deleteUser } from "../controllers/adminController.js";
 import { adminApproveClub, adminRejectClub } from "../controllers/clubController.js";
-import { sendVerificationEmail } from "../utils/emailService.js";
-import { sendClubVerificationEmail } from "../utils/testemailService.js";
+
 
 import { Resend } from 'resend';
 
