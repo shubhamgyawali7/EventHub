@@ -1,6 +1,7 @@
 // EventCreate.jsx (Updated with Edit Mode Support)
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 import MapPicker from "../../components/common/MapPicker";
 import {
@@ -21,6 +22,8 @@ import {
   CreditCard,
   Navigation,
   Globe,
+  FormInput,
+  ExternalLink,
 } from "lucide-react";
 import ClubSidebar from "./ClubSidebar";
 import useEvents from "../../hooks/useEvents";
@@ -55,6 +58,8 @@ const EventDeployment = () => {
     tags: "",
     isPaid: false,
     price: 0,
+    registrationType: "system",
+    googleFormUrls: ["", ""], // [form URL, response sheet URL]
     googleMapUrl: "",
     latitude: "",
     longitude: "",
@@ -86,6 +91,8 @@ const EventDeployment = () => {
               tags: event.tags?.join(",") || "",
               isPaid: event.isPaid || false,
               price: event.price || 0,
+              registrationType: event.registrationType || "system",
+              googleFormUrls: event.googleFormUrls || ["", ""],
               googleMapUrl: event.googleMapUrl || "",
               latitude: event.location?.coordinates[1] || "",
               longitude: event.location?.coordinates[0] || "",
@@ -102,7 +109,7 @@ const EventDeployment = () => {
           }
         } catch (error) {
           console.error("Error loading event:", error);
-          alert("Failed to load event. Redirecting...");
+          toast.error("Failed to load event. Redirecting...");
           navigate("/club/my-events");
         } finally {
           setLoadingEvent(false);
@@ -156,13 +163,13 @@ const EventDeployment = () => {
     if (file) {
       // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size should be less than 5MB");
+        toast.error("File size should be less than 5MB");
         return;
       }
 
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please upload an image file");
+        toast.error("Please upload an image file");
         return;
       }
 
@@ -197,7 +204,7 @@ const EventDeployment = () => {
 
     for (const field of requiredFields) {
       if (!formData[field]) {
-        alert(
+        toast.error(
           `Please fill in the ${field.replace(/([A-Z])/g, " $1").toLowerCase()} field`,
         );
         return false;
@@ -207,17 +214,17 @@ const EventDeployment = () => {
     // For CREATE: require new poster file
     // For EDIT: allow existing posterPreview OR new poster file
     if (!isEditMode && !formData.poster) {
-      alert("Please upload a poster image");
+      toast.error("Please upload a poster image");
       return false;
     }
     if (isEditMode && !posterFile && !formData.posterPreview) {
-      alert("Please add a poster image for this event");
+      toast.error("Please add a poster image for this event");
       return false;
     }
 
     // Location selection required only for physical events
     if (formData.eventType === "physical" && !selectedLocation && !isEditMode) {
-      alert("Please select a location on the map");
+      toast.error("Please select a location on the map");
       return false;
     }
 
@@ -228,17 +235,17 @@ const EventDeployment = () => {
     const now = new Date();
 
     if (deadlineDate < now) {
-      alert("Registration deadline cannot be in the past");
+      toast.error("Registration deadline cannot be in the past");
       return false;
     }
 
     if (eventDateTime < deadlineDate) {
-      alert("Event date cannot be before registration deadline");
+      toast.error("Event date cannot be before registration deadline");
       return false;
     }
 
     if (formData.participantCount < 1) {
-      alert("Participant capacity must be at least 1");
+      toast.error("Participant capacity must be at least 1");
       return false;
     }
 
@@ -290,6 +297,18 @@ const EventDeployment = () => {
       formDataToSend.append("tags", formData.tags);
       formDataToSend.append("isPaid", formData.isPaid);
       formDataToSend.append("price", formData.price);
+      formDataToSend.append("registrationType", formData.registrationType);
+
+      // Only append Google Form URLs if registration type is google_form
+      if (
+        formData.registrationType === "google_form" &&
+        formData.googleFormUrls?.[0]?.trim()
+      ) {
+        formDataToSend.append(
+          "googleFormUrls",
+          JSON.stringify(formData.googleFormUrls.filter((url) => url.trim())),
+        );
+      }
 
       // Location data - only for physical events
       if (formData.eventType === "physical") {
@@ -322,13 +341,13 @@ const EventDeployment = () => {
         console.log("🔄 [FRONTEND] Sending UPDATE request to backend...");
         result = await updateEvent({ id: eventId, data: formDataToSend });
         console.log("✅ [FRONTEND] UPDATE response:", result);
-        alert("Event updated successfully!");
+        toast.success("Event updated successfully!");
       } else {
         // Create new event
         console.log("🔄 [FRONTEND] Sending CREATE request to backend...");
         result = await createEvent(formDataToSend);
         console.log("✅ [FRONTEND] CREATE response:", result);
-        alert("Event created successfully!");
+        toast.success("Event created successfully!");
       }
 
       navigate("/club/my-events");
@@ -338,7 +357,7 @@ const EventDeployment = () => {
       console.error("Full error:", error);
       console.error("Response data:", error.response?.data);
       console.error("Response status:", error.response?.status);
-      alert(error.message || "Failed to save event. Please try again.");
+      toast.error(error.message || "Failed to save event. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -509,6 +528,118 @@ const EventDeployment = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Registration Type Selection */}
+              <div className="space-y-4 p-8 bg-gradient-to-br from-emerald-50 to-teal-50 rounded-3xl border border-emerald-100">
+                <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2 ml-1">
+                  <FormInput size={12} /> Registration Method *
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div
+                    className={`relative cursor-pointer group`}
+                    onClick={() =>
+                      setFormData({ ...formData, registrationType: "system" })
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="registrationType"
+                      value="system"
+                      checked={formData.registrationType === "system"}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.registrationType === "system"
+                          ? "border-emerald-600 bg-white shadow-lg"
+                          : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
+                      }`}
+                    >
+                      <FormInput
+                        size={20}
+                        className={`mx-auto mb-2 ${
+                          formData.registrationType === "system"
+                            ? "text-emerald-600"
+                            : "text-emerald-400"
+                        }`}
+                      />
+                      <p className="text-sm font-black text-emerald-900">
+                        System Registration
+                      </p>
+                      <p className="text-[9px] text-slate-500 mt-1">
+                        Built-in form
+                      </p>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`relative cursor-pointer group`}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        registrationType: "google_form",
+                      })
+                    }
+                  >
+                    <input
+                      type="radio"
+                      name="registrationType"
+                      value="google_form"
+                      checked={formData.registrationType === "google_form"}
+                      onChange={handleChange}
+                      className="sr-only"
+                    />
+                    <div
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.registrationType === "google_form"
+                          ? "border-blue-600 bg-white shadow-lg"
+                          : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
+                      }`}
+                    >
+                      <ExternalLink
+                        size={20}
+                        className={`mx-auto mb-2 ${
+                          formData.registrationType === "google_form"
+                            ? "text-blue-600"
+                            : "text-emerald-400"
+                        }`}
+                      />
+                      <p className="text-sm font-black text-emerald-900">
+                        Google Form
+                      </p>
+                      <p className="text-[9px] text-slate-500 mt-1">
+                        External link
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Google Form URLs - only show if google_form is selected */}
+              {formData.registrationType === "google_form" && (
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
+                    <ExternalLink size={12} /> Google Form URL
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="Google Form URL (e.g., https://forms.gle/...)"
+                    className="w-full bg-slate-50 border-none rounded-3xl py-4 px-6 focus:ring-2 focus:ring-indigo-100 transition-all font-bold text-slate-800 placeholder:opacity-30"
+                    value={formData.googleFormUrls[0] || ""}
+                    onChange={(e) => {
+                      const newUrls = [...formData.googleFormUrls];
+                      newUrls[0] = e.target.value;
+                      setFormData({ ...formData, googleFormUrls: newUrls });
+                    }}
+                    required
+                  />
+                  <p className="text-xs text-slate-500 font-medium">
+                    Only enter the Google Form link here. The response sheet can
+                    be added later from Registrations.
+                  </p>
+                </div>
+              )}
 
               {/* Always show District */}
               <div className="space-y-4">

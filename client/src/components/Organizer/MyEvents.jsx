@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { toast } from "react-hot-toast";
 import useOrganizer from "../../hooks/useOrganizer";
 import useAuth from "../../hooks/useAuth";
 
@@ -7,11 +8,14 @@ const MyEvents = () => {
     useOrganizer();
   const { user } = useAuth();
 
-  useEffect(() => {
-    if (user?.id) {
-      fetchOrganizerEvents(user.id);
+  const handleDelete = async (eventId) => {
+    try {
+      await deleteOrganizerEvent(eventId);
+      toast.success("Event deleted successfully!");
+    } catch (error) {
+      toast.error("Failed to delete event. Please try again.");
     }
-  }, [user, fetchOrganizerEvents]);
+  };
 
   return (
     <div className="p-8">
@@ -26,7 +30,7 @@ const MyEvents = () => {
             <p className="text-sm text-gray-600">{event.date}</p>
           </div>
           <button
-            onClick={() => deleteOrganizerEvent(event.id)}
+            onClick={() => handleDelete(event.id)}
             className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700"
           >
             Delete

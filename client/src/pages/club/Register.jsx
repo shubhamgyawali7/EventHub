@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
 import {
   Building2,
   Globe,
@@ -224,12 +225,12 @@ const ClubRegistration = () => {
     if (!validateStep3()) return;
 
     setLoading(true);
-    setErrors({});
 
     try {
       const result = await clubRegister(formData);
 
       if (result?.success) {
+        toast.success("Club registration submitted successfully!");
         setSuccess(true);
         // Refresh user data
         await getMe();
@@ -238,11 +239,11 @@ const ClubRegistration = () => {
           navigate("/club/verification");
         }, 2000);
       } else {
-        setErrors({ api: result?.message || "Something went wrong" });
+        toast.error(result?.message || "Something went wrong");
       }
     } catch (error) {
       console.error("Registration error:", error);
-      setErrors({ api: error.message || "Server error" });
+      toast.error(error.message || "Server error");
     } finally {
       setLoading(false);
     }

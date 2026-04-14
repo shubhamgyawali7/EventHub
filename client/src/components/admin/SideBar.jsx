@@ -10,6 +10,7 @@ import {
   LogOut,
   Clock,
   MapPin,
+  UserCheck2Icon,
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import eventService from "../../services/eventService";
@@ -44,6 +45,7 @@ const SideBar = () => {
     { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
     { label: "All Events", icon: Calendar, path: "/admin/events" },
     { label: "All Users", icon: Users, path: "/admin/users" },
+    { label: "Register User", icon: UserCheck2Icon, path: "/admin/registrations" },
     { label: "All Clubs", icon: Building2, path: "/admin/clubs" },
     {
       label: "Club Verification",

@@ -29,9 +29,7 @@ const adminService = {
       return response.data;
     } catch (error) {
       console.error("Error approving club:", error);
-      throw new Error(
-        error.response?.data?.error || "Failed to approve club",
-      );
+      throw new Error(error.response?.data?.error || "Failed to approve club");
     }
   },
 
@@ -60,6 +58,17 @@ const adminService = {
       return userId;
     } catch (error) {
       throw new Error(error.response?.data?.message || "Failed to delete user");
+    }
+  },
+
+  getAllRegistrations: async () => {
+    try {
+      const response = await api.get("/api/admin/registrations");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch registrations",
+      );
     }
   },
 };

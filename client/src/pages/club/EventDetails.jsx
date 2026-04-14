@@ -18,8 +18,11 @@ import {
   DollarSign,
   Zap,
   Eye,
+  ExternalLink,
   Globe,
 } from "lucide-react";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { toast } from "react-hot-toast";
 import ClubSidebar from "./ClubSidebar";
 import useEvents from "../../hooks/useEvents";
 
@@ -31,6 +34,32 @@ const normalizePoster = (poster) => {
   return `${BASE_URL}${poster}`;
 };
 
+const deriveGoogleFormResponseUrl = (urls) => {
+  if (!urls || !Array.isArray(urls) || urls.length === 0) return "";
+  // If there's a response sheet URL (second element), use it
+  if (urls[1] && urls[1].trim()) return urls[1].trim();
+  // Otherwise, derive from form URL
+  const formUrl = urls[0];
+  if (!formUrl) return "";
+  const trimmed = formUrl.trim();
+  if (
+    trimmed.includes("edit#responses") ||
+    trimmed.includes("viewanalytics") ||
+    trimmed.includes("spreadsheets")
+  ) {
+    return trimmed;
+  }
+  const match = trimmed.match(/\/forms\/d\/([^\/]+)/);
+  if (match && match[1]) {
+    return `https://docs.google.com/forms/d/${match[1]}/edit#responses`;
+  }
+  return trimmed;
+};
+
+const isGoogleFormLink = (url) => {
+  return Boolean(url && url.includes("docs.google.com/forms"));
+};
+
 const ClubEventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -38,6 +67,12 @@ const ClubEventDetails = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -76,11 +111,23 @@ const ClubEventDetails = () => {
     navigate(`/club/create-event?id=${event._id}`);
   };
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure? This action cannot be undone.")) {
-      // Call delete API
-      navigate("/club/my-events");
-    }
+  const handleDelete = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Event",
+      message: "Are you sure? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          // Call delete API
+          navigate("/club/my-events");
+          toast.success("Event deleted successfully.");
+        } catch (error) {
+          toast.error(error.message || "Failed to delete event.");
+        } finally {
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -336,10 +383,57 @@ const ClubEventDetails = () => {
                 </p>
               </div>
 
-              <button className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all">
-                <Eye size={18} className="inline mr-2" /> View Registrations
+              <button
+                className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all"
+                onClick={() => navigate("/club/registrations")}
+              >
+                <Eye size={18} className="inline mr-2" /> View All Registrations
               </button>
             </div>
+
+            {/* Google Forms Notification - Only show for Google Form events */}
+            {event.registrationType === "google_form" && (
+              <div className="bg-blue-50 rounded-3xl p-8 border border-blue-200 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center">
+                    <ExternalLink size={20} className="text-blue-600" />
+                  </div>
+                  <h3 className="font-black text-blue-900">
+                    Google Forms Registration
+                  </h3>
+                </div>
+                <p className="text-sm text-blue-700 font-medium leading-relaxed">
+                  This event uses Google Forms for registration. Participant
+                  data is collected externally and cannot be viewed in this
+                  dashboard.
+                </p>
+                <div className="space-y-3">
+                  <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">
+                    To view responses:
+                  </p>
+                  <div className="flex gap-2">
+                    <a
+                      href={event.googleFormUrls?.[0] || "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all text-center"
+                    >
+                      {isGoogleFormLink(event.googleFormUrls?.[0])
+                        ? "Open Google Form"
+                        : "Open Link"}
+                    </a>
+                    <a
+                      href={deriveGoogleFormResponseUrl(event.googleFormUrls)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 bg-blue-100 text-blue-700 px-4 py-3 rounded-2xl font-bold text-sm hover:bg-blue-200 transition-all text-center border border-blue-200"
+                    >
+                      View Responses
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Deadline Card */}
             {event.deadline && (
@@ -409,9 +503,9 @@ const ClubEventDetails = () => {
 
             {/* Share Card */}
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(window.location.href);
-                alert("Link copied!");
+              onClick={async () => {
+                await navigator.clipboard.writeText(window.location.href);
+                toast.success("Link copied to clipboard!");
               }}
               className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg flex items-center justify-center gap-2"
             >
@@ -420,6 +514,14 @@ const ClubEventDetails = () => {
           </div>
         </div>
       </main>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
     </div>
   );
 };

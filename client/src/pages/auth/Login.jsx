@@ -1,15 +1,8 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import {
-  Mail,
-  Lock,
-  Loader2,
-  AlertCircle,
-  Eye,
-  EyeOff,
-  ArrowRight,
-} from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 
 const Login = () => {
@@ -17,7 +10,6 @@ const Login = () => {
   const { login } = useAuth();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const {
@@ -28,14 +20,14 @@ const Login = () => {
 
   const onSubmit = async (data) => {
     setLoading(true);
-    setError(null);
     const result = await login(data);
     setLoading(false);
 
     if (result.success) {
+      toast.success("Login successful!");
       navigate("/");
     } else {
-      setError(result.message || "Invalid email or password");
+      toast.error(result.message || "Invalid email or password");
     }
   };
 
@@ -60,14 +52,6 @@ const Login = () => {
         </div>
 
         <div className="bg-white rounded-4xl shadow-xl shadow-slate-200/60 p-8 md:p-10 border border-slate-100">
-          {/* Global Error */}
-          {error && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-100 text-red-600 p-4 rounded-2xl mb-6 animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={20} className="shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
-            </div>
-          )}
-
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* EMAIL */}
             <div className="space-y-1.5">

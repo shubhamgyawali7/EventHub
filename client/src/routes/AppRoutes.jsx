@@ -27,6 +27,7 @@ import ClubDashboard from "../pages/club/Dashboard";
 import ClubCreateEvent from "../pages/club/EventCreate";
 import ClubEventList from "../pages/club/EventList";
 import ClubEventDetails from "../pages/club/EventDetails";
+import ClubRegistrations from "../pages/club/ClubRegistrations";
 import ClubPortal from "../components/Organizer/ClubRedirection.jsx";
 import ClubRegistration from "../pages/club/Register.jsx";
 
@@ -37,6 +38,7 @@ import AdminManageClubs from "../pages/admin/ManageClubs";
 import AdminAllUsers from "../pages/admin/AllUsers";
 import AdminAllClubs from "../pages/admin/AllClubs";
 import AdminEventDetails from "../pages/admin/AdminEventDetails";
+import AdminRegistrations from "../pages/admin/AdminRegistrations";
 import AdminHome from "../pages/admin/AdminHome.jsx";
 
 const AppRoutes = () => {
@@ -148,6 +150,15 @@ const AppRoutes = () => {
         }
       />
 
+      <Route
+        path="/club/registrations"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
+            <ClubRegistrations />
+          </ProtectedRoute>
+        }
+      />
+
       {/* <Route
         path="/club/profile"
         element={
@@ -172,6 +183,7 @@ const AppRoutes = () => {
         <Route path="event/:id" element={<AdminEventDetails />} />
         <Route path="users" element={<AdminAllUsers />} />
         <Route path="clubs" element={<AdminAllClubs />} />
+        <Route path="registrations" element={<AdminRegistrations />} />
         <Route path="club/verification" element={<AdminManageClubs />} />
       </Route>
 

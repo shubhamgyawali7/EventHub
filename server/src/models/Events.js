@@ -63,6 +63,14 @@ const eventSchema = new mongoose.Schema(
     isPaid: { type: Boolean, default: false },
     price: { type: Number, default: 0, min: 0 },
 
+    // 6. Registration Type
+    registrationType: {
+      type: String,
+      enum: ["system", "google_form"],
+      default: "system",
+    },
+    googleFormUrls: [{ type: String, trim: true }], // Array of Google Form and response sheet URLs
+
     // 5. Geospatial Data - Optional, only for physical events
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },

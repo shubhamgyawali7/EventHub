@@ -1,4 +1,3 @@
-
 import api from "../api/axios";
 
 const clubService = {
@@ -35,13 +34,30 @@ const clubService = {
     }
   },
 
-  getAllCreatedEvents : async () => {
-     try{
-      const response = await api.get('api/clubs/my-events');
+  getAllCreatedEvents: async () => {
+    try {
+      const response = await api.get("api/clubs/my-events");
       return response.data;
-     } catch (error) {
-      throw new Error ( error.response?.data?.message || "Event retrieval failure",)
-     }
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Event retrieval failure",
+      );
+    }
+  },
+
+  /**
+   * 📋 Get Club Registrations
+   * Retrieves all registrations for events created by the club
+   */
+  getClubRegistrations: async () => {
+    try {
+      const response = await api.get("/api/registrations/club/all");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch registrations",
+      );
+    }
   },
 
   /**
@@ -59,7 +75,7 @@ const clubService = {
     }
   },
 
-    /**
+  /**
    * ❌ Delete Event
    * Deletes an event by its ID
    */
@@ -68,9 +84,7 @@ const clubService = {
       const response = await api.delete(`/api/clubs/events/${eventId}`);
       return response.data;
     } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Event deletion failed"
-      );
+      throw new Error(error.response?.data?.message || "Event deletion failed");
     }
   },
 };

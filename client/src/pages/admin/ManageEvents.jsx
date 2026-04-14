@@ -1,6 +1,8 @@
 // src/pages/admin/AdminManageEvents.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import {
   ShieldAlert,
   Calendar,
@@ -35,6 +37,12 @@ const AdminManageEvents = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 5;
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   const now = useMemo(() => new Date(), []);
 
@@ -70,20 +78,25 @@ const AdminManageEvents = () => {
     console.log("Error state:", adminData.error);
   }, [adminData]);
 
-  const handleDeleteEvent = async (eventId, eventTitle) => {
-    if (
-      window.confirm(
-        `⚠️ WARNING: This will permanently delete "${eventTitle}". This action cannot be undone. Are you sure?`,
-      )
-    ) {
-      try {
-        await deleteEvent(eventId);
-        alert("Event deleted successfully!");
-      } catch (error) {
-        console.error("Failed to delete event:", error);
-        alert(error.message || "Failed to delete event. Please try again.");
-      }
-    }
+  const handleDeleteEvent = (eventId, eventTitle) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Event",
+      message: `⚠️ WARNING: This will permanently delete "${eventTitle}". This action cannot be undone. Are you sure?`,
+      onConfirm: async () => {
+        try {
+          await deleteEvent(eventId);
+          toast.success("Event deleted successfully!");
+          setConfirmDialog({ isOpen: false });
+        } catch (error) {
+          console.error("Failed to delete event:", error);
+          toast.error(
+            error.message || "Failed to delete event. Please try again.",
+          );
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
   const filteredEvents = useMemo(() => {
@@ -594,6 +607,15 @@ const AdminManageEvents = () => {
       </main>
 
       <Footer />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
     </div>
   );
 };

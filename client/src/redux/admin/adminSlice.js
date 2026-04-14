@@ -7,6 +7,7 @@ import {
   adminApproveClub,
   rejectClubAdmin,
   deleteUserAdmin,
+  fetchAllRegistrations,
 } from "./adminAction.js";
 
 const adminSlice = createSlice({
@@ -15,6 +16,7 @@ const adminSlice = createSlice({
     events: [],
     users: [],
     clubs: [],
+    registrations: [],
     loading: false,
     error: null,
   },
@@ -98,6 +100,20 @@ const adminSlice = createSlice({
         state.loading = false;
       })
       .addCase(deleteUserAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Fetch Registrations
+      .addCase(fetchAllRegistrations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllRegistrations.fulfilled, (state, action) => {
+        state.loading = false;
+        state.registrations = action.payload;
+      })
+      .addCase(fetchAllRegistrations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

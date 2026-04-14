@@ -1,6 +1,8 @@
 // src/pages/admin/AdminEventDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import {
   Calendar,
   MapPin,
@@ -44,7 +46,12 @@ const AdminEventDetails = () => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     // Fetch events if not already loaded
@@ -101,22 +108,6 @@ const AdminEventDetails = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const handleDelete = async () => {
-    if (
-      window.confirm(
-        "⚠️ WARNING: This will permanently delete this event. This action cannot be undone. Are you sure?",
-      )
-    ) {
-      try {
-        await deleteEvent(id);
-        navigate("/admin/events");
-      } catch (error) {
-        console.error("Failed to delete event:", error);
-        alert(error.message || "Failed to delete event. Please try again.");
-      }
-    }
   };
 
   if (loading)
@@ -180,9 +171,9 @@ const AdminEventDetails = () => {
                   <Printer size={18} />
                 </button>
                 <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert("Link copied to clipboard!");
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(window.location.href);
+                    toast.success("Link copied to clipboard!");
                   }}
                   className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
                   title="Share Event"
@@ -463,7 +454,27 @@ const AdminEventDetails = () => {
                   </button>
 
                   <button
-                    onClick={() => setShowDeleteConfirm(true)}
+                    onClick={() =>
+                      setConfirmDialog({
+                        isOpen: true,
+                        title: "Delete Event Permanently",
+                        message: `Are you sure you want to delete "${event.title}"? This action cannot be undone.`,
+                        onConfirm: async () => {
+                          try {
+                            await deleteEvent(id);
+                            toast.success("Event deleted successfully.");
+                            navigate("/admin/events");
+                          } catch (error) {
+                            toast.error(
+                              error.message ||
+                                "Failed to delete event. Please try again.",
+                            );
+                          } finally {
+                            setConfirmDialog({ isOpen: false });
+                          }
+                        },
+                      })
+                    }
                     className="w-full flex items-center justify-between p-3 bg-red-50 hover:bg-red-100 rounded-xl transition-all group"
                   >
                     <span className="text-sm font-medium text-red-600">
@@ -540,48 +551,16 @@ const AdminEventDetails = () => {
         </div>
       </main>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-          onClick={() => setShowDeleteConfirm(false)}
-        >
-          <div
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 size={24} className="text-red-600" />
-              </div>
-              <h3 className="text-xl font-black text-slate-800">
-                Delete Event
-              </h3>
-            </div>
-            <p className="text-slate-600 mb-6">
-              Are you sure you want to delete{" "}
-              <strong className="text-slate-800">{event.title}</strong>? This
-              action cannot be undone and all registration data will be lost.
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 px-4 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 transition"
-              >
-                Delete Permanently
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <Footer />
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
     </div>
   );
 };
