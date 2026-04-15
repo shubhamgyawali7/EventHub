@@ -73,6 +73,21 @@ const clubService = {
       );
     }
   },
+
+  /**
+   * 🎟️ Get Club Registrations
+   * Fetches all registrations for events owned by the club
+   */
+  getClubRegistrations: async () => {
+    try {
+      const response = await api.get("/api/registrations/club/all");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch registrations"
+      );
+    }
+  },
 };
 
 export default clubService;

@@ -5,6 +5,7 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
+  registerForEvent,
 } from "./eventsAction";
 
 const eventsSlice = createSlice({
@@ -64,6 +65,18 @@ const eventsSlice = createSlice({
         state.events = state.events.filter(
           (item) => (item._id || item.id) !== action.payload
         );
+      })
+      .addCase(registerForEvent.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerForEvent.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(registerForEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

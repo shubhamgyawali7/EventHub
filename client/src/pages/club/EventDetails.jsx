@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Calendar,
   MapPin,
@@ -336,9 +336,12 @@ const ClubEventDetails = () => {
                 </p>
               </div>
 
-              <button className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all">
+              <Link
+                to={`/club/registrations?eventId=${event._id}`}
+                className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all text-center flex items-center justify-center"
+              >
                 <Eye size={18} className="inline mr-2" /> View Registrations
-              </button>
+              </Link>
             </div>
 
             {/* Deadline Card */}

@@ -9,7 +9,9 @@ import {
   Edit3,
   Map as MapIcon,
   Globe,
+  Users,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Normalize poster URLs
 const normalizePoster = (poster) => {
@@ -32,6 +34,7 @@ const HorizontalEventCard = ({
   onEdit,
   isDeleting = false,
 }) => {
+  const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const handleDeleteClick = () => {
@@ -206,6 +209,16 @@ const HorizontalEventCard = ({
             >
               <Edit3 size={13} />
               <span>Edit</span>
+            </button>
+
+            {/* Registrations Button */}
+            <button
+              onClick={() => navigate(`/club/registrations?eventId=${event._id}`)}
+              className="flex-1 min-w-fit flex items-center justify-center gap-1 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 text-purple-600 px-2 py-2 sm:px-3 rounded-lg font-bold text-[9px] xs:text-[10px] sm:text-xs uppercase tracking-tight transition-all active:scale-95"
+              title="Manage registrations"
+            >
+              <Users size={13} />
+              <span>Users</span>
             </button>
 
             {/* Map Button - Only show for physical events */}

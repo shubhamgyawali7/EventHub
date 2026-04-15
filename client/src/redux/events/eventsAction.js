@@ -83,3 +83,15 @@ export const deleteEvent = createAsyncThunk(
     }
   },
 );
+
+export const registerForEvent = createAsyncThunk(
+  "events/registerForEvent",
+  async ({ eventId, formData }, { rejectWithValue }) => {
+    try {
+      const data = await eventService.registerForEvent(eventId, formData);
+      return data;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to register for event");
+    }
+  },
+);

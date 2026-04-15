@@ -12,6 +12,7 @@ import {
   Clock,
   MapPin,
   Home,
+  Users,
 } from "lucide-react";
 import useOrganizer from "../../hooks/useOrganizer";
 import useAuth from "../../hooks/useAuth";
@@ -48,6 +49,7 @@ const ClubSidebar = () => {
     { name: "Dashboard", path: "/club/dashboard", icon: LayoutDashboard },
     { name: "Create Event", path: "/club/create-event", icon: CalendarPlus },
     { name: "Event List", path: "/club/my-events", icon: ListOrdered },
+    { name: "Registrations", path: "/club/registrations", icon: Users },
     { name: "Settings", path: "/club/profile", icon: UserCircle },
   ];
 

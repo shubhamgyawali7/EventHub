@@ -42,6 +42,7 @@ const getEventRegistrations = async (req, res) => {
 };
 
 const getClubRegistrations = async (req, res) => {
+    console.log("🎟️ [BACKEND] getClubRegistrations called");
     const userId = req.user.id;
     try {
         // Find all events created by this user

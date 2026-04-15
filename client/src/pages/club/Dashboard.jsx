@@ -530,9 +530,12 @@ const ClubDashboard = () => {
               <button className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all">
                 Event Analytics
               </button>
-              <button className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all">
+              <Link
+                to="/club/registrations"
+                className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all text-center"
+              >
                 Manage Registrations
-              </button>
+              </Link>
             </div>
           </div>
         </div>
