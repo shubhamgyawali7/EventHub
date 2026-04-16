@@ -6,8 +6,9 @@ import {
   updateEvent,
   getEventById,
   deleteEvent,
+  registerForEvent as registerAction,
 } from "../redux/events/eventsAction.js";
-import eventService from "../services/eventService.jsx";
+
 const useEvents = () => {
   const dispatch = useDispatch();
   const events = useSelector((state) => state.events.events);
@@ -74,14 +75,27 @@ const useEvents = () => {
     [dispatch],
   );
 
+  const registerForEvent = useCallback(
+    async (eventId, formData) => {
+      try {
+        const res = await dispatch(registerAction({ eventId, formData })).unwrap();
+        return { success: true, data: res };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
   return {
     fetchEvents: fetchAllEvents,
     fetchEventById,
     createEvent: createNewEvent,
     updateEvent: updateExistingEvent,
     deleteEvent: deleteExistingEvent,
-    events, 
-    selectedEvent, 
+    registerForEvent,
+    events,
+    selectedEvent,
     loading,
     error,
   };

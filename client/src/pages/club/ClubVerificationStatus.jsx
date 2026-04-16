@@ -5,7 +5,7 @@ import { useSelector } from "react-redux";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
-const ClubVerification = () => {
+const VerificationStatusHub = () => {
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth);
   const [clubStatus, setClubStatus] = useState(null);
@@ -210,4 +210,4 @@ const ClubVerification = () => {
   );
 };
 
-export default ClubVerification;
+export default VerificationStatusHub;

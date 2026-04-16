@@ -31,8 +31,10 @@ Built with modern technologies (MERN Stack) for reliability and performance, Eve
 
 - **Event Creation**: Intuitive event creation and management tools
 - **Club Portal**: Dedicated portal for managing club activities
-- **Event Analytics**: View registration statistics and event performance
-- **Event Management**: Update, modify, and delete events
+- **Event Management**: List, update, modify, and delete events
+- **Registration Dashboard**: Real-time management of participant lists
+- **Data Export**: Export registration data to CSV for offline usage
+- **Google Forms Integration**: Support for events using external registration links
 
 ### For Administrators
 
@@ -194,8 +196,9 @@ VITE_API_BASE_URL=http://localhost:your_backend_port/api
 
 ### Registrations
 
-- `POST /api/registrations` - Register for event
-- `GET /api/registrations` - View registrations
+- `POST /api/registrations/:eventId` - Register for a specific event
+- `GET /api/registrations/club/all` - Club: View all registrations for owned events
+- `GET /api/registrations/:eventId` - Get participants for a single event
 - `DELETE /api/registrations/:id` - Cancel registration
 
 ## 🔐 Authentication & Authorization
@@ -270,11 +273,12 @@ npm test         # Run tests
 
 ### Phase 2: Smart Features
 
-- [ ] Advanced event prioritization algorithm (Trending & Urgent badges)
-- [ ] Automated deadline alerts and notifications
-- [ ] Email notification system for registrations and updates
+- [x] Advanced event prioritization algorithm (Trending & Urgent badges)
+- [x] Automated deadline alerts and notifications
+- [x] Email notification system for registrations and updates
 - [ ] Event recommendation engine based on user interests
-- [ ] Advanced analytics dashboard for organizers
+- [x] Advanced analytics dashboard for organizers
+- [x] Export registration data to multiple formats (CSV)
 
 ### Phase 3: Extended Functionality
 
@@ -292,7 +296,7 @@ npm test         # Run tests
 - [ ] Event scheduling automation
 - [ ] Integration with popular calendar services
 - [ ] Analytics and insights dashboard
-- [ ] Export registration data to multiple formats
+- [x] Export registration data to multiple formats (CSV)
 
 ---
 ## 📄 License

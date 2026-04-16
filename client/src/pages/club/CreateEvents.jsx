@@ -28,7 +28,7 @@ import {
 import ClubSidebar from "./ClubSidebar";
 import useEvents from "../../hooks/useEvents";
 
-const EventDeployment = () => {
+const CreateEvents = () => {
   const { loading: authLoading } = useAuth();
   const { createEvent, updateEvent, fetchEventById } = useEvents();
   const navigate = useNavigate();
@@ -996,4 +996,4 @@ const EventDeployment = () => {
   );
 };
 
-export default EventDeployment;
+export default CreateEvents;

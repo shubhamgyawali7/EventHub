@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Calendar,
   MapPin,
@@ -60,7 +60,7 @@ const isGoogleFormLink = (url) => {
   return Boolean(url && url.includes("docs.google.com/forms"));
 };
 
-const ClubEventDetails = () => {
+const AdminEventManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchEventById } = useEvents();
@@ -226,22 +226,20 @@ const ClubEventDetails = () => {
                   {event.category}
                 </span>
                 <span
-                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${
-                    event.status === "published"
-                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                      : event.status === "draft"
-                        ? "bg-amber-50 text-amber-600 border-amber-100"
-                        : "bg-slate-50 text-slate-600 border-slate-100"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${event.status === "published"
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    : event.status === "draft"
+                      ? "bg-amber-50 text-amber-600 border-amber-100"
+                      : "bg-slate-50 text-slate-600 border-slate-100"
+                    }`}
                 >
                   {event.status}
                 </span>
                 <span
-                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${
-                    event.isPaid && event.price > 0
-                      ? "bg-green-50 text-green-600 border-green-100"
-                      : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${event.isPaid && event.price > 0
+                    ? "bg-green-50 text-green-600 border-green-100"
+                    : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    }`}
                 >
                   {event.isPaid && event.price > 0
                     ? `Rs. ${event.price}`
@@ -273,11 +271,10 @@ const ClubEventDetails = () => {
                 </div>
                 <div className="flex items-start gap-4">
                   <div
-                    className={`p-3 rounded-2xl ${
-                      event.eventType === "online"
-                        ? "bg-blue-50 text-blue-600"
-                        : "bg-indigo-50 text-indigo-600"
-                    }`}
+                    className={`p-3 rounded-2xl ${event.eventType === "online"
+                      ? "bg-blue-50 text-blue-600"
+                      : "bg-indigo-50 text-indigo-600"
+                      }`}
                   >
                     {event.eventType === "online" ? (
                       <Globe size={20} />
@@ -367,13 +364,12 @@ const ClubEventDetails = () => {
               <div className="space-y-3">
                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all ${
-                      occupancyPercent > 90
-                        ? "bg-red-500"
-                        : occupancyPercent > 70
-                          ? "bg-orange-500"
-                          : "bg-indigo-600"
-                    }`}
+                    className={`h-full transition-all ${occupancyPercent > 90
+                      ? "bg-red-500"
+                      : occupancyPercent > 70
+                        ? "bg-orange-500"
+                        : "bg-indigo-600"
+                      }`}
                     style={{ width: `${occupancyPercent}%` }}
                   ></div>
                 </div>
@@ -383,57 +379,13 @@ const ClubEventDetails = () => {
                 </p>
               </div>
 
-              <button
-                className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all"
-                onClick={() => navigate("/club/registrations")}
+              <Link
+                to={`/club/registrations?eventId=${event._id}`}
+                className="w-full py-4 bg-indigo-50 text-indigo-600 rounded-2xl font-bold hover:bg-indigo-100 transition-all text-center flex items-center justify-center"
               >
-                <Eye size={18} className="inline mr-2" /> View All Registrations
-              </button>
+                <Eye size={18} className="inline mr-2" /> View Registrations
+              </Link>
             </div>
-
-            {/* Google Forms Notification - Only show for Google Form events */}
-            {event.registrationType === "google_form" && (
-              <div className="bg-blue-50 rounded-3xl p-8 border border-blue-200 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-2xl flex items-center justify-center">
-                    <ExternalLink size={20} className="text-blue-600" />
-                  </div>
-                  <h3 className="font-black text-blue-900">
-                    Google Forms Registration
-                  </h3>
-                </div>
-                <p className="text-sm text-blue-700 font-medium leading-relaxed">
-                  This event uses Google Forms for registration. Participant
-                  data is collected externally and cannot be viewed in this
-                  dashboard.
-                </p>
-                <div className="space-y-3">
-                  <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">
-                    To view responses:
-                  </p>
-                  <div className="flex gap-2">
-                    <a
-                      href={event.googleFormUrls?.[0] || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-blue-600 text-white px-4 py-3 rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all text-center"
-                    >
-                      {isGoogleFormLink(event.googleFormUrls?.[0])
-                        ? "Open Google Form"
-                        : "Open Link"}
-                    </a>
-                    <a
-                      href={deriveGoogleFormResponseUrl(event.googleFormUrls)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 bg-blue-100 text-blue-700 px-4 py-3 rounded-2xl font-bold text-sm hover:bg-blue-200 transition-all text-center border border-blue-200"
-                    >
-                      View Responses
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Deadline Card */}
             {event.deadline && (
@@ -473,23 +425,21 @@ const ClubEventDetails = () => {
                 <Zap size={20} /> Status
               </h3>
               <div
-                className={`p-4 rounded-2xl flex items-center gap-3 ${
-                  event.status === "published"
-                    ? "bg-emerald-50"
-                    : event.status === "draft"
-                      ? "bg-amber-50"
-                      : "bg-slate-50"
-                }`}
+                className={`p-4 rounded-2xl flex items-center gap-3 ${event.status === "published"
+                  ? "bg-emerald-50"
+                  : event.status === "draft"
+                    ? "bg-amber-50"
+                    : "bg-slate-50"
+                  }`}
               >
                 <CheckCircle
                   size={20}
-                  className={`${
-                    event.status === "published"
-                      ? "text-emerald-600"
-                      : event.status === "draft"
-                        ? "text-amber-600"
-                        : "text-slate-600"
-                  }`}
+                  className={`${event.status === "published"
+                    ? "text-emerald-600"
+                    : event.status === "draft"
+                      ? "text-amber-600"
+                      : "text-slate-600"
+                    }`}
                 />
                 <p className="font-black text-sm uppercase tracking-wider">
                   {event.status === "published"
@@ -503,9 +453,9 @@ const ClubEventDetails = () => {
 
             {/* Share Card */}
             <button
-              onClick={async () => {
-                await navigator.clipboard.writeText(window.location.href);
-                toast.success("Link copied to clipboard!");
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.href);
+                alert("Link copied!");
               }}
               className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg flex items-center justify-center gap-2"
             >
@@ -526,4 +476,4 @@ const ClubEventDetails = () => {
   );
 };
 
-export default ClubEventDetails;
+export default AdminEventManagement;

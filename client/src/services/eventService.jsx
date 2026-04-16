@@ -54,9 +54,9 @@ const eventService = {
       console.error("❌ Message:", error.message);
       throw new Error(
         error.response?.data?.message ||
-          error.response?.data?.error ||
-          error.message ||
-          "Event deployment failure",
+        error.response?.data?.error ||
+        error.message ||
+        "Event deployment failure",
       );
     }
   },
@@ -87,6 +87,21 @@ const eventService = {
     } catch (error) {
       throw new Error(
         error.response?.data?.message || "Decommissioning failed",
+      );
+    }
+  },
+
+  /**
+   * 📤 Register the Event
+   * Register the event created by Student's
+   */
+  registerForEvent: async (eventId, formData) => {
+    try {
+      const response = await api.post(`/api/registrations/${eventId}`, formData);
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Event Registration failed",
       );
     }
   },

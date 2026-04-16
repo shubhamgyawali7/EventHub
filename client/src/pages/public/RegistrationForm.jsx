@@ -1,13 +1,16 @@
 import useAuth from "../../hooks/useAuth";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import api from "../../api/axios";
+
 import { CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import useEvents from "../../hooks/useEvents";
 
 const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
   const { user } = useAuth();
+  const { registerForEvent } = useEvents();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -24,18 +27,17 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
 
   const handleSubmit = async () => {
     setLoading(true);
-    try {
-      await api.post(`/api/registrations/${eventId}`, formData);
+    setError("");
+
+    const result = await registerForEvent(eventId, formData);
+
+    if (result.success) {
       toast.success("Registration successful!");
       onSuccess();
-    } catch (err) {
-      toast.error(
-        err.response?.data?.error ||
-          "Registration request rejected by the server.",
-      );
-    } finally {
-      setLoading(false);
+    } else {
+      setError(result.message || "Registration request rejected by the server.");
     }
+    setLoading(false);
   };
 
   const steps = [
@@ -47,6 +49,7 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
   return (
     <div className="bg-white rounded-[3rem] p-6 md:p-10 max-w-xl w-full mx-auto border border-slate-100 shadow-2xl overflow-hidden mt-8 relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 opacity-50"></div>
+
 
       {/* Horizontal Stepper Bar */}
       <div className="flex items-center justify-between mb-12 px-2 relative">
@@ -62,11 +65,10 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
             className="relative z-10 flex flex-col items-center group"
           >
             <div
-              className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center font-black text-sm transition-all duration-500 transform ${
-                step >= s.id
-                  ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-110"
-                  : "bg-white text-slate-300 border-2 border-slate-100 group-hover:border-slate-200"
-              }`}
+              className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center font-black text-sm transition-all duration-500 transform ${step >= s.id
+                ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-110"
+                : "bg-white text-slate-300 border-2 border-slate-100 group-hover:border-slate-200"
+                }`}
             >
               {step > s.id ? (
                 <CheckCircle size={20} className="animate-in fade-in zoom-in" />
@@ -83,19 +85,25 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
         ))}
       </div>
 
+      {error && (
+        <div className="bg-rose-50 border border-rose-100 text-rose-700 px-6 py-4 rounded-2xl text-sm mb-8 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
+          <span className="text-xl">⚠️</span>
+          <div>
+            <p className="font-bold uppercase tracking-wider text-[10px] text-rose-400 mb-1">System Error</p>
+            <p className="font-medium">{error}</p>
+          </div>
+        </div>
+      )}
+
       {/* Step Content */}
       <div className="min-h-[300px] relative">
         {step === 1 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
             <div className="mb-8">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tight">
-                Identity Verification
-              </h3>
-              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">
-                Please confirm your core biographic details for the registration
-                registry.
-              </p>
+              <h3 className="text-3xl font-black text-slate-800 tracking-tight">Identity Verification</h3>
+              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">Please confirm your core biographic details for the registration registry.</p>
             </div>
+
 
             <div className="space-y-5">
               <div>
@@ -144,13 +152,8 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
         {step === 2 && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="mb-8">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tight">
-                Academic Profile
-              </h3>
-              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">
-                Provide details regarding your current institutional
-                affiliation.
-              </p>
+              <h3 className="text-3xl font-black text-slate-800 tracking-tight">Academic Profile</h3>
+              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">Provide details regarding your current institutional affiliation.</p>
             </div>
 
             <div className="space-y-5">
@@ -191,12 +194,8 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
                 <CheckCircle size={32} />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight">
-                  Final Verification
-                </h3>
-                <p className="text-slate-500 font-medium mt-1 text-sm">
-                  Please review your submission data before finalizing.
-                </p>
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Final Verification</h3>
+                <p className="text-slate-500 font-medium mt-1 text-sm">Please review your submission data before finalizing.</p>
               </div>
             </div>
 
@@ -205,21 +204,14 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
                 { label: "Legal Name", value: formData.name },
                 { label: "Email Route", value: formData.email },
                 { label: "Comm Link", value: formData.phone },
-                { label: "Institution", value: formData.college },
+                { label: "Institution", value: formData.college }
               ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-slate-200/50 last:border-0 last:pb-0"
-                >
+                <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-slate-200/50 last:border-0 last:pb-0">
                   <span className="font-bold text-slate-400 uppercase text-[10px] tracking-[0.2em] mb-1 sm:mb-0">
                     {item.label}
                   </span>
                   <span className="text-slate-800 font-medium bg-white px-3 py-1 rounded-lg border border-slate-100">
-                    {item.value || (
-                      <span className="text-slate-300 italic">
-                        Not provided
-                      </span>
-                    )}
+                    {item.value || <span className="text-slate-300 italic">Not provided</span>}
                   </span>
                 </div>
               ))}
@@ -238,6 +230,7 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
             <span className="hidden md:inline">Reverse</span>
           </button>
         )}
+
 
         {step < 3 ? (
           <button
@@ -263,9 +256,7 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
                 <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
                 Executing...
               </>
-            ) : (
-              "Initialize Registration 🚀"
-            )}
+            ) : "Initialize Registration 🚀"}
           </button>
         )}
       </div>

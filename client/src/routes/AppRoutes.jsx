@@ -23,13 +23,13 @@ import RegisteredEvents from "../pages/user/RegisteredEvents";
 import Profile from "../pages/user/Profile";
 
 // Club Pages
-import ClubDashboard from "../pages/club/Dashboard";
-import ClubCreateEvent from "../pages/club/EventCreate";
-import ClubEventList from "../pages/club/EventList";
-import ClubEventDetails from "../pages/club/EventDetails";
-import ClubRegistrations from "../pages/club/ClubRegistrations";
+import ClubDashboard from "../pages/club/ClubDashboard";
+import CreateEvents from "../pages/club/CreateEvents";
+import ManageYourEvents from "../pages/club/ClubEventListing";
+import AdminEventManagement from "../pages/club/ManageEventDetails";
+import ClubRegistration from "../pages/club/ClubRegistration.jsx";
 import ClubPortal from "../components/Organizer/ClubRedirection.jsx";
-import ClubRegistration from "../pages/club/Register.jsx";
+import ManageEventRegisterByUser from "../pages/club/ManageEventRegisterByUser";
 
 // Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -127,7 +127,7 @@ const AppRoutes = () => {
         path="/club/create-event"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubCreateEvent />
+            <CreateEvents />
           </ProtectedRoute>
         }
       />
@@ -136,7 +136,7 @@ const AppRoutes = () => {
         path="/club/my-events/:id"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubEventDetails />
+            <AdminEventManagement />
           </ProtectedRoute>
         }
       />
@@ -145,7 +145,7 @@ const AppRoutes = () => {
         path="/club/my-events"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubEventList />
+            <ManageYourEvents />
           </ProtectedRoute>
         }
       />
@@ -154,7 +154,7 @@ const AppRoutes = () => {
         path="/club/registrations"
         element={
           <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubRegistrations />
+            <ManageEventRegisterByUser />
           </ProtectedRoute>
         }
       />

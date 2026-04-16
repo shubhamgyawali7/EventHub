@@ -18,7 +18,7 @@ import useOrganizer from "../../hooks/useOrganizer";
 import useEvents from "../../hooks/useEvents";
 import { toast } from "react-hot-toast";
 
-const ClubRegistrations = () => {
+const ManageEventRegisterByUser = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEvent, setSelectedEvent] = useState("all");
@@ -590,4 +590,4 @@ const ClubRegistrations = () => {
   );
 };
 
-export default ClubRegistrations;
+export default ManageEventRegisterByUser;

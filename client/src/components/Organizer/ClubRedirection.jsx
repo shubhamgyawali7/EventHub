@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // ✅ Import navigate
 import useAuth from "../../hooks/useAuth";
-import ClubRegistration from "../../pages/club/Register";
-import ClubDashboard from "../../pages/club/Dashboard";
+import ClubRegistration from "../../pages/club/ClubRegistration";
+import ClubDashboard from "../../pages/club/ClubDashboard";
 import { Clock, ArrowLeft, RefreshCw } from "lucide-react";
 
 const ClubPortal = () => {

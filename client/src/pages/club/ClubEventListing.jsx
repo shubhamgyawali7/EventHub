@@ -13,7 +13,7 @@ import ClubSidebar from "./ClubSidebar";
 import useOrganizer from "../../hooks/useOrganizer";
 import HorizontalEventScroll from "../../components/common/HorizontalEventScroll";
 
-const ClubEventList = () => {
+const ManageYourEvents = () => {
   const navigate = useNavigate();
   const {
     orgEvents,
@@ -209,4 +209,4 @@ const ClubEventList = () => {
   );
 };
 
-export default ClubEventList;
+export default ManageYourEvents;
