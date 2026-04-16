@@ -18,8 +18,11 @@ import {
   DollarSign,
   Zap,
   Eye,
+  ExternalLink,
   Globe,
 } from "lucide-react";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { toast } from "react-hot-toast";
 import ClubSidebar from "./ClubSidebar";
 import useEvents from "../../hooks/useEvents";
 
@@ -31,13 +34,45 @@ const normalizePoster = (poster) => {
   return `${BASE_URL}${poster}`;
 };
 
-const ClubEventDetails = () => {
+const deriveGoogleFormResponseUrl = (urls) => {
+  if (!urls || !Array.isArray(urls) || urls.length === 0) return "";
+  // If there's a response sheet URL (second element), use it
+  if (urls[1] && urls[1].trim()) return urls[1].trim();
+  // Otherwise, derive from form URL
+  const formUrl = urls[0];
+  if (!formUrl) return "";
+  const trimmed = formUrl.trim();
+  if (
+    trimmed.includes("edit#responses") ||
+    trimmed.includes("viewanalytics") ||
+    trimmed.includes("spreadsheets")
+  ) {
+    return trimmed;
+  }
+  const match = trimmed.match(/\/forms\/d\/([^\/]+)/);
+  if (match && match[1]) {
+    return `https://docs.google.com/forms/d/${match[1]}/edit#responses`;
+  }
+  return trimmed;
+};
+
+const isGoogleFormLink = (url) => {
+  return Boolean(url && url.includes("docs.google.com/forms"));
+};
+
+const AdminEventManagement = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { fetchEventById } = useEvents();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     const loadEvent = async () => {
@@ -76,11 +111,23 @@ const ClubEventDetails = () => {
     navigate(`/club/create-event?id=${event._id}`);
   };
 
-  const handleDelete = async () => {
-    if (window.confirm("Are you sure? This action cannot be undone.")) {
-      // Call delete API
-      navigate("/club/my-events");
-    }
+  const handleDelete = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Event",
+      message: "Are you sure? This action cannot be undone.",
+      onConfirm: async () => {
+        try {
+          // Call delete API
+          navigate("/club/my-events");
+          toast.success("Event deleted successfully.");
+        } catch (error) {
+          toast.error(error.message || "Failed to delete event.");
+        } finally {
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
   if (loading) {
@@ -179,22 +226,20 @@ const ClubEventDetails = () => {
                   {event.category}
                 </span>
                 <span
-                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${
-                    event.status === "published"
-                      ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                      : event.status === "draft"
-                        ? "bg-amber-50 text-amber-600 border-amber-100"
-                        : "bg-slate-50 text-slate-600 border-slate-100"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${event.status === "published"
+                    ? "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    : event.status === "draft"
+                      ? "bg-amber-50 text-amber-600 border-amber-100"
+                      : "bg-slate-50 text-slate-600 border-slate-100"
+                    }`}
                 >
                   {event.status}
                 </span>
                 <span
-                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${
-                    event.isPaid && event.price > 0
-                      ? "bg-green-50 text-green-600 border-green-100"
-                      : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                  }`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold uppercase border ${event.isPaid && event.price > 0
+                    ? "bg-green-50 text-green-600 border-green-100"
+                    : "bg-emerald-50 text-emerald-600 border-emerald-100"
+                    }`}
                 >
                   {event.isPaid && event.price > 0
                     ? `Rs. ${event.price}`
@@ -226,11 +271,10 @@ const ClubEventDetails = () => {
                 </div>
                 <div className="flex items-start gap-4">
                   <div
-                    className={`p-3 rounded-2xl ${
-                      event.eventType === "online"
-                        ? "bg-blue-50 text-blue-600"
-                        : "bg-indigo-50 text-indigo-600"
-                    }`}
+                    className={`p-3 rounded-2xl ${event.eventType === "online"
+                      ? "bg-blue-50 text-blue-600"
+                      : "bg-indigo-50 text-indigo-600"
+                      }`}
                   >
                     {event.eventType === "online" ? (
                       <Globe size={20} />
@@ -320,13 +364,12 @@ const ClubEventDetails = () => {
               <div className="space-y-3">
                 <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all ${
-                      occupancyPercent > 90
-                        ? "bg-red-500"
-                        : occupancyPercent > 70
-                          ? "bg-orange-500"
-                          : "bg-indigo-600"
-                    }`}
+                    className={`h-full transition-all ${occupancyPercent > 90
+                      ? "bg-red-500"
+                      : occupancyPercent > 70
+                        ? "bg-orange-500"
+                        : "bg-indigo-600"
+                      }`}
                     style={{ width: `${occupancyPercent}%` }}
                   ></div>
                 </div>
@@ -382,23 +425,21 @@ const ClubEventDetails = () => {
                 <Zap size={20} /> Status
               </h3>
               <div
-                className={`p-4 rounded-2xl flex items-center gap-3 ${
-                  event.status === "published"
-                    ? "bg-emerald-50"
-                    : event.status === "draft"
-                      ? "bg-amber-50"
-                      : "bg-slate-50"
-                }`}
+                className={`p-4 rounded-2xl flex items-center gap-3 ${event.status === "published"
+                  ? "bg-emerald-50"
+                  : event.status === "draft"
+                    ? "bg-amber-50"
+                    : "bg-slate-50"
+                  }`}
               >
                 <CheckCircle
                   size={20}
-                  className={`${
-                    event.status === "published"
-                      ? "text-emerald-600"
-                      : event.status === "draft"
-                        ? "text-amber-600"
-                        : "text-slate-600"
-                  }`}
+                  className={`${event.status === "published"
+                    ? "text-emerald-600"
+                    : event.status === "draft"
+                      ? "text-amber-600"
+                      : "text-slate-600"
+                    }`}
                 />
                 <p className="font-black text-sm uppercase tracking-wider">
                   {event.status === "published"
@@ -423,8 +464,16 @@ const ClubEventDetails = () => {
           </div>
         </div>
       </main>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
     </div>
   );
 };
 
-export default ClubEventDetails;
+export default AdminEventManagement;

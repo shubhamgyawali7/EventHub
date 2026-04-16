@@ -44,10 +44,9 @@ export const fetchAdminClubs = createAsyncThunk(
 // ✅ Approve Club
 export const adminApproveClub = createAsyncThunk(
   "admin/approveClub",
-  async (clubId, { rejectWithValue, dispatch }) => {
+  async (clubId, { rejectWithValue }) => {
     try {
       const updatedClub = await adminService.approveClub(clubId);
-      // dispatch(fetchAdminClubs()); // Refresh clubs after approval
       return updatedClub; // return updated club
     } catch (error) {
       return rejectWithValue(error?.response?.data?.message || error.message);
@@ -58,7 +57,7 @@ export const adminApproveClub = createAsyncThunk(
 // ❌ Reject Club - Add this endpoint in backend
 export const rejectClubAdmin = createAsyncThunk(
   "admin/rejectClub",
-  async (clubId, { rejectWithValue, dispatch }) => {
+  async (clubId, { rejectWithValue }) => {
     try {
       const updatedClub = await adminService.rejectClub(clubId);
       return updatedClub;
@@ -74,7 +73,7 @@ export const deleteUserAdmin = createAsyncThunk(
   async (userId, { rejectWithValue, dispatch }) => {
     try {
       await adminService.deleteUser(userId);
-      dispatch(fetchAdminUsers());
+      dispatch(fetchAllUsers());
       return userId;
     } catch (error) {
       return rejectWithValue(error.message);
@@ -82,3 +81,14 @@ export const deleteUserAdmin = createAsyncThunk(
   },
 );
 
+// 📋 Registrations
+export const fetchAllRegistrations = createAsyncThunk(
+  "admin/fetchRegistrations",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await adminService.getAllRegistrations();
+    } catch (error) {
+      return rejectWithValue(error?.response?.data?.message || error.message);
+    }
+  },
+);

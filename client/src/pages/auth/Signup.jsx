@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 import { NEPAL_DISTRICTS } from "../../utils/districts";
 
@@ -7,7 +8,6 @@ const Signup = () => {
   const { signup } = useAuth();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -21,7 +21,6 @@ const Signup = () => {
   });
 
   const handleChange = (e) => {
-    if (error) setError("");
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -46,28 +45,28 @@ const Signup = () => {
 
     // ✅ VALIDATION LOGIC ON CLICK
     if (!name || !email || !district || !password) {
-      return setError("Please fill in all required fields.");
+      return toast.error("Please fill in all required fields.");
     }
     if (password !== confirmPassword) {
-      return setError("Passwords do not match!");
+      return toast.error("Passwords do not match!");
     }
     if (password.length < 6) {
-      return setError("Password must be at least 6 characters.");
+      return toast.error("Password must be at least 6 characters.");
     }
 
-    setError("");
     setStep(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.roles) return setError("Please select a role.");
+    if (!formData.roles) return toast.error("Please select a role.");
 
     const result = await signup(formData);
     if (result.success) {
+      toast.success("Account created successfully!");
       navigate("/login");
     } else {
-      setError(result.message);
+      toast.error(result.message);
     }
   };
 
@@ -85,12 +84,6 @@ const Signup = () => {
                 style={{ width: "50%" }}
               ></div>
             </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm text-center font-medium">
-                {error}
-              </div>
-            )}
 
             <form className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">

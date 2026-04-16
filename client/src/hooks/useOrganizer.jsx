@@ -3,6 +3,7 @@ import {
   registerClub,
   fetchOrganizerEvents,
   deleteOrganizerEvent,
+  fetchClubRegistrations,
 } from "../redux/organizer/organizerAction";
 import { useCallback } from "react";
 // import { registerClub } from "../redux/organizer/organizerAction";
@@ -38,10 +39,15 @@ const useOrganizer = () => {
     [dispatch],
   );
 
+  const fetchRegistrations = useCallback(() => {
+    return dispatch(fetchClubRegistrations());
+  }, [dispatch]);
+
   return {
     clubRegister,
     fetchOrganizerEvents: fetchClubEvents,
     deleteOrganizerEvent: deleteEvent,
+    fetchClubRegistrations: fetchRegistrations,
     ...orgEvents,
   };
 };

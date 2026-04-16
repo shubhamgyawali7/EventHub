@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Calendar,
@@ -351,20 +352,36 @@ const EventDetails = () => {
 
                     <button
                       className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() =>
-                        navigate(`/register-for-event/${event._id}`)
+                      onClick={() => {
+                        if (
+                          event.registrationType === "google_form" &&
+                          event.googleFormUrls?.[0]
+                        ) {
+                          window.open(event.googleFormUrls[0], "_blank");
+                        } else {
+                          navigate(`/register-for-event/${event._id}`);
+                        }
+                      }}
+                      disabled={
+                        availableSeats <= 0 &&
+                        event.registrationType === "system"
                       }
-                      disabled={availableSeats <= 0}
                     >
-                      {availableSeats > 0 ? "Book My Spot Now" : "Event Full"}
+                      {event.registrationType === "google_form"
+                        ? "Register via Google Form"
+                        : availableSeats > 0
+                          ? "Book My Spot Now"
+                          : "Event Full"}
                     </button>
 
                     <div className="flex justify-center gap-4">
                       <button
                         className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-                        onClick={() => {
-                          navigator.clipboard.writeText(window.location.href);
-                          alert("Event link copied to clipboard!");
+                        onClick={async () => {
+                          await navigator.clipboard.writeText(
+                            window.location.href,
+                          );
+                          toast.success("Event link copied to clipboard!");
                         }}
                       >
                         <Share2 size={16} /> Share Event

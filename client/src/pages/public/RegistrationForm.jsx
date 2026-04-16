@@ -1,6 +1,7 @@
 import useAuth from "../../hooks/useAuth";
 import { useState } from "react";
-import api from "../../api/axios";
+import { toast } from "react-hot-toast";
+
 import { CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
 import useEvents from "../../hooks/useEvents";
 
@@ -27,10 +28,11 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
   const handleSubmit = async () => {
     setLoading(true);
     setError("");
-    
+
     const result = await registerForEvent(eventId, formData);
-    
+
     if (result.success) {
+      toast.success("Registration successful!");
       onSuccess();
     } else {
       setError(result.message || "Registration request rejected by the server.");
@@ -48,6 +50,7 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
     <div className="bg-white rounded-[3rem] p-6 md:p-10 max-w-xl w-full mx-auto border border-slate-100 shadow-2xl overflow-hidden mt-8 relative">
       <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 opacity-50"></div>
 
+
       {/* Horizontal Stepper Bar */}
       <div className="flex items-center justify-between mb-12 px-2 relative">
         <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0 rounded-full"></div>
@@ -57,14 +60,21 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
         ></div>
 
         {steps.map((s) => (
-          <div key={s.id} className="relative z-10 flex flex-col items-center group">
+          <div
+            key={s.id}
+            className="relative z-10 flex flex-col items-center group"
+          >
             <div
               className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center font-black text-sm transition-all duration-500 transform ${step >= s.id
-                  ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-110"
-                  : "bg-white text-slate-300 border-2 border-slate-100 group-hover:border-slate-200"
+                ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-110"
+                : "bg-white text-slate-300 border-2 border-slate-100 group-hover:border-slate-200"
                 }`}
             >
-              {step > s.id ? <CheckCircle size={20} className="animate-in fade-in zoom-in" /> : s.id}
+              {step > s.id ? (
+                <CheckCircle size={20} className="animate-in fade-in zoom-in" />
+              ) : (
+                s.id
+              )}
             </div>
             <span
               className={`text-[9px] uppercase tracking-[0.2em] font-black mt-3 transition-colors duration-300 ${step >= s.id ? "text-indigo-600" : "text-slate-400"}`}
@@ -93,6 +103,7 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
               <h3 className="text-3xl font-black text-slate-800 tracking-tight">Identity Verification</h3>
               <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">Please confirm your core biographic details for the registration registry.</p>
             </div>
+
 
             <div className="space-y-5">
               <div>
@@ -215,9 +226,11 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
             onClick={handlePrev}
             className="w-16 md:w-auto md:px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-400 border border-slate-100 hover:bg-slate-50 hover:text-slate-800 transition-all flex items-center justify-center gap-2"
           >
-            <ChevronLeft size={18} className="md:mr-1" /> <span className="hidden md:inline">Reverse</span>
+            <ChevronLeft size={18} className="md:mr-1" />{" "}
+            <span className="hidden md:inline">Reverse</span>
           </button>
         )}
+
 
         {step < 3 ? (
           <button
@@ -225,7 +238,11 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
             disabled={step === 1 && (!formData.name || !formData.phone)}
             className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-slate-200 disabled:opacity-50 disabled:active:scale-100 group"
           >
-            Proceed Forward <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
+            Proceed Forward{" "}
+            <ChevronRight
+              size={18}
+              className="group-hover:translate-x-1 transition-transform"
+            />
           </button>
         ) : (
           <button

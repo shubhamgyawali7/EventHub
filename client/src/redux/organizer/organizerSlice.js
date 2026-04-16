@@ -3,6 +3,7 @@ import {
   registerClub,
   fetchOrganizerEvents,
   deleteOrganizerEvent,
+  fetchClubRegistrations,
 } from "./organizerAction";
 
 const organizerSlice = createSlice({
@@ -10,6 +11,7 @@ const organizerSlice = createSlice({
   initialState: {
     club: null,
     orgEvents: [],
+    registrations: [],
     loading: false,
     error: null,
   },
@@ -58,6 +60,19 @@ const organizerSlice = createSlice({
       })
       .addCase(deleteOrganizerEvent.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchClubRegistrations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchClubRegistrations.fulfilled, (state, action) => {
+        state.loading = false;
+        state.registrations = action.payload;
+      })
+      .addCase(fetchClubRegistrations.rejected, (state, action) => {
+        state.loading = false;
+        state.registrations = [];
         state.error = action.payload;
       });
   },

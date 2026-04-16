@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import EventCard from "../../components/common/EventCard";
@@ -37,7 +38,7 @@ const Events = () => {
 
     setIsLocating(true);
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       setIsLocating(false);
       return;
     }
@@ -51,29 +52,29 @@ const Events = () => {
         setUserCoords(coords);
         setUseNearby(true);
         setIsLocating(false);
-        
+
         // Fetch events near these coordinates (10km radius by default)
         fetchEvents({ lat: coords.lat, lng: coords.lng, radius: 20 });
       },
       () => {
-        alert("Unable to retrieve your location");
+        toast.error("Unable to retrieve your location");
         setIsLocating(false);
-      }
+      },
     );
   };
 
   const filteredEvents = Array.isArray(events)
     ? events.filter((event) => {
-      const matchesSearch =
-        event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.venue?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearch =
+          event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.district?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.venue?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory =
-        selectedCategory === "All" || event.category === selectedCategory;
+        const matchesCategory =
+          selectedCategory === "All" || event.category === selectedCategory;
 
-      return matchesSearch && matchesCategory;
-    })
+        return matchesSearch && matchesCategory;
+      })
     : [];
 
   return (
@@ -112,10 +113,11 @@ const Events = () => {
             {/* Near Me Button */}
             <button
               onClick={handleNearMeClick}
-              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all border ${useNearby
+              className={`flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-medium transition-all border ${
+                useNearby
                   ? "bg-indigo-600 text-white border-indigo-600"
                   : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
-                }`}
+              }`}
             >
               {isLocating ? (
                 <Loader2 className="animate-spin" size={18} />
@@ -131,10 +133,11 @@ const Events = () => {
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${selectedCategory === cat
+                className={`px-5 py-2.5 rounded-xl whitespace-nowrap text-sm font-medium transition-all ${
+                  selectedCategory === cat
                     ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                     : "bg-slate-50 text-slate-600 hover:bg-slate-100 border border-slate-100"
-                  }`}
+                }`}
               >
                 {cat}
               </button>

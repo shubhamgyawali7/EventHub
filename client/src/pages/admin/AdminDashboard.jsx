@@ -12,6 +12,7 @@ import {
   Zap,
   ChevronRight,
   TrendingUp,
+  FileText,
 } from "lucide-react";
 import useAdmin from "../../hooks/useAdmin";
 import Footer from "../../components/common/Footer";
@@ -26,8 +27,10 @@ const useCounter = (target, duration = 1000) => {
     const step = Math.ceil(target / (duration / 16));
     const timer = setInterval(() => {
       start += step;
-      if (start >= target) { setCount(target); clearInterval(timer); }
-      else setCount(start);
+      if (start >= target) {
+        setCount(target);
+        clearInterval(timer);
+      } else setCount(start);
     }, 16);
     return () => clearInterval(timer);
   }, [target, duration]);
@@ -36,26 +39,62 @@ const useCounter = (target, duration = 1000) => {
 
 /* ── Stat Card ── */
 const STAT_STYLES = {
-  purple: { wrap: "bg-violet-50 border-violet-200",   icon: "bg-violet-100 border-violet-200 text-violet-600",   num: "text-violet-700",  label: "text-violet-500",  trend: "text-violet-400" },
-  green:  { wrap: "bg-emerald-50 border-emerald-200", icon: "bg-emerald-100 border-emerald-200 text-emerald-600", num: "text-emerald-700", label: "text-emerald-500", trend: "text-emerald-400" },
-  blue:   { wrap: "bg-blue-50 border-blue-200",       icon: "bg-blue-100 border-blue-200 text-blue-600",         num: "text-blue-700",    label: "text-blue-500",    trend: "text-blue-400" },
-  amber:  { wrap: "bg-amber-50 border-amber-200",     icon: "bg-amber-100 border-amber-200 text-amber-600",      num: "text-amber-700",   label: "text-amber-500",   trend: "text-amber-400" },
+  purple: {
+    wrap: "bg-violet-50 border-violet-200",
+    icon: "bg-violet-100 border-violet-200 text-violet-600",
+    num: "text-violet-700",
+    label: "text-violet-500",
+    trend: "text-violet-400",
+  },
+  green: {
+    wrap: "bg-emerald-50 border-emerald-200",
+    icon: "bg-emerald-100 border-emerald-200 text-emerald-600",
+    num: "text-emerald-700",
+    label: "text-emerald-500",
+    trend: "text-emerald-400",
+  },
+  blue: {
+    wrap: "bg-blue-50 border-blue-200",
+    icon: "bg-blue-100 border-blue-200 text-blue-600",
+    num: "text-blue-700",
+    label: "text-blue-500",
+    trend: "text-blue-400",
+  },
+  amber: {
+    wrap: "bg-amber-50 border-amber-200",
+    icon: "bg-amber-100 border-amber-200 text-amber-600",
+    num: "text-amber-700",
+    label: "text-amber-500",
+    trend: "text-amber-400",
+  },
 };
 
 const StatCard = ({ icon: Icon, label, value, color, trend }) => {
   const animated = useCounter(value);
   const s = STAT_STYLES[color];
   return (
-    <div className={`relative border rounded-2xl p-5 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 ${s.wrap}`}>
+    <div
+      className={`relative border rounded-2xl p-5 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-200 ${s.wrap}`}
+    >
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${s.icon}`}>
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center border ${s.icon}`}
+        >
           <Icon size={18} />
         </div>
         <TrendingUp size={12} className={`${s.trend} opacity-60`} />
       </div>
-      <p className={`text-[10px] font-black tracking-widest uppercase mb-1 ${s.label}`}>{label}</p>
-      <p className={`text-4xl font-black leading-none tabular-nums ${s.num}`}>{animated}</p>
-      {trend && <p className={`text-[11px] mt-2 font-medium ${s.trend}`}>{trend}</p>}
+      <p
+        className={`text-[10px] font-black tracking-widest uppercase mb-1 ${s.label}`}
+      >
+        {label}
+      </p>
+      <p className={`text-4xl font-black leading-none tabular-nums ${s.num}`}>
+        {animated}
+      </p>
+      {trend && (
+        <p className={`text-[11px] mt-2 font-medium ${s.trend}`}>{trend}</p>
+      )}
     </div>
   );
 };
@@ -77,7 +116,11 @@ const SectionHeader = ({ icon: Icon, title, action }) => (
 );
 
 const EVENT_ACCENTS = [
-  "bg-indigo-400", "bg-emerald-400", "bg-amber-400", "bg-blue-400", "bg-violet-400",
+  "bg-indigo-400",
+  "bg-emerald-400",
+  "bg-amber-400",
+  "bg-blue-400",
+  "bg-violet-400",
 ];
 
 /* ── Dashboard ── */
@@ -91,30 +134,65 @@ const AdminDashboard = () => {
     fetchClubs();
   }, [fetchEvents, fetchUsers, fetchClubs]);
 
-  const totalEvents  = adminData.events?.length ?? 0;
-  const totalUsers   = adminData.users?.length  ?? 0;
-  const totalClubs   = adminData.clubs?.length  ?? 0;
-  const pendingClubs = adminData.clubs?.filter((c) => c.status === "Pending")?.length ?? 0;
+  const totalEvents = adminData.events?.length ?? 0;
+  const totalUsers = adminData.users?.length ?? 0;
+  const totalClubs = adminData.clubs?.length ?? 0;
+  const pendingClubs =
+    adminData.clubs?.filter((c) => c.status === "Pending")?.length ?? 0;
 
   const sortedEvents = useMemo(
-    () => (adminData.events || []).slice().sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
+    () =>
+      (adminData.events || [])
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)),
     [adminData.events],
   );
   const latestEvents = sortedEvents.slice(0, 5);
 
   const shortcuts = [
-    { label: "Verify Clubs", link: "/admin/club/verification", icon: CheckSquare, desc: `${pendingClubs} pending`,   highlight: pendingClubs > 0 },
-    { label: "All Clubs",    link: "/admin/clubs",             icon: Building2,   desc: `${totalClubs} registered`, highlight: false },
-    { label: "All Users",    link: "/admin/users",             icon: Users,       desc: `${totalUsers} members`,    highlight: false },
-    { label: "All Events",   link: "/admin/events",            icon: Calendar,    desc: `${totalEvents} created`,   highlight: false },
+    {
+      label: "Verify Clubs",
+      link: "/admin/club/verification",
+      icon: CheckSquare,
+      desc: `${pendingClubs} pending`,
+      highlight: pendingClubs > 0,
+    },
+    {
+      label: "All Clubs",
+      link: "/admin/clubs",
+      icon: Building2,
+      desc: `${totalClubs} registered`,
+      highlight: false,
+    },
+    {
+      label: "All Users",
+      link: "/admin/users",
+      icon: Users,
+      desc: `${totalUsers} members`,
+      highlight: false,
+    },
+    {
+      label: "All Events",
+      link: "/admin/events",
+      icon: Calendar,
+      desc: `${totalEvents} created`,
+      highlight: false,
+    },
+    {
+      label: "Registrations",
+      link: "/admin/registrations",
+      icon: FileText,
+      desc: "View all signups",
+      highlight: false,
+    },
   ];
 
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
     <div className="min-h-screen text-slate-700 space-y-6">
-
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-5">
         <div>
@@ -143,7 +221,8 @@ const AdminDashboard = () => {
             </div>
             <div>
               <p className="text-sm font-bold text-amber-700 leading-none">
-                {pendingClubs} Club{pendingClubs !== 1 ? "s" : ""} Awaiting Verification
+                {pendingClubs} Club{pendingClubs !== 1 ? "s" : ""} Awaiting
+                Verification
               </p>
               <p className="text-xs text-amber-500 mt-1 flex items-center gap-1 group-hover:gap-1.5 transition-all">
                 Tap to review <ChevronRight size={10} />
@@ -156,14 +235,40 @@ const AdminDashboard = () => {
       {/* ── Stats ── */}
       {adminData.loading ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => <Skeleton key={i} />)}
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} />
+          ))}
         </div>
       ) : (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={Building2}   label="Total Clubs"  value={totalClubs}   color="purple" trend="Registered" />
-          <StatCard icon={Users}       label="Total Users"  value={totalUsers}   color="green"  trend="Platform members" />
-          <StatCard icon={Calendar}    label="Total Events" value={totalEvents}  color="blue"   trend="All time" />
-          <StatCard icon={CheckSquare} label="Pending"      value={pendingClubs} color="amber"  trend={pendingClubs > 0 ? "Needs attention" : "All clear"} />
+          <StatCard
+            icon={Building2}
+            label="Total Clubs"
+            value={totalClubs}
+            color="purple"
+            trend="Registered"
+          />
+          <StatCard
+            icon={Users}
+            label="Total Users"
+            value={totalUsers}
+            color="green"
+            trend="Platform members"
+          />
+          <StatCard
+            icon={Calendar}
+            label="Total Events"
+            value={totalEvents}
+            color="blue"
+            trend="All time"
+          />
+          <StatCard
+            icon={CheckSquare}
+            label="Pending"
+            value={pendingClubs}
+            color="amber"
+            trend={pendingClubs > 0 ? "Needs attention" : "All clear"}
+          />
         </div>
       )}
 
@@ -198,7 +303,9 @@ const AdminDashboard = () => {
                     <span className="text-[11px] font-black text-slate-400 w-5 shrink-0 text-right tabular-nums">
                       {String(i + 1).padStart(2, "0")}
                     </span>
-                    <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${EVENT_ACCENTS[i % 5]}`} />
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full shrink-0 ${EVENT_ACCENTS[i % 5]}`}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-slate-700 truncate group-hover:text-indigo-600 transition-colors">
                         {ev.title}
@@ -227,7 +334,9 @@ const AdminDashboard = () => {
               </div>
             </>
           ) : (
-            <p className="text-sm text-slate-400 font-medium">No events created yet.</p>
+            <p className="text-sm text-slate-400 font-medium">
+              No events created yet.
+            </p>
           )}
         </div>
       )}
@@ -248,24 +357,33 @@ const AdminDashboard = () => {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
-                    item.highlight
-                      ? "bg-amber-100 border-amber-200 text-amber-600"
-                      : "bg-white border-slate-200 text-slate-500 group-hover:bg-indigo-100 group-hover:border-indigo-200 group-hover:text-indigo-600"
-                  }`}>
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all ${
+                      item.highlight
+                        ? "bg-amber-100 border-amber-200 text-amber-600"
+                        : "bg-white border-slate-200 text-slate-500 group-hover:bg-indigo-100 group-hover:border-indigo-200 group-hover:text-indigo-600"
+                    }`}
+                  >
                     <item.icon size={16} />
                   </div>
-                  <ArrowUpRight size={13} className={`transition-all ${
-                    item.highlight
-                      ? "text-amber-400 group-hover:text-amber-600 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                      : "text-slate-300 group-hover:text-indigo-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                  }`} />
+                  <ArrowUpRight
+                    size={13}
+                    className={`transition-all ${
+                      item.highlight
+                        ? "text-amber-400 group-hover:text-amber-600 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                        : "text-slate-300 group-hover:text-indigo-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    }`}
+                  />
                 </div>
                 <div>
-                  <span className={`block text-sm font-bold leading-none mb-1 ${item.highlight ? "text-amber-800" : "text-slate-700"}`}>
+                  <span
+                    className={`block text-sm font-bold leading-none mb-1 ${item.highlight ? "text-amber-800" : "text-slate-700"}`}
+                  >
                     {item.label}
                   </span>
-                  <span className={`block text-[11px] font-medium ${item.highlight ? "text-amber-500" : "text-slate-400"}`}>
+                  <span
+                    className={`block text-[11px] font-medium ${item.highlight ? "text-amber-500" : "text-slate-400"}`}
+                  >
                     {item.desc}
                   </span>
                 </div>

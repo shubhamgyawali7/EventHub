@@ -1,5 +1,6 @@
 // components/common/MapPicker.jsx
 import React, { useState, useEffect, useRef } from "react";
+import { toast } from "react-hot-toast";
 import {
   MapPin,
   Navigation,
@@ -108,7 +109,7 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
   const useCurrentLocation = () => {
     setLoading(true);
     if (!navigator.geolocation) {
-      alert("Geolocation is not supported by your browser");
+      toast.error("Geolocation is not supported by your browser");
       setLoading(false);
       return;
     }
@@ -131,7 +132,7 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
       },
       (error) => {
         console.error("Geolocation error:", error);
-        alert(
+        toast.error(
           "Unable to retrieve your location. Please check your location permissions.",
         );
         setLoading(false);
@@ -223,7 +224,6 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
       {isOpen && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-2">
           <div className="bg-white rounded-2xl w-full max-w-5xl h-[95vh] overflow-hidden flex flex-col shadow-2xl">
-
             {/* Header — compact single row */}
             <div className="px-4 py-2.5 border-b border-slate-100 flex items-center gap-3">
               {/* Title */}
@@ -290,7 +290,11 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
                   disabled={loading}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={15} /> : <Search size={15} />}
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={15} />
+                  ) : (
+                    <Search size={15} />
+                  )}
                   Search
                 </button>
                 <button
@@ -298,7 +302,11 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
                   disabled={loading}
                   className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors flex items-center gap-1.5 disabled:opacity-50 whitespace-nowrap"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={15} /> : <Navigation size={15} />}
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={15} />
+                  ) : (
+                    <Navigation size={15} />
+                  )}
                   My Location
                 </button>
               </div>
@@ -312,8 +320,12 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
                       onClick={() => selectSearchResult(result)}
                       className="w-full px-3 py-2 text-left hover:bg-slate-50 border-b border-slate-100 last:border-0 transition-colors"
                     >
-                      <p className="font-semibold text-slate-800 text-sm">{result.name}</p>
-                      <p className="text-xs text-slate-500 truncate">{result.address}</p>
+                      <p className="font-semibold text-slate-800 text-sm">
+                        {result.name}
+                      </p>
+                      <p className="text-xs text-slate-500 truncate">
+                        {result.address}
+                      </p>
                     </button>
                   ))}
                 </div>
@@ -392,14 +404,19 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
                   <div className="flex items-center gap-2 min-w-0">
                     <MapPin size={13} className="text-indigo-600 shrink-0" />
                     <span className="font-mono truncate">
-                      {selectedLocation.lat.toFixed(5)}°, {selectedLocation.lng.toFixed(5)}°
+                      {selectedLocation.lat.toFixed(5)}°,{" "}
+                      {selectedLocation.lng.toFixed(5)}°
                     </span>
                     {addressString && (
-                      <span className="text-slate-400 truncate hidden sm:block">— {addressString}</span>
+                      <span className="text-slate-400 truncate hidden sm:block">
+                        — {addressString}
+                      </span>
                     )}
                   </div>
                 ) : (
-                  <span className="text-slate-400 italic">Click the map to pin a location</span>
+                  <span className="text-slate-400 italic">
+                    Click the map to pin a location
+                  </span>
                 )}
               </div>
               <div className="flex gap-2 shrink-0">
@@ -419,7 +436,6 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
                 </button>
               </div>
             </div>
-
           </div>
         </div>
       )}

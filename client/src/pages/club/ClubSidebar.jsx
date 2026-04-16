@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -22,7 +22,6 @@ const ClubSidebar = () => {
   const navigate = useNavigate();
   const { orgEvents, fetchOrganizerEvents } = useOrganizer();
   const { logout } = useAuth();
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
 
   const handleLogout = () => {
     logout();
@@ -32,17 +31,17 @@ const ClubSidebar = () => {
   useEffect(() => {
     // Fetch organizer events
     fetchOrganizerEvents();
-  }, []);
+  }, [fetchOrganizerEvents]);
 
-  useEffect(() => {
+  const upcomingEvents = useMemo(() => {
     if (orgEvents && orgEvents.length > 0) {
       const now = new Date();
-      const upcoming = orgEvents
+      return orgEvents
         .filter((event) => new Date(event.eventDate) > now)
         .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
         .slice(0, 5);
-      setUpcomingEvents(upcoming);
     }
+    return [];
   }, [orgEvents]);
 
   const navItems = [
@@ -69,7 +68,10 @@ const ClubSidebar = () => {
           to="/"
           className="flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 mb-4 border-b border-slate-50 rounded-b-none"
         >
-          <Home size={20} className="group-hover:scale-110 transition-transform" />
+          <Home
+            size={20}
+            className="group-hover:scale-110 transition-transform"
+          />
           <span className="text-sm font-black tracking-tight uppercase">
             Back to Home
           </span>

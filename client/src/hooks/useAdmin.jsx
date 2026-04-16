@@ -8,6 +8,7 @@ import {
   adminApproveClub,
   rejectClubAdmin,
   deleteUserAdmin,
+  fetchAllRegistrations,
 } from "../redux/admin/adminAction.js";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -70,6 +71,11 @@ const useAdmin = () => {
     [dispatch],
   );
 
+  // 📋 Registrations
+  const fetchRegistrations = useCallback(() => {
+    dispatch(fetchAllRegistrations());
+  }, [dispatch]);
+
   return {
     fetchEvents,
     fetchUsers,
@@ -77,7 +83,9 @@ const useAdmin = () => {
     approveClub,
     rejectClub,
     deleteUser,
+    fetchRegistrations,
     users: adminState.users || [],
+    registrations: adminState.registrations || [],
     loading: adminState.loading,
     error: adminState.error,
     adminData: adminState,

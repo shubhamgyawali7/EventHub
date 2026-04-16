@@ -42,3 +42,16 @@ export const deleteOrganizerEvent = createAsyncThunk(
     }
   },
 );
+
+// 📋 Fetch Club Registrations
+export const fetchClubRegistrations = createAsyncThunk(
+  "organizer/fetchClubRegistrations",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await clubService.getClubRegistrations();
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch registrations");
+    }
+  },
+);

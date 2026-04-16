@@ -122,10 +122,19 @@ const addEvents = async (req, res) => {
     const tags = eventData.tags
       ? eventData.tags.split(",").map((t) => t.trim())
       : [];
+    let googleFormUrls = [];
+    if (eventData.googleFormUrls) {
+      try {
+        googleFormUrls = JSON.parse(eventData.googleFormUrls);
+      } catch (e) {
+        googleFormUrls = [];
+      }
+    }
     console.log("✓ [BACKEND] Parsed form values:", {
       participantCount,
       isPaid,
       tagsCount: tags.length,
+      googleFormUrlsCount: googleFormUrls.length,
     });
 
     // Build event data object
@@ -140,6 +149,7 @@ const addEvents = async (req, res) => {
       poster: posterUrl,
       organizer: club._id,
       createdBy: new mongoose.Types.ObjectId(userId),
+      googleFormUrls,
     };
 
     // For online events, remove venue and location
@@ -245,10 +255,12 @@ const updateEvent = async (req, res) => {
 
     // Parse numeric/boolean fields from FormData
     if (updatedData.participantCount !== undefined) {
-      updatedData.participantCount = parseInt(updatedData.participantCount) || 0;
+      updatedData.participantCount =
+        parseInt(updatedData.participantCount) || 0;
     }
     if (updatedData.isPaid !== undefined) {
-      updatedData.isPaid = updatedData.isPaid === "true" || updatedData.isPaid === true;
+      updatedData.isPaid =
+        updatedData.isPaid === "true" || updatedData.isPaid === true;
     }
     if (updatedData.price !== undefined) {
       updatedData.price = parseFloat(updatedData.price) || 0;
@@ -256,7 +268,22 @@ const updateEvent = async (req, res) => {
 
     // Parse tags if provided as string
     if (typeof updatedData.tags === "string") {
-      updatedData.tags = updatedData.tags.split(",").map((t) => t.trim()).filter(Boolean);
+      updatedData.tags = updatedData.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+
+    // Parse googleFormUrls if provided as JSON string
+    if (
+      updatedData.googleFormUrls &&
+      typeof updatedData.googleFormUrls === "string"
+    ) {
+      try {
+        updatedData.googleFormUrls = JSON.parse(updatedData.googleFormUrls);
+      } catch (e) {
+        updatedData.googleFormUrls = [];
+      }
     }
 
     // Validate eventType if provided
@@ -274,7 +301,7 @@ const updateEvent = async (req, res) => {
     // Combine eventDate and eventTime if both provided
     if (updatedData.eventDate && updatedData.eventTime) {
       updatedData.eventDate = new Date(
-        `${updatedData.eventDate}T${updatedData.eventTime}`
+        `${updatedData.eventDate}T${updatedData.eventTime}`,
       );
     } else if (updatedData.eventDate) {
       updatedData.eventDate = new Date(updatedData.eventDate);

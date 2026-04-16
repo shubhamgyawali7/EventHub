@@ -59,6 +59,7 @@ app.use("/api/registrations", registrationRoute);
 app.use("/api/clubs", clubs);
 app.use("/api/admin", admin);
 
+
 // 404 handler for undefined routes
 app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });

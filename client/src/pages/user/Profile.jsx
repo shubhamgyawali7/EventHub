@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { toast } from "react-hot-toast";
 import {
   User,
   Mail,
@@ -30,8 +31,9 @@ const Profile = () => {
   const { user, logout, updateProfile, loading } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const fileInputRef = useRef(null);
-  
-  const VITE_BASE_API_URL = import.meta.env.VITE_BASE_API_URL || 'http://localhost:5000';
+
+  const VITE_BASE_API_URL =
+    import.meta.env.VITE_BASE_API_URL || "http://localhost:5000";
 
   // Form State
   const [editData, setEditData] = useState({
@@ -42,7 +44,7 @@ const Profile = () => {
     bio: "",
     interestedSkills: [],
   });
-  
+
   const [newSkill, setNewSkill] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -82,19 +84,24 @@ const Profile = () => {
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !editData.interestedSkills.includes(newSkill.trim())) {
-      setEditData(prev => ({
+    if (
+      newSkill.trim() &&
+      !editData.interestedSkills.includes(newSkill.trim())
+    ) {
+      setEditData((prev) => ({
         ...prev,
-        interestedSkills: [...prev.interestedSkills, newSkill.trim()]
+        interestedSkills: [...prev.interestedSkills, newSkill.trim()],
       }));
       setNewSkill("");
     }
   };
 
   const removeSkill = (skillToRemove) => {
-    setEditData(prev => ({
+    setEditData((prev) => ({
       ...prev,
-      interestedSkills: prev.interestedSkills.filter(s => s !== skillToRemove)
+      interestedSkills: prev.interestedSkills.filter(
+        (s) => s !== skillToRemove,
+      ),
     }));
   };
 
@@ -105,8 +112,11 @@ const Profile = () => {
     formData.append("district", editData.district);
     formData.append("college", editData.college);
     formData.append("bio", editData.bio);
-    formData.append("interestedSkills", JSON.stringify(editData.interestedSkills));
-    
+    formData.append(
+      "interestedSkills",
+      JSON.stringify(editData.interestedSkills),
+    );
+
     if (selectedFile) {
       formData.append("profilePicture", selectedFile);
     }
@@ -115,9 +125,9 @@ const Profile = () => {
     if (res.success) {
       setIsEditing(false);
       setSelectedFile(null);
-      alert("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
     } else {
-      alert(res.message);
+      toast.error(res.message);
     }
   };
 
@@ -141,26 +151,30 @@ const Profile = () => {
               <div className="absolute -top-10 -left-10 w-32 h-32 bg-indigo-50 rounded-full blur-3xl group-hover:bg-indigo-100 transition-colors"></div>
 
               <div className="relative">
-                <div 
+                <div
                   onClick={() => isEditing && fileInputRef.current.click()}
-                  className={`w-36 h-36 rounded-[2.5rem] bg-indigo-600 flex items-center justify-center text-white font-black text-5xl shadow-2xl shadow-indigo-200 mx-auto mb-6 border-4 border-white transition-all overflow-hidden relative ${isEditing ? 'cursor-pointer hover:opacity-80 scale-105' : 'group-hover:scale-105 group-hover:rotate-2'}`}
+                  className={`w-36 h-36 rounded-[2.5rem] bg-indigo-600 flex items-center justify-center text-white font-black text-5xl shadow-2xl shadow-indigo-200 mx-auto mb-6 border-4 border-white transition-all overflow-hidden relative ${isEditing ? "cursor-pointer hover:opacity-80 scale-105" : "group-hover:scale-105 group-hover:rotate-2"}`}
                 >
                   {previewImage ? (
-                    <img src={previewImage} alt="Profile" className="w-full h-full object-cover" />
+                    <img
+                      src={previewImage}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     user.name.charAt(0).toUpperCase()
                   )}
-                  
+
                   {isEditing && (
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center backdrop-blur-xs">
                       <Camera className="text-white" size={32} />
                     </div>
                   )}
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    hidden 
-                    onChange={handleFileChange} 
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    hidden
+                    onChange={handleFileChange}
                     accept="image/*"
                   />
                 </div>
@@ -183,7 +197,7 @@ const Profile = () => {
                     {user.name}
                   </h2>
                 )}
-                
+
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-6 mt-2">
                   EventHub Enthusiast
                 </p>
@@ -202,7 +216,7 @@ const Profile = () => {
 
               <div className="space-y-3">
                 {!isEditing ? (
-                  <button 
+                  <button
                     onClick={() => setIsEditing(true)}
                     className="w-full flex items-center justify-between p-4 bg-slate-50 hover:bg-indigo-600 hover:text-white rounded-2xl transition-all group/btn"
                   >
@@ -216,7 +230,7 @@ const Profile = () => {
                   </button>
                 ) : (
                   <div className="flex gap-2">
-                    <button 
+                    <button
                       onClick={handleSave}
                       disabled={loading}
                       className="flex-1 flex items-center justify-center gap-2 p-4 bg-indigo-600 text-white rounded-2xl transition-all hover:bg-indigo-700 font-black uppercase tracking-widest text-[10px]"
@@ -224,10 +238,14 @@ const Profile = () => {
                       {loading ? "Saving..." : "Save Profile"}
                       <Save size={14} />
                     </button>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsEditing(false);
-                        setPreviewImage(user.profilePicture ? `${VITE_BASE_API_URL}${user.profilePicture}` : null);
+                        setPreviewImage(
+                          user.profilePicture
+                            ? `${VITE_BASE_API_URL}${user.profilePicture}`
+                            : null,
+                        );
                       }}
                       className="p-4 bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-500 rounded-2xl transition-all"
                     >
@@ -235,7 +253,7 @@ const Profile = () => {
                     </button>
                   </div>
                 )}
-                
+
                 {!isEditing && (
                   <button
                     onClick={logout}
@@ -299,160 +317,168 @@ const Profile = () => {
                   />
                 ) : (
                   <p className="text-sm font-medium text-slate-600 leading-relaxed">
-                    {user.bio || "No description provided yet. Click edit to tell us about yourself!"}
+                    {user.bio ||
+                      "No description provided yet. Click edit to tell us about yourself!"}
                   </p>
                 )}
               </div>
 
               <div className="grid md:grid-cols-2 gap-x-12 gap-y-10">
-                  {/* Email (Read Only) */}
-                  <div className="group cursor-default opacity-60">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
-                      Your Email (Locked)
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-100 flex items-center justify-center text-slate-400 rounded-2xl">
-                        <Mail size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-slate-400 tracking-tight">
-                          {user.email}
-                        </p>
-                        <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest">
-                          Contact Info
-                        </p>
-                      </div>
+                {/* Email (Read Only) */}
+                <div className="group cursor-default opacity-60">
+                  <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
+                    Your Email (Locked)
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-100 flex items-center justify-center text-slate-400 rounded-2xl">
+                      <Mail size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-400 tracking-tight">
+                        {user.email}
+                      </p>
+                      <p className="text-[9px] text-slate-300 font-bold uppercase tracking-widest">
+                        Contact Info
+                      </p>
                     </div>
                   </div>
+                </div>
 
-                  {/* College */}
-                  <div className="group">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
-                      College / University
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
-                        <Building size={20} />
-                      </div>
-                      <div className="flex-1">
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="college"
-                            value={editData.college}
-                            onChange={handleInputChange}
-                            placeholder="College Name"
-                            className="w-full bg-slate-50 border-none rounded-xl py-1 px-3 text-sm font-black text-slate-800 outline-none focus:ring-1 focus:ring-indigo-200"
-                          />
-                        ) : (
-                          <p className="text-sm font-black text-slate-900 tracking-tight">
-                            {user.college || "N/A"}
-                          </p>
-                        )}
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                          Academic Info
-                        </p>
-                      </div>
+                {/* College */}
+                <div className="group">
+                  <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
+                    College / University
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
+                      <Building size={20} />
                     </div>
-                  </div>
-
-                   {/* District */}
-                   <div className="group">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
-                      Current District
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
-                        <Map size={20} />
-                      </div>
-                      <div className="flex-1">
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            name="district"
-                            value={editData.district}
-                            onChange={handleInputChange}
-                            placeholder="District"
-                            className="w-full bg-slate-50 border-none rounded-xl py-1 px-3 text-sm font-black text-slate-800 outline-none focus:ring-1 focus:ring-indigo-200"
-                          />
-                        ) : (
-                          <p className="text-sm font-black text-slate-900 tracking-tight">
-                            {user.district || "Nepal"}
-                          </p>
-                        )}
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                          Location Details
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Joined Date */}
-                  <div className="group cursor-default">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
-                      Member Since
-                    </label>
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
-                        <Calendar size={20} />
-                      </div>
-                      <div>
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="college"
+                          value={editData.college}
+                          onChange={handleInputChange}
+                          placeholder="College Name"
+                          className="w-full bg-slate-50 border-none rounded-xl py-1 px-3 text-sm font-black text-slate-800 outline-none focus:ring-1 focus:ring-indigo-200"
+                        />
+                      ) : (
                         <p className="text-sm font-black text-slate-900 tracking-tight">
-                          {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "Present"}
+                          {user.college || "N/A"}
                         </p>
-                        <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                          Registration Date
-                        </p>
-                      </div>
+                      )}
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                        Academic Info
+                      </p>
                     </div>
                   </div>
+                </div>
+
+                {/* District */}
+                <div className="group">
+                  <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
+                    Current District
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
+                      <Map size={20} />
+                    </div>
+                    <div className="flex-1">
+                      {isEditing ? (
+                        <input
+                          type="text"
+                          name="district"
+                          value={editData.district}
+                          onChange={handleInputChange}
+                          placeholder="District"
+                          className="w-full bg-slate-50 border-none rounded-xl py-1 px-3 text-sm font-black text-slate-800 outline-none focus:ring-1 focus:ring-indigo-200"
+                        />
+                      ) : (
+                        <p className="text-sm font-black text-slate-900 tracking-tight">
+                          {user.district || "Nepal"}
+                        </p>
+                      )}
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                        Location Details
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Joined Date */}
+                <div className="group cursor-default">
+                  <label className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 block mb-3">
+                    Member Since
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-slate-50 group-hover:bg-indigo-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 rounded-2xl transition-all">
+                      <Calendar size={20} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-slate-900 tracking-tight">
+                        {user.createdAt
+                          ? new Date(user.createdAt).toLocaleDateString()
+                          : "Present"}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">
+                        Registration Date
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Skills Section */}
               <div className="mt-12 pt-10 border-t border-slate-50">
-                   <div className="flex items-center gap-4 mb-6">
-                    <Code className="text-indigo-600" size={20} />
-                    <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">
-                      My Tech Skills
-                    </h3>
-                  </div>
+                <div className="flex items-center gap-4 mb-6">
+                  <Code className="text-indigo-600" size={20} />
+                  <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">
+                    My Tech Skills
+                  </h3>
+                </div>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {editData.interestedSkills.map((skill, index) => (
-                      <span key={index} className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-indigo-100">
-                        {skill}
-                        {isEditing && (
-                          <X 
-                            size={12} 
-                            className="cursor-pointer hover:text-red-500" 
-                            onClick={() => removeSkill(skill)}
-                          />
-                        )}
-                      </span>
-                    ))}
-                    {!isEditing && user.interestedSkills?.length === 0 && (
-                      <p className="text-xs text-slate-400 font-medium italic">No skills listed yet.</p>
-                    )}
-                  </div>
-
-                  {isEditing && (
-                    <div className="flex gap-2 max-w-sm">
-                      <input
-                        type="text"
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
-                        placeholder="e.g. Graphic Design"
-                        className="flex-1 bg-slate-50 border-none rounded-xl py-2 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100"
-                        onKeyPress={(e) => e.key === 'Enter' && addSkill()}
-                      />
-                      <button 
-                        onClick={addSkill}
-                        className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase hover:bg-indigo-600 transition-all font-bold"
-                      >
-                        Add
-                      </button>
-                    </div>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {editData.interestedSkills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-indigo-100"
+                    >
+                      {skill}
+                      {isEditing && (
+                        <X
+                          size={12}
+                          className="cursor-pointer hover:text-red-500"
+                          onClick={() => removeSkill(skill)}
+                        />
+                      )}
+                    </span>
+                  ))}
+                  {!isEditing && user.interestedSkills?.length === 0 && (
+                    <p className="text-xs text-slate-400 font-medium italic">
+                      No skills listed yet.
+                    </p>
                   )}
+                </div>
+
+                {isEditing && (
+                  <div className="flex gap-2 max-w-sm">
+                    <input
+                      type="text"
+                      value={newSkill}
+                      onChange={(e) => setNewSkill(e.target.value)}
+                      placeholder="e.g. Graphic Design"
+                      className="flex-1 bg-slate-50 border-none rounded-xl py-2 px-4 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100"
+                      onKeyPress={(e) => e.key === "Enter" && addSkill()}
+                    />
+                    <button
+                      onClick={addSkill}
+                      className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase hover:bg-indigo-600 transition-all font-bold"
+                    >
+                      Add
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

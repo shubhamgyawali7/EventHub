@@ -7,11 +7,13 @@ import {
   AlertCircle,
   Calendar,
 } from "lucide-react";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import { toast } from "react-hot-toast";
 import ClubSidebar from "./ClubSidebar";
 import useOrganizer from "../../hooks/useOrganizer";
 import HorizontalEventScroll from "../../components/common/HorizontalEventScroll";
 
-const ClubEventList = () => {
+const ManageYourEvents = () => {
   const navigate = useNavigate();
   const {
     orgEvents,
@@ -22,6 +24,12 @@ const ClubEventList = () => {
   } = useOrganizer();
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
   const hasFetched = useRef(false);
   useEffect(() => {
     // Only fetch once when component mounts
@@ -31,21 +39,27 @@ const ClubEventList = () => {
     }
   }, [fetchOrganizerEvents, loading]); // Empty dependency array - only run once
 
-  const handleDelete = async (id) => {
-    if (
-      window.confirm(
+  const handleDelete = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Event",
+      message:
         "Are you sure you want to delete this event? This action cannot be undone.",
-      )
-    ) {
-      const result = await deleteOrganizerEvent(id);
-      if (!result?.error) {
-        console.log("Event successfully deleted.");
-        // Optional: Show success toast/notification here
-      } else {
-        console.error("Delete failed:", result.error);
-        // Optional: Show error toast/notification here
-      }
-    }
+      onConfirm: async () => {
+        try {
+          const result = await deleteOrganizerEvent(id);
+          if (!result?.error) {
+            toast.success("Event deleted successfully.");
+          } else {
+            toast.error(result.error || "Delete failed.");
+          }
+        } catch (error) {
+          toast.error(error.message || "Delete failed. Please try again.");
+        } finally {
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
   // Navigate to event details page
@@ -183,8 +197,16 @@ const ClubEventList = () => {
           </div>
         )}
       </main>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="danger"
+      />
     </div>
   );
 };
 
-export default ClubEventList;
+export default ManageYourEvents;

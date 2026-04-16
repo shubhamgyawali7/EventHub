@@ -1,21 +1,29 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+dotenv.config();
 
-// Use your verified domain email
-const FROM_EMAIL = process.env.EMAIL_FROM || 'EventHub <support@mail.aakashbhandari.info.np>';
+// Create transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
 
 export const sendVerificationEmail = async (userEmail, clubName) => {
-  const dashboardUrl = `${process.env.FRONTEND_URL}/club/dashboard`;
+    const dashboardUrl = `${process.env.FRONTEND_URL}/club/dashboard`;
 
-  console.log(`📧 Resend: Attempting to notify: ${userEmail} regarding ${clubName}`);
+    console.log(`📧 Nodemailer: Attempting to notify: ${userEmail} regarding ${clubName}`);
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
-      to: userEmail,
-      subject: `Successfully Verified Your Club! ${clubName} is now Verified on EventHub`,
-      html: `
+    try {
+        const info = await transporter.sendMail({
+            from: `"EventHub Support" <${process.env.EMAIL_USER}>`,
+            to: userEmail,
+            subject: `Successfully Verified Your Club! ${clubName} is now Verified on EventHub`,
+            html: `
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: auto; border: 1px solid #e1e1e1; border-radius: 12px; overflow: hidden; color: #333;">
           <div style="background-color: #6366f1; padding: 30px; text-align: center; color: white;">
             <h1 style="margin: 0; font-size: 28px; letter-spacing: 1px;">EventHub</h1>
@@ -43,17 +51,12 @@ export const sendVerificationEmail = async (userEmail, clubName) => {
           </div>
         </div>
       `,
-    });
+        });
 
-    if (error) {
-      console.error("❌ Resend Error:", error);
-      return { success: false, error: error.message };
+        console.log("✅ Nodemailer: Verification notification sent. ID:", info.messageId);
+        return { success: true, messageId: info.messageId };
+    } catch (err) {
+        console.error("❌ Nodemailer Error:", err.message);
+        return { success: false, error: err.message };
     }
-
-    console.log("✅ Resend: Verification notification sent. ID:", data.id);
-    return { success: true, messageId: data.id };
-  } catch (err) {
-    console.error("❌ Resend Exception:", err.message);
-    return { success: false, error: err.message };
-  }
 };

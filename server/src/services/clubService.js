@@ -37,17 +37,18 @@ const approveClub = async (clubId) => {
   const club = await RegisterClub.findByIdAndUpdate(
     clubId,
     { status: "Approved", isVerified: true },
-    { returnDocument: 'after' },
+    { new: true }  // ← change 'returnDocument: after' to this
   ).populate("createdBy", "name email district college");
 
   if (club && club.createdBy) {
     await User.findByIdAndUpdate(club.createdBy._id, {
       $addToSet: { roles: "Club" },
     });
-    
-    // 📧 Phase 4: Send the welcome email
+    console.log('Club email and club name =>', club.email, club.name);
+    // ✅ club.email is the club's own email from the schema
     await sendVerificationEmail(club.email, club.name);
   }
+  console.log("Mail send is done and back to service")
   return club;
 };
 
@@ -146,16 +147,16 @@ const deleteEvent = async (eventId, userId) => {
   try {
     // First find the event
     const event = await Events.findById(eventId);
-    
+
     if (!event) {
       throw new Error("Event not found");
     }
-    
+
     // Check if the user owns this event
     if (event.createdBy.toString() !== userId) {
       throw new Error("Not authorized to delete this event");
     }
-    
+
     // Delete the event
     await Events.findByIdAndDelete(eventId);
     return { success: true, message: "Event deleted successfully" };

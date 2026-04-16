@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "react-hot-toast";
 import {
   Calendar,
   Clock,
@@ -71,7 +72,7 @@ const HorizontalEventCard = ({
       const [longitude, latitude] = event.location.coordinates;
       mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
     } else {
-      alert("Location information not available for this event");
+      toast.error("Location information not available for this event");
       return;
     }
 

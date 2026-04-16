@@ -1,5 +1,7 @@
 // src/pages/admin/AllClubs.jsx
 import React, { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 import {
   Building2,
   MapPin,
@@ -9,7 +11,7 @@ import {
   XCircle,
   CheckCircle,
   AlertCircle,
-   Instagram,
+  Instagram,
   Facebook,
   Twitter,
   Linkedin,
@@ -24,6 +26,12 @@ const AdminAllClubs = () => {
   const { adminData, fetchClubs, approveClub, rejectClub } = useAdmin();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+  });
 
   useEffect(() => {
     console.log("Fetching clubs...");
@@ -36,32 +44,47 @@ const AdminAllClubs = () => {
     console.log("Clubs data:", adminData.clubs);
   }, [adminData]);
 
-  const handleApproveClub = async (id) => {
-    if (
-      window.confirm(
+  const handleApproveClub = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Approve Club",
+      message:
         "Approve this club? The user will be able to access club features.",
-      )
-    ) {
-      try {
-        await approveClub(id);
-        alert("Club approved successfully!");
-      } catch (error) {
-        console.error("Failed to approve club:", error);
-        alert(error.message || "Failed to approve club. Please try again.");
-      }
-    }
+      onConfirm: async () => {
+        try {
+          await approveClub(id);
+          toast.success("Club approved successfully!");
+          setConfirmDialog({ isOpen: false });
+        } catch (error) {
+          console.error("Failed to approve club:", error);
+          toast.error(
+            error.message || "Failed to approve club. Please try again.",
+          );
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
-  const handleRejectClub = async (id) => {
-    if (window.confirm("Reject this club? The user will be notified.")) {
-      try {
-        await rejectClub(id);
-        alert("Club rejected successfully!");
-      } catch (error) {
-        console.error("Failed to reject club:", error);
-        alert(error.message || "Failed to reject club. Please try again.");
-      }
-    }
+  const handleRejectClub = (id) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Reject Club",
+      message: "Reject this club? The user will be notified.",
+      onConfirm: async () => {
+        try {
+          await rejectClub(id);
+          toast.success("Club rejected successfully!");
+          setConfirmDialog({ isOpen: false });
+        } catch (error) {
+          console.error("Failed to reject club:", error);
+          toast.error(
+            error.message || "Failed to reject club. Please try again.",
+          );
+          setConfirmDialog({ isOpen: false });
+        }
+      },
+    });
   };
 
   const filteredClubs =
@@ -383,6 +406,14 @@ const AdminAllClubs = () => {
           ))}
         </div>
       )}
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog({ isOpen: false })}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type="warning"
+      />
     </div>
   );
 };
