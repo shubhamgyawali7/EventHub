@@ -46,21 +46,6 @@ const clubService = {
   },
 
   /**
-   * 📋 Get Club Registrations
-   * Retrieves all registrations for events created by the club
-   */
-  getClubRegistrations: async () => {
-    try {
-      const response = await api.get("/api/registrations/club/all");
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Failed to fetch registrations",
-      );
-    }
-  },
-
-  /**
    * 🔄 Update Organizational Profile
    * Synchronizes updated metadata for an organizational profile into the central node.
    */

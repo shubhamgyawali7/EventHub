@@ -3,15 +3,15 @@ import mongoose from "mongoose";
 // import fs from "fs";
 
 const addEvents = async (req, res) => {
-  console.log("\n════════ [BACKEND] EVENT CREATE REQUEST ════════");
-  console.log("✅ [BACKEND] Reached addEvents controller");
+  // console.log("\n════════ [BACKEND] EVENT CREATE REQUEST ════════");
+  // console.log("✅ [BACKEND] Reached addEvents controller");
   console.log("👤 [BACKEND] User ID:", req.user?.id);
-  console.log(
-    "📎 [BACKEND] File received:",
-    req.file ? req.file.filename : "NO FILE",
-  );
-  console.log("📤 [BACKEND] Body keys:", Object.keys(req.body));
-  console.log("📤 [BACKEND] Body content:", req.body);
+  // console.log(
+  //   "📎 [BACKEND] File received:",
+  //   req.file ? req.file.filename : "NO FILE",
+  // );
+  // console.log("📤 [BACKEND] Body keys:", Object.keys(req.body));
+  // console.log("📤 [BACKEND] Body content:", req.body);
 
   const eventData = req.body;
   const userId = req.user.id;

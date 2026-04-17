@@ -12,6 +12,8 @@ import Events from "../pages/public/Events";
 import EventDetails from "../pages/public/EventDetails";
 import About from "../pages/public/About";
 import Contact from "../pages/public/Contact";
+import PaymentSuccess from "../pages/public/PaymentSuccess";
+import EsewaPayment from "../pages/public/EsewaPayment";
 
 // Auth Pages
 import Login from "../pages/auth/Login";
@@ -40,6 +42,7 @@ import AdminAllClubs from "../pages/admin/AllClubs";
 import AdminEventDetails from "../pages/admin/AdminEventDetails";
 import AdminRegistrations from "../pages/admin/AdminRegistrations";
 import AdminHome from "../pages/admin/AdminHome.jsx";
+import PaymentComplete from "../components/payment/PaymentComplete.jsx";
 
 const AppRoutes = () => {
   return (
@@ -50,6 +53,8 @@ const AppRoutes = () => {
       <Route path="/event/:id" element={<EventDetails />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/esewa-payment" element={<EsewaPayment />} />
 
       <Route
         path="/register-for-event/:id"
@@ -94,7 +99,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-
+      <Route
+        path="/payment-complete"
+        element={
+          <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
+            <PaymentComplete />
+          </ProtectedRoute>
+        }
+      />
       {/* 🏢 Club Routes */}
       <Route
         path="/club/register"

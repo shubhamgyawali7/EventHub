@@ -95,3 +95,14 @@ export const registerForEvent = createAsyncThunk(
     }
   },
 );
+
+export const fetchMyRegistrations = createAsyncThunk(
+  "events/fetchMyRegistrations",
+  async (_, { rejectWithValue }) => {
+    try {
+      return await eventService.getMyRegistrations();
+    } catch (error) {
+       return rejectWithValue(error.message || "Failed to fetch user registrations");
+    }
+  }
+);
