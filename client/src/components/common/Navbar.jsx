@@ -177,9 +177,26 @@ const Navbar = () => {
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setOpen(!open)}
-                  className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-white shadow-md hover:scale-105 transition"
+                  className="w-10 h-10 rounded-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-white shadow-md hover:scale-105 transition overflow-hidden"
                 >
-                  {user.name?.charAt(0).toUpperCase()}
+                  {user.profilePicture ? (
+                    <img
+                      src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null; // Prevent infinite loop if fallback also fails
+                        e.target.style.display = 'none'; // Hide broken image
+                        e.target.nextSibling.style.display = 'flex'; // Show fallback initial
+                      }}
+                    />
+                  ) : null}
+                  <span
+                    className="w-full h-full flex items-center justify-center"
+                    style={{ display: user.profilePicture ? 'none' : 'flex' }}
+                  >
+                    {user.name?.charAt(0).toUpperCase()}
+                  </span>
                 </button>
 
                 {open && (
@@ -331,7 +348,23 @@ const Navbar = () => {
                   onClick={() => setMobileMenuOpen(false)}
                   className="flex items-center justify-center gap-2 text-slate-600 hover:text-indigo-600 py-2"
                 >
-                  <User size={16} /> Profile
+                    {user?.profilePicture ? (
+                      <img
+                        src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+                        alt="Profile"
+                        className="w-5 h-5 rounded-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.style.display = "none";
+                          e.target.nextSibling.style.display = "block";
+                        }}
+                      />
+                    ) : null}
+                    <User
+                      size={16}
+                      style={{ display: user?.profilePicture ? "none" : "block" }}
+                    />
+                    Profile
                 </Link>
 
                 <button
