@@ -1,5 +1,6 @@
-import React, { useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-hot-toast";
 import {
   Calendar,
   MapPin,
@@ -16,22 +17,64 @@ import {
 } from "lucide-react";
 import useEvents from "../../hooks/useEvents";
 import useAuth from "../../hooks/useAuth";
+import usePayment from "../../hooks/usePayment";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, loading: authLoading } = useAuth();
-  const { events, fetchEvents, loading: eventsLoading } = useEvents();
+  const { events, fetchEvents, fetchMyRegistrations, myRegistrations, loading: eventsLoading } = useEvents();
+  const { verifyKhalti } = usePayment();
+
+
+  const normalizePoster = (poster) => {
+    if (!poster) return null;
+    if (poster.startsWith("http")) return poster;
+    const BASE_URL = import.meta.env.VITE_BASE_API_URL || "http://localhost:5000";
+    return `${BASE_URL}${poster}`;
+  };
 
   useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+    fetchMyRegistrations();
 
-  // Simple Filter for demonstrations
-  const registeredEvents = events.filter((event) =>
-    event.registeredUsers?.some((u) => u._id === user?.id || u === user?.id),
-  );
+    // Khalti Payment Verification Logic
+    const query = new URLSearchParams(location.search);
+    const pidx = query.get("pidx");
+    const status = query.get("status");
+
+    if (pidx && status === "Completed") {
+      verifyPayment(pidx);
+    } else if (status === "User canceled") {
+       toast.error("Payment was canceled by the user.");
+       // Clean up URL
+       navigate(location.pathname, { replace: true });
+    }
+  }, [fetchEvents, location.search]);
+
+  const verifyPayment = async (pidx) => {
+    try {
+      const paymentRes = await verifyKhalti(pidx);
+      
+      if (paymentRes.success && (paymentRes.data.success || paymentRes.data.status === "Completed")) {
+        toast.success(paymentRes.data.message || "Payment verified successfully!");
+        fetchEvents();
+        fetchMyRegistrations(); 
+      } else {
+        toast.error(paymentRes.data?.message || "Payment verification failed.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("An error occurred during payment verification.");
+    } finally {
+      // Clean up URL
+      navigate(location.pathname, { replace: true });
+    }
+  };
+
+
 
   if (authLoading)
     return (
@@ -77,7 +120,7 @@ const StudentDashboard = () => {
           {[
             {
               label: "Enrollments",
-              value: registeredEvents.length,
+              value: myRegistrations.length,
               icon: BookmarkCheck,
               color: "indigo",
             },
@@ -127,17 +170,17 @@ const StudentDashboard = () => {
               </Link>
             </div>
 
-            {registeredEvents.length > 0 ? (
+            {myRegistrations.length > 0 ? (
               <div className="space-y-6">
-                {registeredEvents.slice(0, 3).map((event, i) => (
+                {myRegistrations.slice(0, 3).map((reg, i) => (
                   <div
                     key={i}
                     className="bg-white p-6 rounded-[2.5rem] border border-slate-100 hover:border-indigo-100 shadow-sm hover:shadow-md transition-all flex items-center gap-6 group"
                   >
                     <div className="w-20 h-24 bg-slate-50 rounded-3xl overflow-hidden shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                      {event.poster ? (
+                      {reg.event?.poster ? (
                         <img
-                          src={normalizePoster(event.poster)}
+                          src={normalizePoster(reg.event.poster)}
                           alt=""
                           className="w-full h-full object-cover"
                         />
@@ -149,28 +192,32 @@ const StudentDashboard = () => {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-md border border-indigo-100">
-                          Confirmed
+                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border ${
+                          reg.status === "Confirmed" 
+                            ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
+                            : "bg-amber-50 text-amber-600 border-amber-100 animate-pulse"
+                        }`}>
+                          {reg.status}
                         </span>
                         <span className="text-slate-400 text-[9px] font-bold tracking-tight">
                           <Clock size={10} className="inline mr-1" />{" "}
-                          {event.time}
+                          {new Date(reg.event?.eventDate).toLocaleDateString()}
                         </span>
                       </div>
                       <h5 className="font-black text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                        {event.title}
+                        {reg.event?.title}
                       </h5>
                       <p className="text-[10px] text-slate-500 font-bold mt-1 tracking-tighter italic">
                         <MapPin
                           size={10}
                           className="inline mr-1 text-slate-400"
                         />{" "}
-                        {event.location}
+                        {reg.event?.venue || reg.event?.district}
                       </p>
                     </div>
                     <button
                       onClick={() =>
-                        navigate(`/event/${event._id || event.id}`)
+                        navigate(`/event/${reg.event?._id}`)
                       }
                       className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all hover:scale-110 active:scale-90"
                     >

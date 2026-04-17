@@ -54,9 +54,9 @@ const eventService = {
       console.error("❌ Message:", error.message);
       throw new Error(
         error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Event deployment failure",
+          error.response?.data?.error ||
+          error.message ||
+          "Event deployment failure",
       );
     }
   },
@@ -97,11 +97,35 @@ const eventService = {
    */
   registerForEvent: async (eventId, formData) => {
     try {
-      const response = await api.post(`/api/registrations/${eventId}`, formData);
+      console.log("🎟️ [FRONTEND] Registering for event:", {
+        eventId,
+        formData,
+      });
+      const response = await api.post(
+        `/api/registrations/${eventId}`,
+        formData,
+      );
+      console.log("✅ [FRONTEND] Registration successful:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("❌ [FRONTEND] Registration failed:", error);
+      throw new Error(
+        error.response?.data?.message || "Event Registration failed",
+      );
+    }
+  },
+
+  /**
+   * 📑 Get My Registrations
+   * Fetches the current user's event registrations
+   */
+  getMyRegistrations: async () => {
+    try {
+      const response = await api.get("/api/registrations/my");
       return response.data;
     } catch (error) {
       throw new Error(
-        error.response?.data?.message || "Event Registration failed",
+        error.response?.data?.message || "Failed to fetch your registrations",
       );
     }
   },

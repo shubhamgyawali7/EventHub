@@ -6,12 +6,14 @@ import {
   updateEvent,
   deleteEvent,
   registerForEvent,
+  fetchMyRegistrations,
 } from "./eventsAction";
 
 const eventsSlice = createSlice({
   name: "events",
   initialState: {
     events: [],
+    myRegistrations: [],
     selectedEvent: null, // for getEventById
     loading: false,
     error: null,
@@ -75,6 +77,18 @@ const eventsSlice = createSlice({
         state.error = null;
       })
       .addCase(registerForEvent.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchMyRegistrations.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
+        state.loading = false;
+        state.myRegistrations = action.payload;
+      })
+      .addCase(fetchMyRegistrations.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

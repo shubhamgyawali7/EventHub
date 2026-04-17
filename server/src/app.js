@@ -10,6 +10,7 @@ import events from "./routes/events.js";
 import registrationRoute from "./routes/registration.js";
 import clubs from "./routes/clubs.js";
 import admin from "./routes/admin.js";
+import payment from "./routes/payment.js";
 
 import path from "path";
 import { fileURLToPath } from "url";
@@ -38,9 +39,6 @@ app.use(express.json({ limit: "10mb" }));
 app.use(logger);
 app.use(cookieParser());
 
-
-
-
 const PORT = process.env.PORT || 8080; // ✅ Move here
 
 app.get("/", (req, res) => {
@@ -58,7 +56,7 @@ app.use("/api/events", events);
 app.use("/api/registrations", registrationRoute);
 app.use("/api/clubs", clubs);
 app.use("/api/admin", admin);
-
+app.use("/api/payments", payment);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

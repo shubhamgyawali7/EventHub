@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { 
   Calendar, MapPin, Search, Layers, Clock, 
@@ -13,17 +13,14 @@ import EventCard from "../../components/common/EventCard";
 const RegisteredEvents = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { events, fetchEvents, loading: eventsLoading, error } = useEvents();
+  const { events, fetchEvents, fetchMyRegistrations, myRegistrations, loading: eventsLoading, error } = useEvents();
 
   useEffect(() => {
     fetchEvents();
-  }, [fetchEvents]);
+    fetchMyRegistrations();
+  }, [fetchEvents, fetchMyRegistrations]);
 
-  // Filter events where the student is registered
-  // Assuming the backend returns registeredUsers as an array of IDs or objects
-  const registeredEvents = events.filter((event) =>
-    event.registeredUsers?.includes(user?.id) || event.registeredUsers?.some(u => u._id === user?.id || u === user?.id)
-  );
+
 
   if (authLoading) return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -75,17 +72,21 @@ const RegisteredEvents = () => {
              <Activity size={40} className="text-red-400 mx-auto mb-4" />
              <p className="text-red-600 font-black uppercase tracking-widest text-xs">{error}</p>
           </div>
-        ) : registeredEvents.length > 0 ? (
+        ) : myRegistrations?.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-            {registeredEvents.map((event, index) => (
-              <div key={event._id || event.id} className="relative group">
+            {myRegistrations.map((reg, index) => (
+              <div key={reg._id} className="relative group">
                 <EventCard
-                  {...event}
+                  {...reg.event}
                   direction={index % 2 === 0 ? "left" : "right"}
                 />
                 <div className="absolute top-6 left-6 z-10">
-                   <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg shadow-emerald-200 border border-white/20 backdrop-blur-md">
-                      Participation Active
+                   <div className={`px-4 py-2 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg border border-white/20 backdrop-blur-md ${
+                     reg.status === "Confirmed" 
+                       ? "bg-emerald-500 text-white shadow-emerald-200" 
+                       : "bg-amber-500 text-white shadow-amber-200 animate-pulse"
+                   }`}>
+                      {reg.status === "Confirmed" ? "Participation Active" : "Payment Pending"}
                    </div>
                 </div>
               </div>

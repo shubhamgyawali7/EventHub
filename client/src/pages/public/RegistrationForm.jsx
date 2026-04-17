@@ -1,16 +1,162 @@
 import useAuth from "../../hooks/useAuth";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-hot-toast";
-
-import { CheckCircle, ChevronRight, ChevronLeft } from "lucide-react";
+import { CheckCircle, ChevronRight, ChevronLeft, AlertCircle } from "lucide-react";
 import useEvents from "../../hooks/useEvents";
+import usePayment from "../../hooks/usePayment";
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const STEPS = [
+  { id: 1, label: "Personal" },
+  { id: 2, label: "Academic" },
+  { id: 3, label: "Confirm" },
+];
+
+const PAYMENT_GATEWAYS = [
+  {
+    id: "khalti",
+    name: "Khalti",
+    tagline: "Digital Wallet",
+    color: "#5C2D91",
+    bg: "#F5F0FB",
+    border: "#C4A8E8",
+    initial: "K",
+  },
+  {
+    id: "esewa",
+    name: "eSewa",
+    tagline: "Digital Wallet",
+    color: "#1B7B3A",
+    bg: "#F0F9F4",
+    border: "#7BC99A",
+    initial: "E",
+  },
+];
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+const FieldLabel = ({ children }) => (
+  <label className="block text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-1.5 pl-0.5">
+    {children}
+  </label>
+);
+
+const Input = ({ ...props }) => (
+  <input
+    {...props}
+    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl
+      focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100
+      outline-none transition-all text-slate-700 font-medium placeholder-slate-300 text-sm"
+  />
+);
+
+const Textarea = ({ ...props }) => (
+  <textarea
+    {...props}
+    className="w-full px-5 py-3.5 bg-slate-50 border border-slate-100 rounded-xl
+      focus:bg-white focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100
+      outline-none transition-all text-slate-700 font-medium placeholder-slate-300
+      resize-none text-sm"
+  />
+);
+
+const SummaryRow = ({ label, value }) => (
+  <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{label}</span>
+    <span className="text-sm text-slate-700 font-medium">
+      {value || <span className="text-slate-300 italic text-xs">Not provided</span>}
+    </span>
+  </div>
+);
+
+// ─── Step Indicators ──────────────────────────────────────────────────────────
+
+const StepBar = ({ currentStep }) => (
+  <div className="flex items-center justify-between mb-10 px-1 relative">
+    {/* Track */}
+    <div className="absolute top-5 left-0 w-full h-px bg-slate-100 z-0" />
+    {/* Progress */}
+    <div
+      className="absolute top-5 left-0 h-px bg-indigo-400 z-0 transition-all duration-500"
+      style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+    />
+    {STEPS.map((s) => {
+      const done = currentStep > s.id;
+      const active = currentStep === s.id;
+      return (
+        <div key={s.id} className="relative z-10 flex flex-col items-center">
+          <div
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300
+              ${done ? "bg-indigo-500 text-white shadow-md shadow-indigo-200" : ""}
+              ${active ? "bg-white border-2 border-indigo-400 text-indigo-500 shadow-md shadow-indigo-100" : ""}
+              ${!done && !active ? "bg-white border border-slate-200 text-slate-300" : ""}
+            `}
+          >
+            {done ? <CheckCircle size={16} /> : s.id}
+          </div>
+          <span
+            className={`text-[9px] uppercase tracking-widest font-bold mt-2 transition-colors duration-300
+              ${currentStep >= s.id ? "text-indigo-500" : "text-slate-300"}`}
+          >
+            {s.label}
+          </span>
+        </div>
+      );
+    })}
+  </div>
+);
+
+// ─── Payment Gateway Selector ─────────────────────────────────────────────────
+
+const GatewayOption = ({ gateway, selected, onSelect }) => (
+  <button
+    type="button"
+    onClick={() => onSelect(gateway.id)}
+    style={
+      selected
+        ? { borderColor: gateway.border, backgroundColor: gateway.bg }
+        : {}
+    }
+    className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left w-full
+      ${selected ? "shadow-md" : "border-slate-200 bg-white hover:border-slate-300"}
+    `}
+  >
+    <div className="flex items-center gap-3">
+      <div
+        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-base shrink-0"
+        style={{ backgroundColor: gateway.color }}
+      >
+        {gateway.initial}
+      </div>
+      <div>
+        <p className="font-bold text-slate-800 text-sm">{gateway.name}</p>
+        <p className="text-xs text-slate-400">{gateway.tagline}</p>
+      </div>
+      {selected && (
+        <CheckCircle
+          size={16}
+          className="ml-auto shrink-0"
+          style={{ color: gateway.color }}
+        />
+      )}
+    </div>
+  </button>
+);
+
+// ─── Main Component ───────────────────────────────────────────────────────────
 
 const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
   const { user } = useAuth();
-  const { registerForEvent } = useEvents();
+  const { registerForEvent, fetchEventById } = useEvents();
+  const { initiateKhalti, initiateEsewa } = usePayment();
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [eventData, setEventData] = useState(null);
+  const [selectedGateway, setSelectedGateway] = useState("");
+
   const [formData, setFormData] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -19,254 +165,285 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
     remarks: "",
   });
 
-  const handleChange = (e) =>
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const isPaidEvent = Boolean(eventData?.isPaid && eventData?.price > 0);
 
-  const handleNext = () => setStep(step + 1);
-  const handlePrev = () => setStep(step - 1);
+  // Fetch event on mount
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetchEventById(eventId);
+      if (res.success) setEventData(res.data);
+    };
+    load();
+  }, [eventId, fetchEventById]);
+
+  const handleChange = useCallback(
+    (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value })),
+    []
+  );
+
+  // ── Validation ──────────────────────────────────────────────────────────────
+
+  const isStep1Valid = formData.name.trim() && formData.phone.trim();
+
+  const isSubmitReady = isPaidEvent ? Boolean(selectedGateway) : true;
+
+  // ── Payment handlers ────────────────────────────────────────────────────────
+
+  const redirectToKhalti = async (registrationId) => {
+    const CLIENT_URL = window.location.origin;
+    const res = await initiateKhalti({
+      return_url: `${CLIENT_URL}/payment-success`,
+      website_url: CLIENT_URL,
+      amount: Number(eventData.price) * 100, // paisa
+      purchase_order_id: registrationId,
+      purchase_order_name: eventData.title || "Event Registration",
+      customer_info: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || "9800000000",
+      },
+    });
+
+    if (res.success && res.payment_url) {
+      window.location.href = res.payment_url;
+    } else {
+      throw new Error(res.message || "Khalti payment initiation failed.");
+    }
+  };
+
+  const redirectToEsewa = (registrationId) => {
+    toast.success("Redirecting to eSewa…");
+    window.location.href = `/esewa-payment?request_id=${registrationId}&amount=${eventData.price}`;
+  };
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("Your session has expired. Please log in again.");
+      return;
+    }
+
+    // Guard: paid event but no gateway selected
+    if (isPaidEvent && !selectedGateway) {
+      setError("Please select a payment gateway before continuing.");
+      return;
+    }
+
     setLoading(true);
     setError("");
 
-    const result = await registerForEvent(eventId, formData);
+    try {
+      const result = await registerForEvent(eventId, formData);
 
-    if (result.success) {
-      toast.success("Registration successful!");
-      onSuccess();
-    } else {
-      setError(result.message || "Registration request rejected by the server.");
+      if (!result.success) {
+        setError(result.message || "Registration was rejected by the server.");
+        return;
+      }
+
+      // Free event — done
+      if (!isPaidEvent) {
+        toast.success("Registration successful!");
+        onSuccess();
+        return;
+      }
+
+      // Paid event — extract registration ID
+      const registrationId = result.data?.registration?._id;
+      if (!registrationId) {
+        setError("Server did not return a registration ID. Please contact support.");
+        return;
+      }
+
+      if (selectedGateway === "khalti") {
+        await redirectToKhalti(registrationId);
+      } else if (selectedGateway === "esewa") {
+        redirectToEsewa(registrationId);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  const steps = [
-    { id: 1, name: "Bio Data" },
-    { id: 2, name: "Education" },
-    { id: 3, name: "Confirm" },
-  ];
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="bg-white rounded-[3rem] p-6 md:p-10 max-w-xl w-full mx-auto border border-slate-100 shadow-2xl overflow-hidden mt-8 relative">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-full -z-10 opacity-50"></div>
+    <div className="bg-white rounded-3xl p-7 md:p-10 max-w-lg w-full mx-auto border border-slate-100 shadow-2xl shadow-slate-200/60 mt-8">
+      <StepBar currentStep={step} />
 
-
-      {/* Horizontal Stepper Bar */}
-      <div className="flex items-center justify-between mb-12 px-2 relative">
-        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0 rounded-full"></div>
-        <div
-          className="absolute top-1/2 left-0 h-1 bg-indigo-600 -translate-y-1/2 z-0 transition-all duration-700 ease-in-out rounded-full shadow-[0_0_10px_rgba(79,70,229,0.5)]"
-          style={{ width: `${((step - 1) / (steps.length - 1)) * 100}%` }}
-        ></div>
-
-        {steps.map((s) => (
-          <div
-            key={s.id}
-            className="relative z-10 flex flex-col items-center group"
-          >
-            <div
-              className={`w-12 h-12 rounded-[1.2rem] flex items-center justify-center font-black text-sm transition-all duration-500 transform ${step >= s.id
-                ? "bg-indigo-600 text-white shadow-xl shadow-indigo-200 scale-110"
-                : "bg-white text-slate-300 border-2 border-slate-100 group-hover:border-slate-200"
-                }`}
-            >
-              {step > s.id ? (
-                <CheckCircle size={20} className="animate-in fade-in zoom-in" />
-              ) : (
-                s.id
-              )}
-            </div>
-            <span
-              className={`text-[9px] uppercase tracking-[0.2em] font-black mt-3 transition-colors duration-300 ${step >= s.id ? "text-indigo-600" : "text-slate-400"}`}
-            >
-              {s.name}
-            </span>
-          </div>
-        ))}
-      </div>
-
+      {/* Error banner */}
       {error && (
-        <div className="bg-rose-50 border border-rose-100 text-rose-700 px-6 py-4 rounded-2xl text-sm mb-8 flex items-start gap-4 shadow-sm animate-in slide-in-from-top-2">
-          <span className="text-xl">⚠️</span>
+        <div className="flex items-start gap-3 bg-rose-50 border border-rose-200 text-rose-700 px-5 py-4 rounded-2xl text-sm mb-6">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" />
+          <p className="font-medium">{error}</p>
+        </div>
+      )}
+
+      {/* ── Step 1: Personal ── */}
+      {step === 1 && (
+        <div className="space-y-5 animate-in fade-in slide-in-from-left-3 duration-300">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-slate-800">Personal Details</h3>
+            <p className="text-slate-400 text-sm mt-1">Tell us a bit about yourself.</p>
+          </div>
           <div>
-            <p className="font-bold uppercase tracking-wider text-[10px] text-rose-400 mb-1">System Error</p>
-            <p className="font-medium">{error}</p>
+            <FieldLabel>Full Name</FieldLabel>
+            <Input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your full name" />
+          </div>
+          <div>
+            <FieldLabel>Email Address</FieldLabel>
+            <Input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="name@example.com" />
+          </div>
+          <div>
+            <FieldLabel>Phone Number</FieldLabel>
+            <Input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="+977 98XXXXXXXX" />
           </div>
         </div>
       )}
 
-      {/* Step Content */}
-      <div className="min-h-[300px] relative">
-        {step === 1 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500">
-            <div className="mb-8">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tight">Identity Verification</h3>
-              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">Please confirm your core biographic details for the registration registry.</p>
-            </div>
-
-
-            <div className="space-y-5">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">
-                  Full Legal Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-slate-700 font-medium placeholder-slate-300"
-                  placeholder="Enter your name"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">
-                  Primary Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-slate-700 font-medium placeholder-slate-300"
-                  placeholder="name@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">
-                  Contact Number
-                </label>
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-slate-700 font-medium placeholder-slate-300"
-                  placeholder="+1 (555) 000-0000"
-                />
-              </div>
-            </div>
+      {/* ── Step 2: Academic ── */}
+      {step === 2 && (
+        <div className="space-y-5 animate-in fade-in slide-in-from-right-3 duration-300">
+          <div className="mb-6">
+            <h3 className="text-2xl font-bold text-slate-800">Academic Profile</h3>
+            <p className="text-slate-400 text-sm mt-1">Your current institutional affiliation.</p>
           </div>
-        )}
-
-        {step === 2 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="mb-8">
-              <h3 className="text-3xl font-black text-slate-800 tracking-tight">Academic Profile</h3>
-              <p className="text-slate-500 font-medium italic mt-2 text-sm border-l-4 border-slate-100 pl-4">Provide details regarding your current institutional affiliation.</p>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">
-                  Institution / Organization
-                </label>
-                <input
-                  type="text"
-                  name="college"
-                  value={formData.college}
-                  onChange={handleChange}
-                  className="w-full px-6 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-slate-700 font-medium placeholder-slate-300"
-                  placeholder="University of Science"
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">
-                  Additional Context (Optional)
-                </label>
-                <textarea
-                  name="remarks"
-                  value={formData.remarks}
-                  onChange={handleChange}
-                  rows="4"
-                  className="w-full px-6 py-4 bg-slate-50 border border-transparent rounded-2xl focus:bg-white focus:border-indigo-100 focus:ring-4 focus:ring-indigo-50 outline-none transition-all text-slate-700 font-medium placeholder-slate-300 resize-none"
-                  placeholder="Dietary restrictions, accessibility needs, etc."
-                />
-              </div>
-            </div>
+          <div>
+            <FieldLabel>Institution / Organization</FieldLabel>
+            <Input type="text" name="college" value={formData.college} onChange={handleChange} placeholder="University or organization name" />
           </div>
-        )}
+          <div>
+            <FieldLabel>Additional Notes <span className="normal-case font-normal tracking-normal text-slate-300">(optional)</span></FieldLabel>
+            <Textarea name="remarks" value={formData.remarks} onChange={handleChange} rows={4} placeholder="Dietary requirements, accessibility needs, etc." />
+          </div>
+        </div>
+      )}
 
-        {step === 3 && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="mb-8 items-center flex gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-                <CheckCircle size={32} />
-              </div>
-              <div>
-                <h3 className="text-2xl font-black text-slate-800 tracking-tight">Final Verification</h3>
-                <p className="text-slate-500 font-medium mt-1 text-sm">Please review your submission data before finalizing.</p>
-              </div>
-            </div>
+      {/* ── Step 3: Confirm + Payment ── */}
+      {step === 3 && (
+        <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
+          <div className="mb-2">
+            <h3 className="text-2xl font-bold text-slate-800">
+              {isPaidEvent ? "Payment & Confirm" : "Review & Confirm"}
+            </h3>
+            <p className="text-slate-400 text-sm mt-1">
+              {isPaidEvent
+                ? "Pick a payment method and submit."
+                : "Review your details before submitting."}
+            </p>
+          </div>
 
-            <div className="bg-slate-50 p-8 rounded-[2rem] border border-slate-100 space-y-6">
-              {[
-                { label: "Legal Name", value: formData.name },
-                { label: "Email Route", value: formData.email },
-                { label: "Comm Link", value: formData.phone },
-                { label: "Institution", value: formData.college }
-              ].map((item, idx) => (
-                <div key={idx} className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 border-b border-slate-200/50 last:border-0 last:pb-0">
-                  <span className="font-bold text-slate-400 uppercase text-[10px] tracking-[0.2em] mb-1 sm:mb-0">
-                    {item.label}
-                  </span>
-                  <span className="text-slate-800 font-medium bg-white px-3 py-1 rounded-lg border border-slate-100">
-                    {item.value || <span className="text-slate-300 italic">Not provided</span>}
-                  </span>
+          {/* Summary */}
+          <div className="bg-slate-50 rounded-2xl px-5 py-2 border border-slate-100">
+            <SummaryRow label="Name" value={formData.name} />
+            <SummaryRow label="Email" value={formData.email} />
+            <SummaryRow label="Phone" value={formData.phone} />
+            <SummaryRow label="Institution" value={formData.college} />
+          </div>
+
+          {/* Payment section — only for paid events */}
+          {isPaidEvent && (
+            <div className="space-y-3 pt-4 border-t border-slate-100">
+              <FieldLabel>Payment Gateway</FieldLabel>
+              <div className="grid grid-cols-2 gap-3">
+                {PAYMENT_GATEWAYS.map((gw) => (
+                  <GatewayOption
+                    key={gw.id}
+                    gateway={gw}
+                    selected={selectedGateway === gw.id}
+                    onSelect={(id) => {
+                      setSelectedGateway(id);
+                      setError(""); // clear any gateway-related error on selection
+                    }}
+                  />
+                ))}
+              </div>
+
+              {/* Amount summary */}
+              <div className="flex items-center justify-between bg-indigo-50 border border-indigo-100 px-5 py-4 rounded-2xl mt-2">
+                <div>
+                  <p className="text-xs text-slate-500 font-medium">Total Due</p>
+                  <p className="text-2xl font-black text-indigo-600 mt-0.5">
+                    Rs. {eventData.price}
+                  </p>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+                {selectedGateway && (
+                  <div className="text-xs text-slate-400 text-right">
+                    <p>Via</p>
+                    <p className="font-bold text-slate-600 capitalize">{selectedGateway}</p>
+                  </div>
+                )}
+              </div>
 
-      <div className="mt-12 flex gap-4 pt-6 border-t border-slate-50">
+              {/* Hint when no gateway selected */}
+              {!selectedGateway && (
+                <p className="text-xs text-amber-500 font-medium text-center pt-1">
+                  ↑ Select a payment gateway to continue
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Navigation ── */}
+      <div className="mt-8 flex gap-3 pt-6 border-t border-slate-50">
         {step > 1 && (
           <button
-            onClick={handlePrev}
-            className="w-16 md:w-auto md:px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-xs text-slate-400 border border-slate-100 hover:bg-slate-50 hover:text-slate-800 transition-all flex items-center justify-center gap-2"
+            type="button"
+            onClick={() => setStep((s) => s - 1)}
+            className="px-5 py-3.5 rounded-xl font-semibold text-sm text-slate-400 border border-slate-100
+              hover:bg-slate-50 hover:text-slate-700 transition-all flex items-center gap-1.5"
           >
-            <ChevronLeft size={18} className="md:mr-1" />{" "}
-            <span className="hidden md:inline">Reverse</span>
+            <ChevronLeft size={16} /> Back
           </button>
         )}
-
 
         {step < 3 ? (
           <button
-            onClick={handleNext}
-            disabled={step === 1 && (!formData.name || !formData.phone)}
-            className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-slate-200 disabled:opacity-50 disabled:active:scale-100 group"
+            type="button"
+            onClick={() => setStep((s) => s + 1)}
+            disabled={step === 1 && !isStep1Valid}
+            className="flex-1 bg-slate-900 text-white py-3.5 rounded-xl font-bold text-sm
+              hover:bg-indigo-600 transition-all active:scale-95 flex items-center justify-center gap-2
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
           >
-            Proceed Forward{" "}
-            <ChevronRight
-              size={18}
-              className="group-hover:translate-x-1 transition-transform"
-            />
+            Continue <ChevronRight size={16} />
           </button>
         ) : (
           <button
+            type="button"
             onClick={handleSubmit}
-            disabled={loading}
-            className="flex-1 bg-linear-to-r from-indigo-600 to-purple-600 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:shadow-2xl hover:shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl shadow-indigo-100 disabled:opacity-70 disabled:active:scale-100 relative overflow-hidden"
+            disabled={loading || !isSubmitReady}
+            className="flex-1 bg-indigo-600 text-white py-3.5 rounded-xl font-bold text-sm
+              hover:bg-indigo-700 transition-all active:scale-95 flex items-center justify-center gap-2
+              disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100 shadow-lg shadow-indigo-200"
           >
             {loading ? (
               <>
-                <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
-                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                Executing...
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                Processing…
               </>
-            ) : "Initialize Registration 🚀"}
+            ) : isPaidEvent ? (
+              `Pay with ${selectedGateway ? selectedGateway.charAt(0).toUpperCase() + selectedGateway.slice(1) : "…"}`
+            ) : (
+              "Complete Registration"
+            )}
           </button>
         )}
       </div>
 
-      <div className="text-center mt-6">
+      <div className="text-center mt-5">
         <button
+          type="button"
           onClick={onClose}
-          className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 hover:text-rose-500 transition-colors"
+          className="text-[10px] font-bold uppercase tracking-widest text-slate-300 hover:text-rose-400 transition-colors"
         >
-          Abort Process
+          Cancel
         </button>
       </div>
     </div>
