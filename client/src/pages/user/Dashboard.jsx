@@ -94,10 +94,23 @@ const StudentDashboard = () => {
             <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 mb-2">
               <TrendingUp size={12} /> Live Network Profile
             </div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tighter">
-              Welcome,{" "}
-              <span className="text-indigo-600 italic font-medium">
-                {user?.name}
+            <h1 className="text-4xl font-black text-slate-800 tracking-tighter flex items-center gap-4">
+              {user?.profilePicture && (
+                <img
+                  src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+                  alt="Profile"
+                  className="w-14 h-14 rounded-full shadow-md object-cover border-4 border-indigo-100"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                  }}
+                />
+              )}
+              <span>
+                Welcome,{" "}
+                <span className="text-indigo-600 italic font-medium">
+                  {user?.name}
+                </span>
               </span>
             </h1>
             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">

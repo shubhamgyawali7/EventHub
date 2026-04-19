@@ -4,6 +4,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import EventCard from "../../components/common/EventCard";
 import useEvents from "../../hooks/useEvents";
+import { sortEventsPriority } from "../../utils/eventSorter";
 import { Search, MapPin, Loader2 } from "lucide-react";
 
 const Events = () => {
@@ -76,6 +77,8 @@ const Events = () => {
         return matchesSearch && matchesCategory;
       })
     : [];
+
+  const sortedFilteredEvents = sortEventsPriority(filteredEvents);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDFDFF]">
@@ -167,9 +170,9 @@ const Events = () => {
         )}
 
         {/* Events Grid */}
-        {!loading && !error && filteredEvents.length > 0 && (
+        {!loading && !error && sortedFilteredEvents.length > 0 && (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredEvents.map((event, index) => (
+            {sortedFilteredEvents.map((event, index) => (
               <EventCard
                 key={event._id || event.id || index}
                 {...event}
@@ -180,7 +183,7 @@ const Events = () => {
         )}
 
         {/* Empty State */}
-        {!loading && !error && filteredEvents.length === 0 && (
+        {!loading && !error && sortedFilteredEvents.length === 0 && (
           <div className="flex flex-col justify-center items-center py-24 text-center">
             <div className="bg-indigo-50 p-6 rounded-full mb-6">
               <Search className="text-indigo-600" size={40} />

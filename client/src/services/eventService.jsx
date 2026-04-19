@@ -130,20 +130,7 @@ const eventService = {
     }
   },
 
-  /**
-   * 🎟️ Enroll in Event
-   * Subscribes the current user entity to an event's participation registry.
-   */
-  enrollInEvent: async (eventId) => {
-    try {
-      const response = await api.post(`/api/events/${eventId}/register`);
-      return response.data;
-    } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Enrollment request rejected",
-      );
-    }
-  },
+
 
   /**
    * 📊 Get Events by Organizer

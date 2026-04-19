@@ -5,6 +5,7 @@ import {
   deleteOrganizerEvent,
   fetchClubRegistrations,
 } from "../redux/organizer/organizerAction";
+import clubService from "../services/clubService";
 import { useCallback } from "react";
 // import { registerClub } from "../redux/organizer/organizerAction";
 
@@ -48,6 +49,14 @@ const useOrganizer = () => {
     fetchOrganizerEvents: fetchClubEvents,
     deleteOrganizerEvent: deleteEvent,
     fetchClubRegistrations: fetchRegistrations,
+    updateGoogleSheetLink: useCallback(async (eventId, link) => {
+      try {
+        const result = await clubService.updateGoogleSheetLink(eventId, link);
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, message: err.message };
+      }
+    }, []),
     ...orgEvents,
   };
 };

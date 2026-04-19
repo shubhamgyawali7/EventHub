@@ -1,6 +1,6 @@
 import eventService from "../services/eventService.js";
 import mongoose from "mongoose";
-// import fs from "fs";
+import cloudinary from "../config/cloudinary.js";
 
 const addEvents = async (req, res) => {
   // console.log("\n════════ [BACKEND] EVENT CREATE REQUEST ════════");
@@ -21,7 +21,7 @@ const addEvents = async (req, res) => {
     return res.status(400).json({ error: "Event poster is required" });
   }
 
-  const posterUrl = `/uploads/events/${req.file.filename}`;
+  const posterUrl = req.file.path;
 
   // Validate eventType
   const eventType = eventData.eventType || "physical";
@@ -60,20 +60,12 @@ const addEvents = async (req, res) => {
     });
   }
 
-  // Validate dates - combine eventDate and eventTime
+  // Validate dates
   let eventDateTime;
-  if (eventData.eventDate && eventData.eventTime) {
-    eventDateTime = new Date(`${eventData.eventDate}T${eventData.eventTime}`);
-    console.log(
-      "⏰ [BACKEND] Combined date+time:",
-      `${eventData.eventDate}T${eventData.eventTime}`,
-      "→",
-      eventDateTime.toISOString(),
-    );
-  } else if (eventData.eventDate) {
+  if (eventData.eventDate) {
     eventDateTime = new Date(eventData.eventDate);
     console.log(
-      "⏰ [BACKEND] Using eventDate only:",
+      "⏰ [BACKEND] Using eventDate:",
       eventData.eventDate,
       "→",
       eventDateTime.toISOString(),
@@ -182,14 +174,13 @@ const addEvents = async (req, res) => {
     console.error("❌ Error message:", error.message);
     console.error("❌ Error stack:", error.stack);
     console.error("════════════════════════════════════════\n");
-    // If there's an error, delete the uploaded file
-    if (req.file) {
+    // If there's an error, delete the uploaded file from Cloudinary
+    if (req.file && req.file.filename) {
       try {
-        const fs = await import("fs");
-        fs.default.unlinkSync(req.file.path);
-        console.log("🗑️ [BACKEND] Deleted uploaded file due to error");
-      } catch (fsError) {
-        console.error("⚠️ [BACKEND] Could not delete file:", fsError.message);
+        await cloudinary.uploader.destroy(req.file.filename);
+        console.log("🗑️ [BACKEND] Deleted uploaded file from Cloudinary due to error");
+      } catch (cloudErr) {
+        console.error("⚠️ [BACKEND] Could not delete Cloudinary file:", cloudErr.message);
       }
     }
     console.error("Validation Error Details:", error.message);
@@ -248,9 +239,9 @@ const updateEvent = async (req, res) => {
         .json({ error: "Unauthorized: You can only edit your own events" });
     }
 
-    // Handle new poster if uploaded
+    // Handle new poster if uploaded (Cloudinary URL)
     if (req.file) {
-      updatedData.poster = `/uploads/events/${req.file.filename}`;
+      updatedData.poster = req.file.path;
     }
 
     // Parse numeric/boolean fields from FormData
@@ -298,12 +289,8 @@ const updateEvent = async (req, res) => {
 
     const eventType = updatedData.eventType || event.eventType || "physical";
 
-    // Combine eventDate and eventTime if both provided
-    if (updatedData.eventDate && updatedData.eventTime) {
-      updatedData.eventDate = new Date(
-        `${updatedData.eventDate}T${updatedData.eventTime}`,
-      );
-    } else if (updatedData.eventDate) {
+    // Fix eventDate parsing if provided
+    if (updatedData.eventDate) {
       updatedData.eventDate = new Date(updatedData.eventDate);
     }
 
@@ -317,6 +304,29 @@ const updateEvent = async (req, res) => {
     res.status(200).json(result);
   } catch (error) {
     console.error("Error in updateEvent:", error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+const updateGoogleSheetLink = async (req, res) => {
+  console.log("📍 [BACKEND] updateGoogleSheetLink hit for ID:", req.params.id);
+  const eventId = req.params.id;
+  const userId = req.user.id;
+  const { googleSheetResponseLink } = req.body;
+
+  try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).json({ error: "Event Not Found" });
+
+    if (event.createdBy.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Access denied" });
+    }
+
+    const result = await eventService.updateEvent(eventId, { googleSheetResponseLink });
+    res.status(200).json({ success: true, message: "Link updated successfully", event: result });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
@@ -342,4 +352,4 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent };
+export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent, updateGoogleSheetLink };

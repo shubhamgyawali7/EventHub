@@ -8,9 +8,12 @@ import {
   getEventById,
   updateEvent,
   deleteEvent,
+  updateGoogleSheetLink,
 } from "../controllers/eventsController.js";
 
 const router = express.Router();
+
+router.get("/diag/ping", (req, res) => res.json({ status: "Events Router is Online" }));
 
 // GET /api/events?lat=27.717&lng=85.324&radius=10 - for nearby events
 // GET /api/events - for all events
@@ -19,8 +22,9 @@ router.post("/create", auth, uploadEventPoster, handleMulterError, addEvents);
 
 router.get("/", getAllEvents);
 
-router.get("/:id", getEventById);
+router.patch("/integration/google-sheet/:id", auth, updateGoogleSheetLink);
 
+router.get("/:id", getEventById);
 
 router.put("/:id", auth, uploadEventPoster, handleMulterError, updateEvent);
 

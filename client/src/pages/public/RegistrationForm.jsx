@@ -286,9 +286,22 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
       {/* ── Step 1: Personal ── */}
       {step === 1 && (
         <div className="space-y-5 animate-in fade-in slide-in-from-left-3 duration-300">
-          <div className="mb-6">
-            <h3 className="text-2xl font-bold text-slate-800">Personal Details</h3>
-            <p className="text-slate-400 text-sm mt-1">Tell us a bit about yourself.</p>
+          <div className="mb-6 flex items-center gap-4">
+            {user?.profilePicture && (
+              <img
+                src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+                alt="Profile"
+                className="w-12 h-12 rounded-full object-cover border-2 border-indigo-100 shadow-sm shrink-0"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.style.display = "none";
+                }}
+              />
+            )}
+            <div>
+              <h3 className="text-2xl font-bold text-slate-800">Personal Details</h3>
+              <p className="text-slate-400 text-sm mt-1">Tell us a bit about yourself.</p>
+            </div>
           </div>
           <div>
             <FieldLabel>Full Name</FieldLabel>

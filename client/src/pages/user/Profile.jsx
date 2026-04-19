@@ -26,6 +26,7 @@ import {
 import useAuth from "../../hooks/useAuth";
 import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
+import { getImageUrl } from "../../utils/imageUrl";
 
 const Profile = () => {
   const { user, logout, updateProfile, loading } = useAuth();
@@ -61,7 +62,7 @@ const Profile = () => {
         interestedSkills: user.interestedSkills || [],
       });
       if (user.profilePicture) {
-        setPreviewImage(`${VITE_BASE_API_URL}${user.profilePicture}`);
+        setPreviewImage(getImageUrl(user.profilePicture));
       }
     }
   }, [user, VITE_BASE_API_URL]);
@@ -243,7 +244,7 @@ const Profile = () => {
                         setIsEditing(false);
                         setPreviewImage(
                           user.profilePicture
-                            ? `${VITE_BASE_API_URL}${user.profilePicture}`
+                            ? getImageUrl(user.profilePicture)
                             : null,
                         );
                       }}

@@ -87,6 +87,20 @@ const clubService = {
       );
     }
   },
+
+  updateGoogleSheetLink: async (eventId, googleSheetResponseLink) => {
+    try {
+      const cleanEventId = eventId.toString().trim().replace(/\/+$/, "");
+      const response = await api.patch(`/api/events/integration/google-sheet/${cleanEventId}`, {
+        googleSheetResponseLink,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.error || "Failed to update Google Sheet link"
+      );
+    }
+  },
 };
 
 export default clubService;

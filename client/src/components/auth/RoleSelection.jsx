@@ -20,8 +20,21 @@ const RoleSelection = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <div className="bg-white p-8 rounded-2xl shadow-xl max-w-2xl w-full text-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome, {user?.name}!</h2>
-        <p className="text-gray-500 mb-8">How do you plan to use EventHub?</p>
+        <div className="flex flex-col items-center justify-center mb-6">
+          {user?.profilePicture && (
+            <img
+              src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+              alt="Profile"
+              className="w-20 h-20 rounded-full shadow-lg object-cover border-4 border-indigo-100 mb-4"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = 'none';
+              }}
+            />
+          )}
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome, {user?.name}!</h2>
+          <p className="text-gray-500">How do you plan to use EventHub?</p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Student Option */}

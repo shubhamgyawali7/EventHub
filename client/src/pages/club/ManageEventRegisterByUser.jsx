@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Users,
   Calendar,
@@ -10,214 +10,159 @@ import {
   Search,
   Download,
   UserCheck,
-  MapPin,
   ExternalLink,
+  RefreshCw,
+  Database,
+  ArrowRight,
+  Filter,
 } from "lucide-react";
 import ClubSidebar from "./ClubSidebar";
 import useOrganizer from "../../hooks/useOrganizer";
-import useEvents from "../../hooks/useEvents";
 import { toast } from "react-hot-toast";
+import Papa from "papaparse";
 
 const ManageEventRegisterByUser = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const eventIdFromUrl = queryParams.get("eventId");
+
+  // State
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState("all");
+  const [selectedEventId, setSelectedEventId] = useState(eventIdFromUrl || "all");
   const [registrationMode, setRegistrationMode] = useState("portal");
-  const [responseModalOpen, setResponseModalOpen] = useState(false);
-  const [currentResponseEvent, setCurrentResponseEvent] = useState(null);
-  const [temporaryResponseUrl, setTemporaryResponseUrl] = useState("");
+  const [googleData, setGoogleData] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
+  
+  // Modal for Google Sheet Link
+  const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [sheetUrlInput, setSheetUrlInput] = useState("");
 
   const {
     fetchClubRegistrations,
     fetchOrganizerEvents,
+    updateGoogleSheetLink,
     registrations,
     orgEvents,
     loading,
     error,
   } = useOrganizer();
 
-  const { updateEvent } = useEvents();
-
   useEffect(() => {
     fetchClubRegistrations();
     fetchOrganizerEvents();
   }, [fetchClubRegistrations, fetchOrganizerEvents]);
 
+  // Sync with URL param
   useEffect(() => {
-    if (error) {
-      toast.error(error);
+    if (eventIdFromUrl) {
+      setSelectedEventId(eventIdFromUrl);
     }
-  }, [error]);
+  }, [eventIdFromUrl]);
 
-  // Get unique events for filter dropdown
-  const uniqueEvents = [
-    ...new Set(
-      registrations
-        .filter((reg) => reg.event && reg.event._id)
-        .map((reg) => reg.event._id),
-    ),
-  ].map((eventId) => {
-    const reg = registrations.find((r) => r.event && r.event._id === eventId);
-    return { id: eventId, title: reg.event.title };
-  });
+  // Find currently selected event data
+  const activeEvent = useMemo(() => {
+    if (selectedEventId === "all") return null;
+    return orgEvents.find(e => e._id === selectedEventId);
+  }, [selectedEventId, orgEvents]);
 
-  // Filter registrations based on search and event filter
-  const filteredRegistrations = registrations.filter((reg) => {
-    // Skip registrations without valid event data
-    if (!reg.event || !reg.event._id) return false;
+  // Sync registration mode with event type
+  useEffect(() => {
+    if (activeEvent) {
+      setRegistrationMode(activeEvent.registrationType === "google_form" ? "google_form" : "portal");
+    } else {
+      setRegistrationMode("portal");
+    }
+  }, [activeEvent]);
 
-    const matchesSearch =
-      searchTerm === "" ||
-      reg.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.user.college.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      reg.event.title.toLowerCase().includes(searchTerm.toLowerCase());
+  // Fetch Google Sheet Data if active event has a link
+  useEffect(() => {
+    const fetchGoogleData = async () => {
+      if (registrationMode === "google_form" && activeEvent?.googleSheetResponseLink) {
+        setIsSyncing(true);
+        try {
+          Papa.parse(activeEvent.googleSheetResponseLink, {
+            download: true,
+            header: true,
+            complete: (results) => {
+              setGoogleData(results.data);
+              setIsSyncing(false);
+            },
+            error: (err) => {
+              toast.error("Failed to parse Google Sheet. Ensure it is 'Published to Web' as CSV.");
+              setIsSyncing(false);
+            }
+          });
+        } catch (err) {
+          setIsSyncing(false);
+        }
+      } else {
+        setGoogleData([]);
+      }
+    };
 
-    const matchesEvent =
-      selectedEvent === "all" || reg.event._id === selectedEvent;
+    fetchGoogleData();
+  }, [registrationMode, activeEvent]);
 
-    return matchesSearch && matchesEvent;
-  });
+  const handleSaveLink = async () => {
+    if (!sheetUrlInput.trim()) return toast.error("Please enter a valid URL");
+    
+    // Basic validation for Google Sheets link
+    if (!sheetUrlInput.includes("docs.google.com/spreadsheets")) {
+      return toast.error("Please provide a valid Google Sheets link");
+    }
 
-  // Get events using Google Forms
-  const googleFormEvents = orgEvents.filter(
-    (event) => event.registrationType === "google_form",
-  );
+    // Attempt to convert to CSV export if it's a regular link
+    let finalUrl = sheetUrlInput;
+    if (sheetUrlInput.includes("/edit")) {
+      finalUrl = sheetUrlInput.replace(/\/edit.*$/, "/export?format=csv");
+    }
 
-  const portalRegistrations = filteredRegistrations.filter(
-    (reg) => reg.event?.registrationType !== "google_form",
-  );
+    const res = await updateGoogleSheetLink(activeEvent._id, finalUrl);
+    if (res.success) {
+      toast.success("Google Sheet integration saved!");
+      setLinkModalOpen(false);
+      fetchOrganizerEvents(); // Refresh event data
+    } else {
+      toast.error(res.message);
+    }
+  };
+
+  // Filter Logic
+  const filteredPortalData = useMemo(() => {
+    return registrations.filter((reg) => {
+      if (!reg.event || !reg.event._id) return false;
+      const matchesEvent = selectedEventId === "all" || reg.event._id === selectedEventId;
+      const matchesSearch = searchTerm === "" || 
+        reg.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        reg.user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchesEvent && matchesSearch;
+    });
+  }, [registrations, selectedEventId, searchTerm]);
+
+  const filteredGoogleData = useMemo(() => {
+    if (!googleData.length) return [];
+    return googleData.filter(row => {
+      const values = Object.values(row).join(" ").toLowerCase();
+      return values.includes(searchTerm.toLowerCase());
+    });
+  }, [googleData, searchTerm]);
 
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+      month: "short", day: "numeric", year: "numeric"
     });
   };
 
-  const getGoogleFormResponseUrl = (urls) => {
-    if (!urls) return "";
-    const normalized = Array.isArray(urls) ? urls : [urls];
-    if (normalized[1] && normalized[1].trim()) return normalized[1].trim();
-    const formUrl = normalized[0];
-    if (!formUrl) return "";
-    const trimmed = formUrl.trim();
-    if (
-      trimmed.includes("edit#responses") ||
-      trimmed.includes("viewanalytics") ||
-      trimmed.includes("spreadsheets")
-    ) {
-      return trimmed;
-    }
-    const match = trimmed.match(/\/forms\/d\/([^\/]+)/);
-    if (match && match[1]) {
-      return `https://docs.google.com/forms/d/${match[1]}/edit#responses`;
-    }
-    return trimmed;
-  };
-
-  const openResponseModal = async (event) => {
-    const urls =
-      event.googleFormUrls ||
-      (event.googleFormUrl ? [event.googleFormUrl] : []);
-    if (urls[1] && urls[1].trim()) {
-      window.open(getGoogleFormResponseUrl(urls), "_blank");
-      return;
-    }
-    setCurrentResponseEvent(event);
-    setTemporaryResponseUrl("");
-    setResponseModalOpen(true);
-  };
-
-  const saveResponseUrl = async () => {
-    if (!temporaryResponseUrl.trim()) {
-      toast.error("Please enter the response sheet URL.");
-      return;
-    }
-
-    const event = currentResponseEvent;
-    if (!event) return;
-
-    const existingUrls =
-      event.googleFormUrls ||
-      (event.googleFormUrl ? [event.googleFormUrl] : [""]);
-    const updatedUrls = [existingUrls[0] || "", temporaryResponseUrl.trim()];
-
-    const result = await updateEvent({
-      id: event._id,
-      data: { googleFormUrls: updatedUrls },
-    });
-
-    if (result.success) {
-      toast.success("Response sheet URL saved successfully.");
-      setResponseModalOpen(false);
-      setCurrentResponseEvent(null);
-      setTemporaryResponseUrl("");
-      fetchOrganizerEvents();
-    } else {
-      toast.error(result.message || "Failed to save response URL.");
-    }
-  };
-
-  const exportToCSV = () => {
-    const csvData = filteredRegistrations.map((reg) => ({
-      "Event Title": reg.event?.title || "Unknown Event",
-      "Event Date": reg.event?.eventDate
-        ? formatDate(reg.event.eventDate)
-        : "N/A",
-      "Student Name": reg.user.name,
-      Email: reg.user.email,
-      Phone: reg.phone || "N/A",
-      College: reg.user.college || "N/A",
-      "Registration Date": formatDate(reg.createdAt),
-      Status: reg.status,
-    }));
-
-    const csvString = [
-      Object.keys(csvData[0]).join(","),
-      ...csvData.map((row) => Object.values(row).join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvString], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "event-registrations.csv";
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  if (loading) {
+  if (loading && !registrations.length) {
     return (
       <div className="min-h-screen flex bg-[#F8F9FD]">
         <ClubSidebar />
         <main className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-600"></div>
-        </main>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen flex bg-[#F8F9FD]">
-        <ClubSidebar />
-        <main className="flex-1 p-10 flex items-center justify-center">
-          <div className="bg-rose-50 border border-rose-200 rounded-3xl p-12 max-w-2xl text-center">
-            <div className="text-rose-500 mb-4 flex justify-center">
-              <Users size={48} />
-            </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">
-              Error Loading Registrations
-            </h3>
-            <p className="text-slate-600 font-bold mb-6">{error}</p>
-            <button
-              onClick={() => navigate("/club/dashboard")}
-              className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all"
-            >
-              Back to Dashboard
-            </button>
+          <div className="flex flex-col items-center gap-4">
+             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+             <p className="font-bold text-slate-400 animate-pulse text-xs uppercase tracking-widest">Loading Records...</p>
           </div>
         </main>
       </div>
@@ -228,366 +173,290 @@ const ManageEventRegisterByUser = () => {
     <div className="min-h-screen flex bg-[#F8F9FD]">
       <ClubSidebar />
 
-      <main className="flex-1 p-8 overflow-auto">
-        {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/club/dashboard")}
-            className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-bold"
-          >
-            <ChevronLeft size={20} /> Back to Dashboard
-          </button>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg"
-          >
-            <Download size={18} /> Export CSV
-          </button>
-        </div>
-
-        {/* Title and Stats */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-black text-slate-900 tracking-tight mb-4">
-            Event <span className="text-indigo-600">Registrations</span>
-          </h1>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center">
-                  <Users size={24} className="text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                    Total Registrations
-                  </p>
-                  <p className="text-2xl font-black text-slate-900">
-                    {registrations.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-100 rounded-2xl flex items-center justify-center">
-                  <Calendar size={24} className="text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                    Events with Registrations
-                  </p>
-                  <p className="text-2xl font-black text-slate-900">
-                    {uniqueEvents.length}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center">
-                  <UserCheck size={24} className="text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                    Confirmed
-                  </p>
-                  <p className="text-2xl font-black text-slate-900">
-                    {
-                      registrations.filter((r) => r.status === "Confirmed")
-                        .length
-                    }
-                  </p>
-                </div>
-              </div>
+      <main className="flex-1 p-6 lg:p-10 overflow-auto">
+        {/* Breadcrumb & Top Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate("/club/my-events")}
+              className="p-3 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-all shadow-sm"
+            >
+              <ChevronLeft size={20} className="text-slate-600" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                Participants <span className="text-indigo-600">Explorer</span>
+              </h1>
+              <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                {activeEvent ? `Event: ${activeEvent.title}` : "Managing all registrations"}
+              </p>
             </div>
           </div>
-        </div>
 
-        <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2 rounded-full bg-white border border-slate-200 p-1 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setRegistrationMode("portal")}
-              className={`rounded-full px-5 py-3 text-sm font-bold transition-all ${
-                registrationMode === "portal"
-                  ? "bg-indigo-600 text-white shadow"
-                  : "text-slate-600 hover:text-indigo-700"
-              }`}
-            >
-              Portal Registration
-            </button>
-            <button
-              type="button"
-              onClick={() => setRegistrationMode("google_form")}
-              className={`rounded-full px-5 py-3 text-sm font-bold transition-all ${
-                registrationMode === "google_form"
-                  ? "bg-blue-600 text-white shadow"
-                  : "text-slate-600 hover:text-blue-700"
-              }`}
-            >
-              Google Forms
-            </button>
-          </div>
           <div className="flex items-center gap-3">
-            <div className="rounded-3xl bg-white px-4 py-3 text-sm font-medium text-slate-500 border border-slate-200">
-              {registrationMode === "portal"
-                ? "Manage portal registrations"
-                : "Review external Google Form registrations"}
-            </div>
+             <button className="flex items-center gap-2 px-5 py-3 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-xs hover:bg-slate-50 transition-all shadow-sm">
+                <Download size={16} /> Export
+             </button>
+             {registrationMode === "google_form" && activeEvent?.googleSheetResponseLink && (
+               <button 
+                onClick={() => window.location.reload()}
+                className={`flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-2xl font-bold text-xs hover:bg-indigo-700 transition-all shadow-lg ${isSyncing ? 'animate-pulse' : ''}`}
+               >
+                  <RefreshCw size={16} className={isSyncing ? "animate-spin" : ""} /> Sync Live
+               </button>
+             )}
           </div>
         </div>
 
-        {registrationMode === "google_form" ? (
-          <div className="mb-8">
-            {googleFormEvents.length > 0 ? (
+        {/* Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[
+            { label: "Internal Users", val: filteredPortalData.length, icon: <Users size={20} />, color: "bg-indigo-500" },
+            { label: "External (Google)", val: googleData.length, icon: <Database size={20} />, color: "bg-blue-500" },
+            { label: "Today's Signups", val: "0", icon: <UserCheck size={20} />, color: "bg-emerald-500" },
+            { label: "Remaining Spots", val: activeEvent ? Math.max(0, activeEvent.participantCount - (filteredPortalData.length + googleData.length)) : "N/A", icon: <Calendar size={20} />, color: "bg-amber-500" }
+          ].map((stat, i) => (
+            <div key={i} className="bg-white/80 backdrop-blur-md border border-white rounded-[2rem] p-6 shadow-sm flex items-center gap-5">
+              <div className={`${stat.color} p-4 rounded-2xl text-white shadow-lg shadow-${stat.color.split('-')[1]}-200`}>
+                {stat.icon}
+              </div>
               <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight mb-4">
-                  Events Using{" "}
-                  <span className="text-blue-600">Google Forms</span>
-                </h2>
-                <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                      <ExternalLink size={24} className="text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-slate-900 mb-2">
-                        External Registration Notice
-                      </h3>
-                      <p className="text-slate-600 font-medium mb-4">
-                        The following events use Google Forms for registration.
-                        Registration data is managed externally and cannot be
-                        viewed or imported automatically in this system.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {googleFormEvents.map((event) => (
-                      <div
-                        key={event._id}
-                        className="bg-white p-4 rounded-2xl border border-blue-100 shadow-sm"
-                      >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1">
-                            <h4 className="font-bold text-slate-900 mb-1">
-                              {event.title}
-                            </h4>
-                            <p className="text-sm text-slate-500">
-                              {formatDate(event.eventDate)}
-                            </p>
-                          </div>
-                          <div className="flex gap-2">
-                            <a
-                              href={
-                                event.googleFormUrls?.[0] ||
-                                event.googleFormUrl ||
-                                "#"
-                              }
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-3 py-1 bg-blue-600 text-white text-sm rounded-xl font-bold hover:bg-blue-700 transition-colors"
-                            >
-                              View Form
-                            </a>
-                            <button
-                              type="button"
-                              onClick={() => openResponseModal(event)}
-                              className="px-3 py-1 bg-emerald-600 text-white text-sm rounded-xl font-bold hover:bg-emerald-700 transition-colors"
-                            >
-                              Responses
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-slate-600">
-                          Registration data is collected via Google Forms. Check
-                          the responses link to view registered participants.
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">{stat.label}</p>
+                <p className="text-2xl font-black text-slate-900">{stat.val}</p>
               </div>
-            ) : (
-              <div className="bg-white border border-dashed border-slate-200 rounded-3xl p-12 text-center">
-                <p className="text-slate-600 font-medium">
-                  No Google Forms events are currently configured for your club.
-                </p>
-              </div>
-            )}
+            </div>
+          ))}
+        </div>
+
+        {/* Controls */}
+        <div className="bg-white border border-slate-100 rounded-[2.5rem] p-4 mb-8 shadow-sm flex flex-col lg:flex-row items-center gap-4">
+          <div className="flex-1 relative w-full">
+            <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search by name, email, or keywords..."
+              className="w-full bg-slate-50 border-none rounded-[1.8rem] py-4 pl-16 pr-6 focus:ring-2 focus:ring-indigo-100 font-bold text-slate-700"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-3 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+            {/* Automatic View Status Badge */}
+            <div className="rounded-2xl bg-white border border-slate-100 flex items-center gap-3 px-6 py-3 shadow-sm">
+               <div className={`w-2 h-2 rounded-full ${registrationMode === "portal" ? "bg-indigo-500 animate-pulse" : "bg-blue-500 animate-bounce"}`}></div>
+               <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                  {registrationMode === "portal" ? "Portal Database" : "Live Google Integration"}
+               </p>
+            </div>
+
+            <div className="h-8 w-[1px] bg-slate-200 hidden lg:block mx-2"></div>
+
+            <select 
+              className="bg-slate-100 border-none rounded-2xl px-6 py-3 text-xs font-black text-slate-700 appearance-none focus:ring-2 focus:ring-indigo-100"
+              value={selectedEventId}
+              onChange={(e) => navigate(`/club/registrations?eventId=${e.target.value}`)}
+            >
+              <option value="all">All Events</option>
+              {orgEvents.map(e => (
+                <option key={e._id} value={e._id}>{e.title}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        {registrationMode === "google_form" && !activeEvent?.googleSheetResponseLink && selectedEventId !== "all" ? (
+          /* Empty State - Setup Link */
+          <div className="bg-white border border-dashed border-slate-200 rounded-[3.5rem] p-20 text-center">
+            <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-8 border border-blue-100">
+              <Database size={40} className="text-blue-500" />
+            </div>
+            <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Connect Google Sheet</h2>
+            <p className="text-slate-500 font-bold max-w-md mx-auto mb-10 leading-relaxed uppercase text-[10px] tracking-widest">
+              You haven't linked a Google Sheet for this event. Link your response sheet to see external registrations live!
+            </p>
+            <button 
+              onClick={() => setLinkModalOpen(true)}
+              className="bg-slate-900 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-widest text-[10px] shadow-2xl hover:bg-blue-600 transition-all active:scale-95 flex items-center justify-center gap-3 mx-auto"
+            >
+               <PlusCircle size={18} /> Link Sheet Now
+            </button>
           </div>
         ) : (
-          <>
-            <div className="mb-8 flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  size={20}
-                />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, college, or event..."
-                  className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none font-medium"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <select
-                className="px-6 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-300 outline-none font-medium"
-                value={selectedEvent}
-                onChange={(e) => setSelectedEvent(e.target.value)}
-              >
-                <option value="all">All Events</option>
-                {uniqueEvents.map((event) => (
-                  <option key={event.id} value={event.id}>
-                    {event.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {portalRegistrations.length > 0 ? (
-              <div className="space-y-4">
-                {portalRegistrations.map((registration) => (
-                  <div
-                    key={registration._id}
-                    className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all"
-                  >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                      <div className="flex items-start gap-4 flex-1">
-                        <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center flex-shrink-0">
-                          <span className="text-indigo-600 font-black text-lg">
-                            {registration.user.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-black text-slate-900 mb-1">
-                            {registration.user.name}
-                          </h3>
-                          <div className="space-y-1 text-sm text-slate-600">
-                            <div className="flex items-center gap-2">
-                              <Mail size={14} />
-                              <span>{registration.user.email}</span>
-                            </div>
-                            {registration.phone && (
-                              <div className="flex items-center gap-2">
-                                <Phone size={14} />
-                                <span>{registration.phone}</span>
+          /* Table Area */
+          <div className="bg-white border border-slate-100 rounded-[2.5rem] overflow-hidden shadow-sm">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Participant</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Contact</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">{registrationMode === "portal" ? "Event" : "Work / College"}</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Verified</th>
+                    <th className="px-8 py-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {registrationMode === "portal" ? (
+                    // Portal Rows
+                    filteredPortalData.map((reg) => (
+                      <tr key={reg._id} className="hover:bg-slate-50/80 transition-all group">
+                        <td className="px-8 py-6">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                {reg.user.name.charAt(0)}
                               </div>
-                            )}
-                            {(registration.user.college ||
-                              registration.college) && (
-                              <div className="flex items-center gap-2">
-                                <Building2 size={14} />
-                                <span>
-                                  {registration.user.college ||
-                                    registration.college}
-                                </span>
+                              <div>
+                                <p className="font-black text-slate-900 text-sm tracking-tight">{reg.user.name}</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">UID: {reg._id.slice(-6)}</p>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="flex-1">
-                        <div className="bg-slate-50 rounded-2xl p-4">
-                          <h4 className="font-bold text-slate-900 mb-2">
-                            {registration.event?.title || "Unknown Event"}
-                          </h4>
-                          <div className="flex items-center gap-4 text-sm text-slate-600">
-                            <div className="flex items-center gap-1">
-                              <Calendar size={14} />
-                              <span>
-                                {registration.event?.eventDate
-                                  ? formatDate(registration.event.eventDate)
-                                  : "N/A"}
-                              </span>
+                           </div>
+                        </td>
+                        <td className="px-8 py-6">
+                           <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-slate-600 font-bold text-xs">
+                                <Mail size={12} className="text-indigo-400" /> {reg.user.email}
+                              </div>
+                              <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px]">
+                                <Phone size={12} className="text-slate-300" /> {reg.phone || "No Contact"}
+                              </div>
+                           </div>
+                        </td>
+                        <td className="px-8 py-6">
+                           <p className="font-bold text-slate-800 text-xs w-48 truncate">{reg.event?.title}</p>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase">{formatDate(reg.createdAt)}</p>
+                        </td>
+                        <td className="px-8 py-6">
+                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${reg.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+                              {reg.status}
+                           </span>
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                           <button className="p-2 border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm group-hover:border-slate-300">
+                              <ArrowRight size={16} />
+                           </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    // Google Rows
+                    filteredGoogleData.map((row, i) => (
+                      <tr key={i} className="hover:bg-blue-50/50 transition-all group">
+                         <td className="px-8 py-6">
+                            <div className="flex items-center gap-4">
+                               <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 font-black border border-blue-100">
+                                 {Object.values(row)[0]?.toString().charAt(0) || "G"}
+                               </div>
+                               <div>
+                                 <p className="font-black text-slate-900 text-sm tracking-tight">{Object.values(row).find(v => v?.toString().includes("@")) ? Object.values(row)[0] : "Google User"}</p>
+                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">EXTERNAL ENTRY</p>
+                               </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <MapPin size={14} />
-                              <span>
-                                {registration.event?.district || "N/A"}
-                              </span>
+                         </td>
+                         <td className="px-8 py-6">
+                            <div className="space-y-1">
+                               <div className="flex items-center gap-2 text-slate-600 font-bold text-xs">
+                                 <Mail size={12} className="text-blue-400" /> {Object.values(row).find(v => v?.toString().includes("@")) || "N/A"}
+                               </div>
                             </div>
+                         </td>
+                         <td className="px-8 py-6">
+                             <p className="font-bold text-slate-800 text-xs truncate max-w-[200px]">{Object.values(row).slice(2).join(", ").slice(0, 40)}...</p>
+                         </td>
+                         <td className="px-8 py-6 text-center">
+                            <div className="flex justify-center">
+                               <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                            </div>
+                         </td>
+                         <td className="px-8 py-6 text-right">
+                            <button className="text-[10px] font-black uppercase text-blue-500 tracking-widest hover:underline">
+                               View Meta
+                            </button>
+                         </td>
+                      </tr>
+                    ))
+                  )}
+
+                  {((registrationMode === "portal" && !filteredPortalData.length) || (registrationMode === "google_form" && !filteredGoogleData.length)) && (
+                    <tr>
+                       <td colSpan="5" className="px-8 py-20 text-center">
+                          <div className="flex flex-col items-center gap-3">
+                             <Filter size={32} className="text-slate-200" />
+                             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No matching records found for this view</p>
                           </div>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col items-end gap-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${
-                            registration.status === "Confirmed"
-                              ? "bg-emerald-100 text-emerald-700"
-                              : registration.status === "Pending"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-slate-100 text-slate-700"
-                          }`}
-                        >
-                          {registration.status}
-                        </span>
-                        <div className="text-xs text-slate-500 font-medium">
-                          Registered: {formatDate(registration.createdAt)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white border-2 border-dashed border-slate-200 rounded-3xl p-16 text-center">
-                <div className="w-16 h-16 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Users size={32} className="text-slate-400" />
-                </div>
-                <h3 className="text-xl font-black text-slate-900 mb-2">
-                  No Registrations Found
-                </h3>
-                <p className="text-slate-600 font-medium">
-                  {searchTerm || selectedEvent !== "all"
-                    ? "Try adjusting your search or filter criteria"
-                    : "No students have registered for your events yet"}
-                </p>
-              </div>
-            )}
-          </>
-        )}
-
-        {responseModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 py-8">
-            <div className="w-full max-w-lg rounded-3xl bg-white p-8 shadow-2xl">
-              <h2 className="text-xl font-black text-slate-900 mb-4">
-                Enter the Response Google Sheet
-              </h2>
-              <p className="text-sm text-slate-600 mb-6">
-                Add the response sheet URL for this event. This is only required
-                the first time the response button is clicked.
-              </p>
-              <input
-                type="url"
-                value={temporaryResponseUrl}
-                onChange={(e) => setTemporaryResponseUrl(e.target.value)}
-                placeholder="https://docs.google.com/spreadsheets/..."
-                className="w-full bg-slate-50 border border-slate-200 rounded-3xl py-4 px-5 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-indigo-100 outline-none"
-              />
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setResponseModalOpen(false)}
-                  className="w-full sm:w-auto px-6 py-3 border border-slate-300 rounded-2xl font-bold text-slate-700 hover:bg-slate-100 transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={saveResponseUrl}
-                  className="w-full sm:w-auto px-6 py-3 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all"
-                >
-                  Confirm
-                </button>
-              </div>
+                       </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
       </main>
+
+      {/* MODAL - LINK GOOGLE SHEET */}
+      {linkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-4">
+          <div className="w-full max-w-xl bg-white rounded-[3rem] p-10 shadow-3xl animate-in zoom-in duration-300">
+             <div className="flex items-start justify-between mb-8">
+                <div>
+                   <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-6 border border-indigo-100">
+                      <ExternalLink size={24} />
+                   </div>
+                   <h2 className="text-3xl font-black text-slate-900 tracking-tight">Setup Integration</h2>
+                </div>
+                <button onClick={() => setLinkModalOpen(false)} className="text-slate-400 hover:text-rose-500 transition-colors">
+                  <PlusCircle className="rotate-45" size={24} />
+                </button>
+             </div>
+
+             <div className="space-y-6">
+                <div>
+                   <label className="block text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Google Sheet URL</label>
+                   <input 
+                    type="url" 
+                    placeholder="https://docs.google.com/spreadsheets/d/..."
+                    className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-5 px-6 text-slate-900 font-bold focus:ring-4 focus:ring-indigo-50 transition-all outline-none"
+                    value={sheetUrlInput}
+                    onChange={(e) => setSheetUrlInput(e.target.value)}
+                   />
+                </div>
+
+                <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
+                   <h4 className="flex items-center gap-2 text-indigo-900 font-black uppercase text-[10px] tracking-widest mb-2">
+                     <AlertCircle size={14} /> Quick Pro-Tip
+                   </h4>
+                   <p className="text-[11px] font-bold text-indigo-700/70 leading-relaxed">
+                     Paste your standard Google Sheets link. We'll automatically attempt to extract the live CSV feed. Ensure your sheet is set to <span className="underline font-black">"Anyone with the link can view."</span>
+                   </p>
+                </div>
+             </div>
+
+             <button 
+              onClick={handleSaveLink}
+              className="w-full bg-slate-900 text-white rounded-[1.8rem] py-5 mt-10 font-black uppercase tracking-widest text-[10px] shadow-2xl hover:bg-emerald-600 transition-all active:scale-95 flex items-center justify-center gap-3"
+             >
+                Save Integration <ArrowRight size={14} />
+             </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+
+// Add icons used but not imported
+const PlusCircle = ({ className, size }) => (
+  <svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+  </svg>
+);
+
+const AlertCircle = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+  </svg>
+);
 
 export default ManageEventRegisterByUser;
