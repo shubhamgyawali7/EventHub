@@ -323,7 +323,7 @@ const EventDetails = () => {
                         <div
                           className={`h-full transition-all duration-1000 rounded-full ${
                             occupancyPercent > 90
-                              ? "bg-red-500"
+                              ? "bg-rose-500"
                               : occupancyPercent > 70
                                 ? "bg-orange-500"
                                 : "bg-indigo-600"
@@ -350,49 +350,61 @@ const EventDetails = () => {
                       </div>
                     )}
 
-                    <button
-                      className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 transition-all text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() => {
-                        if (
-                          event.registrationType === "google_form" &&
-                          event.googleFormUrls?.[0]
-                        ) {
-                          window.open(event.googleFormUrls[0], "_blank");
-                        } else {
-                          navigate(`/register-for-event/${event._id}`);
-                        }
-                      }}
-                      disabled={
-                        availableSeats <= 0 &&
-                        event.registrationType === "system"
-                      }
-                    >
-                      {event.registrationType === "google_form"
-                        ? "Register via Google Form"
-                        : availableSeats > 0
-                          ? "Book My Spot Now"
-                          : "Event Full"}
-                    </button>
+                    {/* Registration Fee & Action Section */}
+                    <div className="pt-8 border-t border-slate-50 space-y-12">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registration Fee</span>
+                        <div className="bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100 flex items-center justify-center min-w-[120px]">
+                           <span className="text-sm font-black text-indigo-600 uppercase tracking-widest">
+                             {event.isPaid && event.price > 0 ? `Rs. ${event.price}` : "Free"}
+                           </span>
+                        </div>
+                      </div>
 
-                    <div className="flex justify-center gap-4">
                       <button
-                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(
-                            window.location.href,
-                          );
-                          toast.success("Event link copied to clipboard!");
+                        className="w-full py-6 bg-linear-to-r from-indigo-600 to-purple-700 text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-indigo-200 hover:scale-[1.02] transition-all duration-500 active:scale-95 disabled:opacity-50"
+                        onClick={() => {
+                          if (
+                            event.registrationType === "google_form" &&
+                            event.googleFormUrls?.[0]
+                          ) {
+                            window.open(event.googleFormUrls[0], "_blank");
+                          } else {
+                            navigate(`/register-for-event/${event._id}`);
+                          }
                         }}
+                        disabled={
+                          availableSeats <= 0 &&
+                          event.registrationType === "system"
+                        }
                       >
-                        <Share2 size={16} /> Share Event
+                        {event.registrationType === "google_form"
+                          ? "Register via Link"
+                          : availableSeats > 0
+                            ? "Book My Seat Now"
+                            : "Event Full"}
                       </button>
 
-                      <button
-                        className="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors"
-                        onClick={() => setShowQrModal(true)}
-                      >
-                        <QrCode size={16} /> QR Code
-                      </button>
+                      <div className="flex justify-center gap-10 pt-2">
+                        <button
+                          className="flex items-center gap-2.5 text-[9px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-[0.15em]"
+                          onClick={() => setShowQrModal(true)}
+                        >
+                          <QrCode size={16} /> QR Info
+                        </button>
+
+                        <button
+                          className="flex items-center gap-2.5 text-[9px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-[0.15em]"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(
+                              window.location.href,
+                            );
+                            toast.success("Copied!");
+                          }}
+                        >
+                          <Share2 size={16} /> Share
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -437,124 +449,66 @@ const EventDetails = () => {
                 )}
 
                 {event.organizer && (
-                  <div className="bg-indigo-600 rounded-3xl p-8 shadow-xl text-white">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] mb-6 opacity-80">
-                      Organized By
-                    </h3>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-sm border border-white/20">
-                        <Building2 size={32} />
+                  <div className="bg-indigo-600 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-200 overflow-hidden relative group mt-8 text-white">
+                    <div className="relative z-10">
+                      <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-10">Organized By</p>
+                      
+                      <div className="flex items-start gap-6 mb-8">
+                         <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+                            <Building2 size={32} />
+                         </div>
+                         <div className="flex-1">
+                            <h4 className="text-xl font-black text-white tracking-tighter mb-2">
+                              {event.organizer.name}
+                            </h4>
+                            <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                              <CheckCircle2 size={12} /> Verified Legacy
+                            </div>
+                         </div>
                       </div>
-                      <div>
-                        <h4 className="text-xl font-extrabold leading-tight mb-1">
-                          {event.organizer.name || "Event Organizer"}
-                        </h4>
-                        <div className="flex items-center gap-1 text-xs font-bold text-white/70 uppercase tracking-wider">
-                          <CheckCircle2 size={12} className="text-green-400" />{" "}
-                          Verified Club
-                        </div>
-                      </div>
-                    </div>
-                    {event.organizer.email && (
-                      <div className="space-y-3 pt-4 border-t border-white/10">
-                        <div className="flex items-center gap-3 text-sm">
-                          <Mail size={16} className="opacity-60" />
-                          <span>{event.organizer.email}</span>
-                        </div>
-                      </div>
-                    )}
 
-                    {event.organizer.website && (
-                      <div className="flex items-center gap-3 text-sm mt-3">
-                        <Globe size={16} className="opacity-60" />
-                        <a
-                          href={event.organizer.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="underline hover:text-white"
-                        >
-                          {event.organizer.website}
-                        </a>
-                      </div>
-                    )}
+                      <div className="w-full h-px bg-white/10 mb-8" />
 
-                    <div className="space-y-2 mt-4">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
-                        Connect with organizer
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          {
-                            key: "facebook",
-                            label: "Facebook",
-                            icon: Facebook,
-                            url: event.organizer.facebook,
-                          },
-                          {
-                            key: "instagram",
-                            label: "Instagram",
-                            icon: Instagram,
-                            url: event.organizer.instagram,
-                          },
-                          {
-                            key: "twitter",
-                            label: "Twitter",
-                            icon: Twitter,
-                            url: event.organizer.twitter,
-                          },
-                          {
-                            key: "github",
-                            label: "GitHub",
-                            icon: Github,
-                            url: event.organizer.github,
-                          },
-                          {
-                            key: "linkedin",
-                            label: "LinkedIn",
-                            icon: Linkedin,
-                            url: event.organizer.linkedin,
-                          },
-                          {
-                            key: "youtube",
-                            label: "YouTube",
-                            icon: Youtube,
-                            url: event.organizer.youtube,
-                          },
-                        ]
-                          .filter((platform) => Boolean(platform.url))
-                          .map((platform) => {
-                            const Icon = platform.icon;
-                            return (
-                              <a
-                                key={platform.key}
-                                href={platform.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold"
-                              >
-                                <Icon size={14} /> {platform.label}
-                              </a>
-                            );
-                          })}
-                      </div>
+                      <div className="space-y-4 mb-8">
+                         {event.organizer.email && (
+                           <div className="flex items-center gap-4 text-sm font-bold text-white/80">
+                              <Mail size={18} className="text-white/40" />
+                              <span>{event.organizer.email}</span>
+                           </div>
+                         )}
+                         {event.organizer.website && (
+                           <div className="flex items-center gap-4 text-sm font-bold text-white/80">
+                              <Globe size={18} className="text-white/40" />
+                              <a href={event.organizer.website} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">{event.organizer.website}</a>
+                         </div>
+                       )}
                     </div>
 
-                    <button
-                      className="w-full mt-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 whitespace-nowrap rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2"
-                      onClick={() => {
-                        if (event.organizer.website) {
-                          window.open(
-                            event.organizer.website,
-                            "_blank",
-                            "noopener,noreferrer",
-                          );
-                        } else {
-                          navigate(`/organizer/${event.organizer._id}`);
-                        }
-                      }}
+                    {/* Socials Link Icons */}
+                    <div className="flex flex-wrap gap-2 pt-4">
+                       {[
+                        { icon: Facebook, url: event.organizer.facebook },
+                        { icon: Instagram, url: event.organizer.instagram },
+                        { icon: Twitter, url: event.organizer.twitter },
+                        { icon: Github, url: event.organizer.github },
+                        { icon: Linkedin, url: event.organizer.linkedin }
+                       ].filter(s => s.url).map((social, i) => {
+                         const Icon = social.icon;
+                         return (
+                           <a key={i} href={social.url} target="_blank" rel="noreferrer" className="w-11 h-11 bg-white/10 hover:bg-white text-white hover:text-indigo-600 rounded-xl flex items-center justify-center transition-all duration-300 border border-white/5">
+                              <Icon size={18} />
+                           </a>
+                         );
+                       })}
+                    </div>
+
+                    <button 
+                      onClick={() => navigate(`/organizer/${event.organizer._id}`)}
+                      className="w-full mt-10 py-5 bg-white/10 hover:bg-white text-white hover:text-indigo-600 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2"
                     >
                       Visit Profile <ExternalLink size={14} />
                     </button>
+                    </div>
                   </div>
                 )}
               </div>

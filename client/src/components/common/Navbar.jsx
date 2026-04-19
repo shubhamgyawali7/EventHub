@@ -232,8 +232,8 @@ const Navbar = () => {
                       <User size={16} /> Profile Settings
                     </Link>
 
-                    {/* Show club registration link in dropdown if not registered */}
-                    {!user.club && !isAdmin && (
+                    {/* Show club registration link in dropdown if not registered and not a student */}
+                    {!user.club && !isAdmin && !isStudent && (
                       <Link
                         to="/club/register"
                         onClick={() => setOpen(false)}
@@ -332,7 +332,7 @@ const Navbar = () => {
                   <span>{getDashboardText()}</span>
                 </Link>
 
-                {!user.club && !isAdmin && (
+                {!user.club && !isAdmin && !isStudent && (
                   <Link
                     to="/club/register"
                     onClick={() => setMobileMenuOpen(false)}
