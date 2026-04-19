@@ -7,14 +7,26 @@ const clubService = {
    */
   registerClub: async (clubData) => {
     try {
-      console.log("Club sending Data to backend =", clubData);
-      const response = await api.post("/api/clubs/register", clubData);
-      console.log("Club came Data =", response.data);
+      console.log("🔌 [SERVICE] registerClub called");
+      console.log("📤 [SERVICE] POST /api/clubs/register - sending FormData");
+      const response = await api.post("/api/clubs/register", clubData, {
+        headers: {
+          "Content-Type": "multipart/form-data", // Often optional, but good to be explicit
+        },
+      });
+      console.log("✅ [SERVICE] Response status:", response.status);
+      console.log("✅ [SERVICE] Response data:", response.data);
       return response.data;
     } catch (error) {
-      console.error("Registration error:", error);
+      console.error("❌ [SERVICE] API Error:");
+      console.error("❌ Status:", error.response?.status);
+      console.error("❌ Data:", error.response?.data);
+      console.error("❌ Message:", error.message);
       throw new Error(
-        error.response?.data?.error || "Organizational registration failed",
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Event deployment failure",
       );
     }
   },

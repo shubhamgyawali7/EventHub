@@ -1,33 +1,28 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import {
   Calendar,
   MapPin,
-  Search,
-  Layers,
   Clock,
-  Activity,
-  UserCircle,
-  TrendingUp,
   ArrowRight,
-  BookmarkCheck,
   Zap,
-  Star,
+  Award,
+  Download,
+  BookmarkCheck,
+  TrendingUp,
 } from "lucide-react";
 import useEvents from "../../hooks/useEvents";
 import useAuth from "../../hooks/useAuth";
 import usePayment from "../../hooks/usePayment";
-import Navbar from "../../components/common/Navbar";
-import Footer from "../../components/common/Footer";
+import { getImageUrl } from "../../utils/imageUrl";
 
-const StudentDashboard = () => {
+const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading: authLoading } = useAuth();
+  const { user } = useAuth();
   const { events, fetchEvents, fetchMyRegistrations, myRegistrations, loading: eventsLoading } = useEvents();
   const { verifyKhalti } = usePayment();
-
 
   const normalizePoster = (poster) => {
     if (!poster) return null;
@@ -40,275 +35,302 @@ const StudentDashboard = () => {
     fetchEvents();
     fetchMyRegistrations();
 
-    // Khalti Payment Verification Logic
     const query = new URLSearchParams(location.search);
     const pidx = query.get("pidx");
     const status = query.get("status");
 
     if (pidx && status === "Completed") {
       verifyPayment(pidx);
-    } else if (status === "User canceled") {
-       toast.error("Payment was canceled by the user.");
-       // Clean up URL
-       navigate(location.pathname, { replace: true });
     }
-  }, [fetchEvents, location.search]);
+  }, []);
 
   const verifyPayment = async (pidx) => {
     try {
       const paymentRes = await verifyKhalti(pidx);
-      
-      if (paymentRes.success && (paymentRes.data.success || paymentRes.data.status === "Completed")) {
-        toast.success(paymentRes.data.message || "Payment verified successfully!");
+      if (paymentRes.success) {
+        toast.success("Payment verified!");
         fetchEvents();
         fetchMyRegistrations(); 
-      } else {
-        toast.error(paymentRes.data?.message || "Payment verification failed.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("An error occurred during payment verification.");
     } finally {
-      // Clean up URL
       navigate(location.pathname, { replace: true });
     }
   };
 
+  // Logic for Next Event
+  const nextEvent = useMemo(() => {
+    if (!myRegistrations) return null;
+    const upcoming = myRegistrations
+      .filter(r => new Date(r.event?.eventDate) > new Date())
+      .sort((a, b) => new Date(a.event?.eventDate) - new Date(b.event?.eventDate));
+    return upcoming[0]?.event;
+  }, [myRegistrations]);
 
+  // Upcoming registrations
+  const upcomingRegistrations = useMemo(() => {
+    if (!myRegistrations) return [];
+    return myRegistrations
+      .filter(r => new Date(r.event?.eventDate) > new Date())
+      .sort((a, b) => new Date(a.event?.eventDate) - new Date(b.event?.eventDate));
+  }, [myRegistrations]);
 
-  if (authLoading)
+  // Past registrations
+  const pastRegistrations = useMemo(() => {
+    if (!myRegistrations) return [];
+    return myRegistrations
+      .filter(r => new Date(r.event?.eventDate) <= new Date())
+      .sort((a, b) => new Date(b.event?.eventDate) - new Date(a.event?.eventDate));
+  }, [myRegistrations]);
+
+  // Countdown Logic
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0 });
+
+  useEffect(() => {
+    if (!nextEvent) return;
+    
+    const calculateTime = () => {
+      const now = new Date().getTime();
+      const eventDate = new Date(nextEvent.eventDate).getTime();
+      const distance = eventDate - now;
+
+      if (distance < 0) return { days: 0, hours: 0, mins: 0 };
+
+      return {
+        days: Math.floor(distance / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+        mins: Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+      };
+    };
+
+    setTimeLeft(calculateTime());
+    const timer = setInterval(() => setTimeLeft(calculateTime()), 60000);
+    return () => clearInterval(timer);
+  }, [nextEvent]);
+
+  // Stats
+  const stats = [
+    { label: "Total Registrations", value: myRegistrations?.length || 0, icon: BookmarkCheck, color: "indigo" },
+    { label: "Upcoming Events", value: upcomingRegistrations.length, icon: Calendar, color: "emerald" },
+    { label: "Attended Events", value: pastRegistrations.length, icon: Award, color: "amber" },
+  ];
+
+  if (eventsLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-indigo-500" />
       </div>
     );
+  }
 
   return (
-    <div className="min-h-screen bg-[#FDFDFF] flex flex-col pt-32 pb-20">
-      <Navbar />
-
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6">
-        {/* Dashboard Header */}
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100 mb-2">
-              <TrendingUp size={12} /> Live Network Profile
+    <div className="space-y-12 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {stats.map((stat, i) => (
+          <div key={i} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group flex items-center gap-6">
+            <div className={`w-14 h-14 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 group-hover:scale-110 transition-transform`}>
+              <stat.icon size={24} />
             </div>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tighter flex items-center gap-4">
-              {user?.profilePicture && (
-                <img
-                  src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
-                  alt="Profile"
-                  className="w-14 h-14 rounded-full shadow-md object-cover border-4 border-indigo-100"
-                  onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.style.display = 'none';
-                  }}
-                />
-              )}
-              <span>
-                Welcome,{" "}
-                <span className="text-indigo-600 italic font-medium">
-                  {user?.name}
-                </span>
-              </span>
-            </h1>
-            <p className="text-slate-500 font-bold uppercase text-[10px] tracking-widest mt-2 flex items-center gap-2">
-              <Activity size={12} className="text-emerald-500" /> Active Session
-              - Grade-A Encryption
-            </p>
+            <div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
+              <h4 className="text-3xl font-black text-slate-800 tracking-tighter">{stat.value}</h4>
+            </div>
           </div>
-          <div className="flex gap-4">
-            <Link
-              to="/events"
-              className="bg-indigo-600 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl shadow-indigo-100 hover:bg-slate-900 transition-all active:scale-95 flex items-center gap-3"
-            >
-              <Search size={16} /> Explore Nodes
-            </Link>
-          </div>
-        </header>
+        ))}
+      </div>
 
-        {/* Quick Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16">
-          {[
-            {
-              label: "Enrollments",
-              value: myRegistrations.length,
-              icon: BookmarkCheck,
-              color: "indigo",
-            },
-            { label: "XP Points", value: "450", icon: Zap, color: "emerald" },
-            { label: "Network Rank", value: "#12", icon: Star, color: "amber" },
-            {
-              label: "Participation",
-              value: "92%",
-              icon: Activity,
-              color: "rose",
-            },
-          ].map((stat, i) => (
-            <div
-              key={i}
-              className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all group"
-            >
-              <div
-                className={`w-12 h-12 rounded-2xl bg-${stat.color}-50 flex items-center justify-center text-${stat.color}-600 mb-6 group-hover:scale-110 transition-transform`}
-              >
-                <stat.icon size={22} />
-              </div>
-              <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                  {stat.label}
-                </p>
-                <h4 className="text-3xl font-black text-slate-800">
-                  {stat.value}
-                </h4>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-12">
-          {/* Recent Engagements */}
-          <div className="lg:col-span-2 space-y-8">
-            <div className="flex items-center justify-between px-2">
-              <h3 className="text-xl font-black text-slate-800 tracking-tight">
-                Recent{" "}
-                <span className="text-indigo-600 italic">Engagements</span>
-              </h3>
-              <Link
-                to="/registered-events"
-                className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors"
-              >
-                View All Registrations →
-              </Link>
-            </div>
-
-            {myRegistrations.length > 0 ? (
-              <div className="space-y-6">
-                {myRegistrations.slice(0, 3).map((reg, i) => (
-                  <div
-                    key={i}
-                    className="bg-white p-6 rounded-[2.5rem] border border-slate-100 hover:border-indigo-100 shadow-sm hover:shadow-md transition-all flex items-center gap-6 group"
-                  >
-                    <div className="w-20 h-24 bg-slate-50 rounded-3xl overflow-hidden shadow-inner shrink-0 group-hover:scale-105 transition-transform">
-                      {reg.event?.poster ? (
-                        <img
-                          src={normalizePoster(reg.event.poster)}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-200">
-                          <Layers size={24} />
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-10">
+        
+        {/* Next Event Countdown Banner */}
+        <div className="xl:col-span-8 group relative overflow-hidden bg-linear-to-br from-indigo-600 to-indigo-800 rounded-[3rem] p-10 shadow-2xl shadow-indigo-100 min-h-[350px] flex flex-col justify-between">
+           <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 translate-x-12" />
+           
+           <div className="relative z-10 space-y-8">
+             <div className="space-y-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">Target Event Arrival</p>
+                {nextEvent ? (
+                    <div className="flex items-center gap-8">
+                        <div className="text-center">
+                            <h2 className="text-6xl font-black text-white tracking-tighter tabular-nums">{String(timeLeft.days).padStart(2, '0')}</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mt-1">Days</p>
                         </div>
-                      )}
+                        <div className="text-white/20 text-4xl font-light mb-6">:</div>
+                        <div className="text-center">
+                            <h2 className="text-6xl font-black text-white tracking-tighter tabular-nums">{String(timeLeft.hours).padStart(2, '0')}</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mt-1">Hours</p>
+                        </div>
+                        <div className="text-white/20 text-4xl font-light mb-6">:</div>
+                        <div className="text-center">
+                            <h2 className="text-6xl font-black text-white tracking-tighter tabular-nums">{String(timeLeft.mins).padStart(2, '0')}</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mt-1">Mins</p>
+                        </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md border ${
-                          reg.status === "Confirmed" 
-                            ? "bg-emerald-50 text-emerald-600 border-emerald-100" 
-                            : "bg-amber-50 text-amber-600 border-amber-100 animate-pulse"
-                        }`}>
-                          {reg.status}
-                        </span>
-                        <span className="text-slate-400 text-[9px] font-bold tracking-tight">
-                          <Clock size={10} className="inline mr-1" />{" "}
-                          {new Date(reg.event?.eventDate).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h5 className="font-black text-slate-800 group-hover:text-indigo-600 transition-colors line-clamp-1">
-                        {reg.event?.title}
-                      </h5>
-                      <p className="text-[10px] text-slate-500 font-bold mt-1 tracking-tighter italic">
-                        <MapPin
-                          size={10}
-                          className="inline mr-1 text-slate-400"
-                        />{" "}
-                        {reg.event?.venue || reg.event?.district}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() =>
-                        navigate(`/event/${reg.event?._id}`)
-                      }
-                      className="p-4 rounded-2xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all hover:scale-110 active:scale-90"
-                    >
-                      <ArrowRight size={18} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white border border-slate-100 rounded-[3rem] p-24 text-center shadow-sm">
-                <div className="w-20 h-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mx-auto mb-8">
-                  <Layers size={40} />
-                </div>
-                <h4 className="text-xl font-black text-slate-800 mb-2">
-                  No Active Enrollments
-                </h4>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 max-w-xs mx-auto mb-10 leading-relaxed italic border-t border-slate-50 pt-4 mt-4">
-                  Explore the network to find nodes that match your profile.
-                </p>
-                <Link
-                  to="/events"
-                  className="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-3xl font-black uppercase tracking-widest text-[10px] shadow-2xl hover:bg-indigo-600 transition-all"
-                >
-                  Initiate Search <Search size={16} />
-                </Link>
-              </div>
-            )}
-          </div>
+                ) : (
+                    <h2 className="text-3xl font-black text-white/60 tracking-tighter italic">No Active Nodes In Range</h2>
+                )}
+             </div>
 
-          {/* LHS Recommendations */}
-          <div className="space-y-10">
-            <div className="bg-indigo-600 rounded-[3.5rem] p-10 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500 rounded-bl-full -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-700"></div>
-              <div className="relative z-10 space-y-8">
-                <div className="space-y-2">
-                  <h4 className="text-2xl font-black tracking-tight leading-none uppercase">
-                    Level Up Your Journey
-                  </h4>
-                  <p className="text-indigo-100 text-xs font-bold leading-relaxed opacity-80 uppercase pt-2">
-                    Complete more engagements to unlock exclusive rewards.
-                  </p>
-                </div>
-                <button className="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-900 hover:text-white transition-all shadow-xl">
-                  Browse Challenges
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white border border-slate-100 rounded-[3.5rem] p-10 shadow-sm space-y-8">
-              <h4 className="font-black text-slate-800 tracking-tight uppercase text-sm border-l-4 border-indigo-600 pl-4">
-                Network Status
-              </h4>
-              <div className="space-y-6">
-                {[
-                  { label: "Stability", value: "Optimal", color: "emerald" },
-                  { label: "Throughput", value: "Nominal", color: "indigo" },
-                  { label: "Security", value: "Verified", color: "emerald" },
-                ].map((status, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                      {status.label}
-                    </p>
-                    <span
-                      className={`bg-${status.color}-50 text-${status.color}-600 text-[8px] font-black uppercase px-2 py-1 rounded-md border border-${status.color}-100`}
-                    >
-                      {status.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+             <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-8 border border-white/10 flex items-center justify-between gap-6">
+               <div className="flex-1 min-w-0">
+                 <h3 className="text-xl font-black text-white tracking-tight mb-2 truncate">
+                   {nextEvent?.title || "Initialize New Session Search"}
+                 </h3>
+                 <p className="text-[11px] font-bold text-white/70 truncate flex items-center gap-2 uppercase tracking-widest">
+                    <MapPin size={14} className="text-indigo-300 shrink-0" />
+                    {nextEvent?.venue || nextEvent?.district || "Explore the market for events"}
+                 </p>
+               </div>
+               <button 
+                 onClick={() => nextEvent && navigate(`/event/${nextEvent._id}`)}
+                 className="w-16 h-16 bg-white text-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl hover:bg-slate-900 hover:text-white transition-all active:scale-95 shrink-0"
+               >
+                 <ArrowRight size={28} />
+               </button>
+             </div>
+           </div>
         </div>
-      </main>
 
-      <Footer />
+        <div className="xl:col-span-4 flex flex-col gap-6">
+           <div className="bg-white p-10 rounded-[3.5rem] border border-slate-100 shadow-sm flex flex-col items-center justify-between flex-1 relative overflow-hidden group">
+              <div className="absolute top-0 left-0 w-24 h-24 bg-indigo-50/50 rounded-br-full blur-2xl" />
+              
+              <div className="relative z-10 text-center w-full pt-4">
+                {/* Centered Avatar */}
+                <div className="w-28 h-28 rounded-[2rem] bg-indigo-600 flex items-center justify-center text-white font-black text-4xl shadow-2xl mx-auto mb-6 border-4 border-white overflow-hidden relative group-hover:scale-105 transition-transform duration-500">
+                   {user?.profilePicture ? (
+                     <img src={getImageUrl(user.profilePicture)} alt="Profile" className="w-full h-full object-cover" />
+                   ) : (
+                     user?.name?.charAt(0).toUpperCase()
+                   )}
+                </div>
+
+                <h4 className="text-2xl font-black text-slate-800 tracking-tighter uppercase italic mb-1">{user?.name}</h4>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-8">{user?.college || "Global Participant"}</p>
+
+                {/* Interested In Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="h-[1px] w-4 bg-slate-100" />
+                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-widest">Interested In</p>
+                    <div className="h-[1px] w-4 bg-slate-100" />
+                  </div>
+                  
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {user?.interestedSkills?.length > 0 ? (
+                      user.interestedSkills.slice(0, 4).map((skill, i) => (
+                        <span key={i} className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-[8px] font-black uppercase tracking-widest border border-slate-100">
+                          {skill}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-[8px] font-bold text-slate-300 uppercase italic">No Interests Defined</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => navigate('/profile')} 
+                className="w-full mt-10 py-5 bg-slate-900 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-100/50 flex items-center justify-center gap-2 group/btn"
+              >
+                About Me <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+           </div>
+        </div>
+      </div>
+
+      {/* --- NEAR EVENT SESSIONS (Upcoming) --- */}
+      <section className="space-y-8">
+         <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-black tracking-tight uppercase italic">Upcoming <span className="text-indigo-600">Sessions</span></h3>
+            <Link to="/registered-events" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">View Timeline →</Link>
+         </div>
+         
+         {upcomingRegistrations.length > 0 ? (
+           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+             {upcomingRegistrations.slice(0, 2).map((reg, i) => (
+               <div key={i} className="bg-white border border-slate-100 p-8 rounded-[3rem] shadow-sm hover:shadow-xl transition-all flex items-center gap-8 group">
+                  <div className="w-24 h-32 bg-slate-50 rounded-3xl overflow-hidden shadow-inner shrink-0 group-hover:scale-105 transition-transform duration-500">
+                     <img src={normalizePoster(reg.event?.poster)} className="w-full h-full object-cover" alt="" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                     <div className="flex items-center gap-3 mb-3">
+                        <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase tracking-widest rounded border border-emerald-100 italic">Confirmed</span>
+                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest truncate italic">{new Date(reg.event?.eventDate).toLocaleDateString()}</span>
+                     </div>
+                     <h4 className="text-lg font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors uppercase truncate">{reg.event?.title}</h4>
+                     <p className="text-[10px] text-slate-500 font-bold mt-2 truncate flex items-center gap-2 italic uppercase">
+                        <MapPin size={12} className="text-slate-300" /> {reg.event?.district}
+                     </p>
+                  </div>
+               </div>
+             ))}
+           </div>
+         ) : (
+           <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-16 rounded-[4rem] text-center">
+              <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] italic">No Upcoming Nodes Scheduled</p>
+           </div>
+         )}
+      </section>
+
+      {/* --- PAST PARTICIPATIONS SECTION --- */}
+      <section className="space-y-8">
+         <h3 className="text-xl font-black tracking-tight px-2 uppercase">Past Participations</h3>
+         <div className="bg-white border border-slate-100 rounded-[3.5rem] overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50">
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Node Name</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic">Status</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-center">Date</th>
+                    <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest italic text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-50">
+                  {pastRegistrations?.length > 0 ? (
+                    pastRegistrations.map((reg, i) => (
+                      <tr key={i} className="hover:bg-slate-50 transition-colors group">
+                        <td className="px-8 py-6">
+                           <div className="flex items-center gap-4">
+                             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center border border-indigo-100">
+                                <Zap size={18} />
+                             </div>
+                             <span className="font-bold text-sm text-slate-800 group-hover:text-indigo-600 transition-colors uppercase tracking-tight truncate max-w-xs">{reg.event?.title}</span>
+                           </div>
+                        </td>
+                        <td className="px-8 py-6">
+                           <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-md text-[8px] font-black uppercase tracking-widest border border-slate-200 italic">
+                             Completed
+                           </span>
+                        </td>
+                        <td className="px-8 py-6 text-center text-sm text-slate-500 font-bold tracking-tight italic">
+                           {new Date(reg.event?.eventDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                           <button className="p-2 text-slate-300 hover:text-indigo-600 transition-colors">
+                              <Download size={18} />
+                           </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="px-8 py-20 text-center">
+                        <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] italic">No historical nodes detected.</p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+         </div>
+      </section>
     </div>
   );
 };
 
-export default StudentDashboard;
+export default Dashboard;

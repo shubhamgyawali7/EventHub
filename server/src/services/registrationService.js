@@ -96,8 +96,8 @@ const getClubRegistrations = async (userId) => {
 
     // Find all registrations for these events
     const registrations = await Registration.find({ event: { $in: eventIds } })
-      .populate("user", "name email district college")
-      .populate("event", "title eventDate");
+      .populate("user", "name email district college profilePicture bio interestedSkills")
+      .populate("event", "title eventDate isPaid");
 
  return { status: 200, data: registrations };
   } catch (error) {

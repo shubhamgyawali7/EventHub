@@ -11,6 +11,7 @@ import {
   Building2,
   Shield,
 } from "lucide-react";
+import { getImageUrl } from "../../utils/imageUrl";
 
 const Navbar = () => {
   const { user, logout, loading } = useAuth();
@@ -181,16 +182,17 @@ const Navbar = () => {
                 >
                   {user.profilePicture ? (
                     <img
-                      src={`${import.meta.env.VITE_BASE_API_URL}${user.profilePicture}`}
+                      src={getImageUrl(user.profilePicture)}
                       alt="Profile"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.onerror = null; // Prevent infinite loop if fallback also fails
-                        e.target.style.display = 'none'; // Hide broken image
-                        e.target.nextSibling.style.display = 'flex'; // Show fallback initial
+                        e.target.onerror = null;
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
                       }}
                     />
                   ) : null}
+
                   <span
                     className="w-full h-full flex items-center justify-center"
                     style={{ display: user.profilePicture ? 'none' : 'flex' }}

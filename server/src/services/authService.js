@@ -26,10 +26,13 @@ const register = async (data) => {
     email: createdUser.email,
     address: createdUser.address,
     district: createdUser.district,
-    // password: createdUser.password,
     college: createdUser.college,
     club: createdUser.club,
     roles: createdUser.roles,
+    profilePicture: createdUser.profilePicture,
+    bio: createdUser.bio,
+    interestedSkills: createdUser.interestedSkills,
+    createdAt: createdUser.createdAt,
   };
 };
 
@@ -40,18 +43,21 @@ const login = async (data) => {
   const isPasswordMatch = bcrypt.compareSync(data.password, userExist.password);
   if (!isPasswordMatch) throw new Error("Invalid Email or Password...");
 
-  const userObj = userExist.toObject(); // Convert Mongoose document to plain JS object
+  const user = userExist.toObject();
 
-  console.log("User Club=>", userObj.club);
   return {
-    id: userObj._id,
-    name: userObj.name,
-    email: userObj.email,
-    address: userObj.address,
-    district: userObj.district,
-    college: userObj.college,
-    club: userObj.club,
-    roles: userObj.roles,
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    address: user.address,
+    district: user.district,
+    college: user.college,
+    club: user.club,
+    roles: user.roles,
+    profilePicture: user.profilePicture,
+    bio: user.bio,
+    interestedSkills: user.interestedSkills,
+    createdAt: user.createdAt,
   };
 };
 

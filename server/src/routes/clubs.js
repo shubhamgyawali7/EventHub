@@ -1,5 +1,6 @@
 import express from "express";
 import auth from "../middlewares/auth.js";
+import { uploadClubLogo, handleMulterError } from "../middlewares/upload.js";
 import {
   submitClubRegistration,
   getPendingClubs,
@@ -16,7 +17,13 @@ import roleBasedAuth from "../middlewares/roleBasedAuth.js";
 const router = express.Router();
 
 // User routes
-router.post("/register", auth, submitClubRegistration);
+router.post(
+  "/register",
+  auth,
+  uploadClubLogo,
+  handleMulterError,
+  submitClubRegistration
+);
 router.get("/status", auth, getClubStatus);
 router.put("/profile", auth, updateClubProfile); // Add profile update route
 //Club Routes
