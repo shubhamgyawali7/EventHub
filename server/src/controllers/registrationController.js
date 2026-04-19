@@ -9,7 +9,7 @@ const registerForEvent = async (req, res) => {
 
   try {
     console.log("🎟️ [BACKEND] registerForEvent called:", { eventId, userId });
-    const response = await registrationService.registrationForEvnets(
+    const response = await registrationService.registerForEvent(
       eventId,
       userId,
       formData,

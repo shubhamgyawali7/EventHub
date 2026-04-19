@@ -1,7 +1,7 @@
 import Event from "../models/Events.js";
 import Registration from "../models/Registration.js";
 
-const registrationForEvnets = async (eventId, userId, formData) => {
+const registerForEvent = async (eventId, userId, formData) => {
   console.log("🎟️ [BACKEND] Registering student for event:", {
     eventId,
     userId,
@@ -118,7 +118,7 @@ const getMyRegistrations = async (userId) => {
 };
 
 export default {
-  registrationForEvnets,
+  registerForEvent,
   getEventRegistrations,
   getClubRegistrations,
   getMyRegistrations,

@@ -3,7 +3,6 @@ import { registerForEvent, getEventRegistrations, getClubRegistrations, getMyReg
 import auth from "../middlewares/auth.js";
 
 const router = express.Router();
-router.get("/test", (req, res) => res.send("Registration route is working"));
 router.get("/my", auth, getMyRegistrations);
 router.get("/club/all", auth, getClubRegistrations);
 router.post("/:eventId", auth, registerForEvent);

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub | Comprehensive Architecture & Data Flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&family=Plus+Jakarta+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="cursor-glow"></div>
+    
+    <nav>
+        <div class="logo">Event<span>Hub</span> <small>ARCHITECTURE</small></div>
+        <div class="nav-links">
+            <a href="#hero">Overview</a>
+            <a href="#routes">Endpoint Map</a>
+            <a href="#models">Data Models</a>
+            <a href="#activity">Flows</a>
+            <a href="#security">Security</a>
+        </div>
+    </nav>
+
+    <!-- SLIDE 1: HERO -->
+    <header id="hero" class="slide">
+        <div class="hero-content">
+            <span class="badge">Ecosystem Documentation 2.0</span>
+            <h1>Full-Stack <span>Logic</span> Visualized</h1>
+            <p>A high-fidelity presentation of EventHub's internal mechanisms, routing infrastructure, and relational data architecture.</p>
+            <div class="scroll-indicator">Scroll to Explore</div>
+        </div>
+    </header>
+
+    <main>
+        <!-- SECTION: ROUTING SYSTEM -->
+        <section id="routes" class="slide">
+            <div class="section-header animate-on-scroll">
+                <span class="step-num">01</span>
+                <h2>The Communication Layer</h2>
+                <p>EventHub uses a modular routing system. All requests enter through <code>/api/*</code> and are dispatched to specific resource handlers.</p>
+            </div>
+
+            <div class="routes-container glass animate-on-scroll">
+                <div class="route-group">
+                    <h4>🔐 Auth & Profile</h4>
+                    <table>
+                        <tr><th>Method</th><th>Endpoint</th><th>Guard</th><th>Description</th></tr>
+                        <tr><td>POST</td><td>/api/auth/register</td><td>Public</td><td>Create global user entity</td></tr>
+                        <tr><td>POST</td><td>/api/auth/login</td><td>Public</td><td>Issue JWT via Cookies</td></tr>
+                        <tr><td>GET</td><td>/api/auth/me</td><td>Auth</td><td>Fetch session context</td></tr>
+                        <tr><td>PUT</td><td>/api/auth/profile</td><td>Auth + Multer</td><td>Update Bio, Skills, Photo</td></tr>
+                    </table>
+                </div>
+
+                <div class="route-group">
+                    <h4>🎟️ Events & Registrations</h4>
+                    <table>
+                        <tr><th>Method</th><th>Endpoint</th><th>Guard</th><th>Description</th></tr>
+                        <tr><td>GET</td><td>/api/events</td><td>Public</td><td>Fetch Nearby/All events</td></tr>
+                        <tr><td>POST</td><td>/api/events/create</td><td>Auth (Club)</td><td>Deploy event + Cloudinary</td></tr>
+                        <tr><td>POST</td><td>/api/registrations/:id</td><td>Auth</td><td>Begin signup flow</td></tr>
+                        <tr><td>GET</td><td>/api/registrations/my</td><td>Auth</td><td>Student dashboard data</td></tr>
+                    </table>
+                </div>
+
+                <div class="route-group">
+                    <h4>💳 Payment Processing</h4>
+                    <table>
+                        <tr><th>Method</th><th>Endpoint</th><th>Guard</th><th>Description</th></tr>
+                        <tr><td>POST</td><td>/api/payments/khalti/initiate</td><td>Auth</td><td>Request pidx from Khalti</td></tr>
+                        <tr><td>POST</td><td>/api/payments/esewa/verify</td><td>Auth</td><td>Validate eSewa signature</td></tr>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: DATA MODELS -->
+        <section id="models" class="slide">
+            <div class="section-header animate-on-scroll">
+                <span class="step-num">02</span>
+                <h2>The Relational Blueprint</h2>
+                <p>MongoDB schemas are heavily optimized with cross-references and unique indexing for data integrity.</p>
+            </div>
+
+            <div class="models-grid">
+                <div class="model-card glass animate-on-scroll">
+                    <div class="model-header">
+                        <div class="icon">👤</div>
+                        <h4>User Model</h4>
+                    </div>
+                    <ul class="field-list">
+                        <li><strong>Roles:</strong> enum [Student, Club, Admin]</li>
+                        <li><strong>Profile:</strong> name, email, district, bio, skills</li>
+                        <li><strong>Relation:</strong> club (Ref: RegisterClub)</li>
+                    </ul>
+                </div>
+
+                <div class="model-card glass animate-on-scroll" style="transition-delay: 0.1s;">
+                    <div class="model-header">
+                        <div class="icon">🏢</div>
+                        <h4>RegisterClub</h4>
+                    </div>
+                    <ul class="field-list">
+                        <li><strong>Identity:</strong> name, logo, district, category</li>
+                        <li><strong>Status:</strong> Pending | Approved | Rejected</li>
+                        <li><strong>Creator:</strong> createdBy (Ref: User)</li>
+                    </ul>
+                </div>
+
+                <div class="model-card glass animate-on-scroll" style="transition-delay: 0.2s;">
+                    <div class="model-header">
+                        <div class="icon">📅</div>
+                        <h4>Event Model</h4>
+                    </div>
+                    <ul class="field-list">
+                        <li><strong>Core:</strong> title, date, deadline, price</li>
+                        <li><strong>Logic:</strong> isPaid, participantCount</li>
+                        <li><strong>Links:</strong> organizer (Ref: RegisterClub)</li>
+                    </ul>
+                </div>
+
+                <div class="model-card glass animate-on-scroll" style="transition-delay: 0.3s;">
+                    <div class="model-header">
+                        <div class="icon">✅</div>
+                        <h4>Registration</h4>
+                    </div>
+                    <ul class="field-list">
+                        <li><strong>Unique:</strong> {event: 1, user: 1}</li>
+                        <li><strong>Finance:</strong> paymentInfo, paymentService</li>
+                        <li><strong>Status:</strong> Confirmed | Pending | Failed</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ACTIVITY FLOWS -->
+        <section id="activity" class="slide">
+            <div class="section-header animate-on-scroll">
+                <span class="step-num">03</span>
+                <h2>Activity Flow: Event Life-cycle</h2>
+                <p>From the moment a club creates an event to the final participant enrollment.</p>
+            </div>
+
+            <div class="flow-chart glass animate-on-scroll">
+                <div class="flow-row">
+                    <div class="flow-pill active">Club Submits Form</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill">Multer -> Cloudinary</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill">Event Document Saved</div>
+                </div>
+                <div class="vertical-connector"></div>
+                <div class="flow-row">
+                    <div class="flow-pill alert">Student Selects Event</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill">Pending Reg Created</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill payment">Payment Handshake</div>
+                </div>
+                <div class="vertical-connector"></div>
+                <div class="flow-row">
+                    <div class="flow-pill">Gateway Verification</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill success">Status: Confirmed</div>
+                    <div class="flow-connector"></div>
+                    <div class="flow-pill">Email/Dashboard Update</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SECURITY -->
+        <section id="security" class="slide">
+            <div class="section-header animate-on-scroll">
+                <span class="step-num">04</span>
+                <h2>Defense & Middleware Stack</h2>
+                <p>A multi-layered approach to protecting system resources.</p>
+            </div>
+
+            <div class="security-grid">
+                <div class="security-item glass animate-on-scroll">
+                    <h5>JWT Authentication</h5>
+                    <p>Stateless session management. Tokens are decoded in <code>auth.js</code> middleware and attached to <code>req.user</code>.</p>
+                </div>
+                <div class="security-item glass animate-on-scroll" style="transition-delay: 0.1s;">
+                    <h5>RBAC (Role Based Access)</h5>
+                    <p>Granular control via <code>roleBasedAuth.js</code>. Ensures Students cannot hit Admin or Club-only endpoints.</p>
+                </div>
+                <div class="security-item glass animate-on-scroll" style="transition-delay: 0.2s;">
+                    <h5>CORS & Security Headers</h5>
+                    <p>Strict origin validation (<code>FRONTEND_URL</code>) and payload limits (10mb JSON / 50mb URL-encoded).</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>EventHub Infrastructure Map &copy; 2026</p>
+            <div class="footer-links">
+                <span>Created with HTML/CSS/JS Presentation Engine</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
