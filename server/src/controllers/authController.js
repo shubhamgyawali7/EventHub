@@ -82,9 +82,9 @@ const updateProfile = async (req, res) => {
       interestedSkills
     };
 
-    // Add profile picture path if a new file was uploaded
+    // Add profile picture URL if a new file was uploaded (Cloudinary URL)
     if (req.file) {
-      updateData.profilePicture = `/uploads/profiles/${req.file.filename}`;
+      updateData.profilePicture = req.file.path;
     }
 
     const updatedUser = await authService.updateProfile(userId, updateData);

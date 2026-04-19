@@ -1,10 +1,8 @@
 // middlewares/upload.js
 import multer from "multer";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../config/cloudinary.js";
 
 // File filter (shared across all instances)
 const fileFilter = (req, file, cb) => {
@@ -19,21 +17,23 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-// EVENT Storage
-const eventStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "../uploads/events")),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `event-${uniqueSuffix}${path.extname(file.originalname)}`);
+// EVENT Storage — Cloudinary
+const eventStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "eventhub/events",
+    allowedFormats: ["jpg", "jpeg", "png", "gif", "webp"],
+    transformation: [{ width: 1200, height: 630, crop: "limit", quality: "auto" }],
   },
 });
 
-// PROFILE Storage
-const profileStorage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, path.join(__dirname, "../uploads/profiles")),
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `profile-${uniqueSuffix}${path.extname(file.originalname)}`);
+// PROFILE Storage — Cloudinary
+const profileStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: "eventhub/profiles",
+    allowedFormats: ["jpg", "jpeg", "png", "gif", "webp"],
+    transformation: [{ width: 400, height: 400, crop: "fill", gravity: "face", quality: "auto" }],
   },
 });
 

@@ -1,6 +1,6 @@
 import eventService from "../services/eventService.js";
 import mongoose from "mongoose";
-// import fs from "fs";
+import cloudinary from "../config/cloudinary.js";
 
 const addEvents = async (req, res) => {
   // console.log("\n════════ [BACKEND] EVENT CREATE REQUEST ════════");
@@ -21,7 +21,7 @@ const addEvents = async (req, res) => {
     return res.status(400).json({ error: "Event poster is required" });
   }
 
-  const posterUrl = `/uploads/events/${req.file.filename}`;
+  const posterUrl = req.file.path;
 
   // Validate eventType
   const eventType = eventData.eventType || "physical";
@@ -182,14 +182,13 @@ const addEvents = async (req, res) => {
     console.error("❌ Error message:", error.message);
     console.error("❌ Error stack:", error.stack);
     console.error("════════════════════════════════════════\n");
-    // If there's an error, delete the uploaded file
-    if (req.file) {
+    // If there's an error, delete the uploaded file from Cloudinary
+    if (req.file && req.file.filename) {
       try {
-        const fs = await import("fs");
-        fs.default.unlinkSync(req.file.path);
-        console.log("🗑️ [BACKEND] Deleted uploaded file due to error");
-      } catch (fsError) {
-        console.error("⚠️ [BACKEND] Could not delete file:", fsError.message);
+        await cloudinary.uploader.destroy(req.file.filename);
+        console.log("🗑️ [BACKEND] Deleted uploaded file from Cloudinary due to error");
+      } catch (cloudErr) {
+        console.error("⚠️ [BACKEND] Could not delete Cloudinary file:", cloudErr.message);
       }
     }
     console.error("Validation Error Details:", error.message);
@@ -248,9 +247,9 @@ const updateEvent = async (req, res) => {
         .json({ error: "Unauthorized: You can only edit your own events" });
     }
 
-    // Handle new poster if uploaded
+    // Handle new poster if uploaded (Cloudinary URL)
     if (req.file) {
-      updatedData.poster = `/uploads/events/${req.file.filename}`;
+      updatedData.poster = req.file.path;
     }
 
     // Parse numeric/boolean fields from FormData
