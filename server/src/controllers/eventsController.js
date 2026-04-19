@@ -60,20 +60,12 @@ const addEvents = async (req, res) => {
     });
   }
 
-  // Validate dates - combine eventDate and eventTime
+  // Validate dates
   let eventDateTime;
-  if (eventData.eventDate && eventData.eventTime) {
-    eventDateTime = new Date(`${eventData.eventDate}T${eventData.eventTime}`);
-    console.log(
-      "⏰ [BACKEND] Combined date+time:",
-      `${eventData.eventDate}T${eventData.eventTime}`,
-      "→",
-      eventDateTime.toISOString(),
-    );
-  } else if (eventData.eventDate) {
+  if (eventData.eventDate) {
     eventDateTime = new Date(eventData.eventDate);
     console.log(
-      "⏰ [BACKEND] Using eventDate only:",
+      "⏰ [BACKEND] Using eventDate:",
       eventData.eventDate,
       "→",
       eventDateTime.toISOString(),
@@ -297,12 +289,8 @@ const updateEvent = async (req, res) => {
 
     const eventType = updatedData.eventType || event.eventType || "physical";
 
-    // Combine eventDate and eventTime if both provided
-    if (updatedData.eventDate && updatedData.eventTime) {
-      updatedData.eventDate = new Date(
-        `${updatedData.eventDate}T${updatedData.eventTime}`,
-      );
-    } else if (updatedData.eventDate) {
+    // Fix eventDate parsing if provided
+    if (updatedData.eventDate) {
       updatedData.eventDate = new Date(updatedData.eventDate);
     }
 

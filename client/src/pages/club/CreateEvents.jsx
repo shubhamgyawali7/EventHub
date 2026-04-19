@@ -52,7 +52,6 @@ const CreateEvents = () => {
     eventType: "physical",
     venue: "",
     eventDate: "",
-    eventTime: "",
     deadline: "",
     participantCount: 50,
     tags: "",
@@ -82,11 +81,12 @@ const CreateEvents = () => {
               district: event.district || "Kathmandu",
               eventType: event.eventType || "physical",
               venue: event.venue || "",
-              eventDate: event.eventDate ? event.eventDate.split("T")[0] : "",
-              eventTime: event.eventDate
-                ? event.eventDate.split("T")[1]?.substring(0, 5) || ""
+              eventDate: event.eventDate
+                ? new Date(event.eventDate).toLocaleString("sv-SE").replace(" ", "T").substring(0, 16)
                 : "",
-              deadline: event.deadline ? event.deadline.split("T")[0] : "",
+              deadline: event.deadline
+                ? new Date(event.deadline).toLocaleString("sv-SE").replace(" ", "T").substring(0, 16)
+                : "",
               participantCount: event.participantCount || 50,
               tags: event.tags?.join(",") || "",
               isPaid: event.isPaid || false,
@@ -193,7 +193,6 @@ const CreateEvents = () => {
       "category",
       "district",
       "eventDate",
-      "eventTime",
       "deadline",
     ];
 
@@ -228,9 +227,7 @@ const CreateEvents = () => {
       return false;
     }
 
-    const eventDateTime = new Date(
-      `${formData.eventDate}T${formData.eventTime}`,
-    );
+    const eventDateTime = new Date(formData.eventDate);
     const deadlineDate = new Date(formData.deadline);
     const now = new Date();
 
@@ -291,7 +288,6 @@ const CreateEvents = () => {
       }
 
       formDataToSend.append("eventDate", formData.eventDate);
-      formDataToSend.append("eventTime", formData.eventTime);
       formDataToSend.append("deadline", formData.deadline);
       formDataToSend.append("participantCount", formData.participantCount);
       formDataToSend.append("tags", formData.tags);
@@ -330,7 +326,6 @@ const CreateEvents = () => {
         eventType: formData.eventType,
         title: formData.title,
         eventDate: formData.eventDate,
-        eventTime: formData.eventTime,
         deadline: formData.deadline,
         venue: formData.venue,
       });
@@ -729,10 +724,10 @@ const CreateEvents = () => {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                    <Calendar size={12} /> Event Date *
+                    <Calendar size={12} /> Event Date & Time *
                   </label>
                   <input
-                    type="date"
+                    type="datetime-local"
                     name="eventDate"
                     className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
                     onChange={handleChange}
@@ -740,22 +735,6 @@ const CreateEvents = () => {
                     required
                   />
                 </div>
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                    <Clock size={12} /> Start Time *
-                  </label>
-                  <input
-                    type="time"
-                    name="eventTime"
-                    className="w-full bg-slate-50 border-none rounded-2xl py-5 px-6 font-bold"
-                    onChange={handleChange}
-                    value={formData.eventTime}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
                     <Clock size={12} /> Registration Deadline *
@@ -769,6 +748,9 @@ const CreateEvents = () => {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-4">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
                     <Users size={12} /> Max Participants *
@@ -827,26 +809,37 @@ const CreateEvents = () => {
           <div className="space-y-8">
             <section className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-sm space-y-6">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                <ImageIcon size={12} /> Event Poster *
+                <ImageIcon size={12} /> Event Poster {isEditMode ? "(optional to change)" : "*"}
               </label>
               <div className="relative group">
                 <div
-                  className={`w-full h-56 border-2 border-dashed border-slate-100 rounded-[2.5rem] overflow-hidden transition-all hover:bg-slate-50 hover:border-indigo-200 cursor-pointer flex items-center justify-center ${formData.poster ? "border-indigo-100" : ""}`}
+                  className={`w-full h-56 border-2 border-dashed rounded-[2.5rem] overflow-hidden transition-all cursor-pointer flex items-center justify-center
+                    ${formData.posterPreview ? "border-indigo-100 hover:border-indigo-300" : "border-slate-100 hover:bg-slate-50 hover:border-indigo-200"}`}
                 >
+                  {/* Hidden file input — never required in edit mode */}
                   <input
                     type="file"
-                    className="absolute inset-0 opacity-0 cursor-pointer"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     accept="image/*"
                     onChange={handleImageUpload}
-                    required={!formData.poster}
-                    // disabled={uploading}
+                    required={!isEditMode && !formData.poster}
                   />
+
                   {formData.posterPreview ? (
-                    <img
-                      src={formData.posterPreview}
-                      alt="Event Poster"
-                      className="w-full h-full object-cover"
-                    />
+                    <>
+                      <img
+                        src={formData.posterPreview}
+                        alt="Event Poster"
+                        className="w-full h-full object-cover"
+                      />
+                      {/* Hover overlay to hint user can click to change */}
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 z-0">
+                        <ImageIcon size={22} className="text-white" />
+                        <p className="text-white text-[10px] font-black uppercase tracking-widest">
+                          Click to change poster
+                        </p>
+                      </div>
+                    </>
                   ) : (
                     <div className="text-center group-hover:scale-105 transition-transform">
                       <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 mx-auto shadow-sm group-hover:bg-white group-hover:text-indigo-400 mb-3">

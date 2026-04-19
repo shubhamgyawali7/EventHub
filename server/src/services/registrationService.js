@@ -17,13 +17,19 @@ const registrationForEvnets = async (eventId, userId, formData) => {
   // Check if student already registered
   const existing = await Registration.findOne({ event: eventId, user: userId });
   if (existing) {
-    console.log("⚠️ [BACKEND] Student already registered:", {
-      eventId,
-      userId,
-    });
+    console.log(`⚠️ [BACKEND] Student updating existing registration (Status was: ${existing.status})`);
+    
+    // We update the existing registration regardless of status to prevent locking out users
+    // who accidentally double click or fallback from eSewa.
+    Object.assign(existing, formData);
+    await existing.save();
+
     return {
-      status: 400,
-      data: { message: "Already registered for this event" },
+      status: 200,
+      data: {
+        message: "Form updated! Proceeding to payment...",
+        registration: existing,
+      },
     };
   }
 
