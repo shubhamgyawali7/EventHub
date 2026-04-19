@@ -18,12 +18,10 @@ const registrationSchema = new mongoose.Schema(
       default: "Confirmed",
     },
     paymentInfo: {
-      type: {
-        amount: Number,
-        transactionId: String,
-        paymentDate: Date,
-      },
-      default: null,
+      amount: Number,
+      transactionId: String,
+      pidx: String, // Store Khalti pidx for lookup
+      paymentDate: Date,
     },
     paymentService: {
       type: String,

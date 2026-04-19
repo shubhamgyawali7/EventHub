@@ -39,25 +39,26 @@ const PaymentSuccess = () => {
             pidx,
           });
 
-          console.log("✅ Khalti verification response:", response.data);
+          console.log("✅ Backend verification response:", response.data);
 
           // The backend returns { success: true, data: { status: "Completed", ... } }
           const khaltiData = response.data.data || response.data;
 
-          if (khaltiData.status === "Completed") {
+          if (khaltiData && khaltiData.status === "Completed") {
             setPaymentStatus("success");
             setPaymentDetails({
               gateway: "Khalti",
-              amount: khaltiData.total_amount / 100, // Convert paisa back to Rs if needed, or check backend return
+              amount: (khaltiData.total_amount || khaltiData.amount) / 100, 
               transactionId: khaltiData.transaction_id,
               pidx,
               status: khaltiData.status,
             });
             toast.success("Payment verified successfully!");
           } else {
+            console.warn("⚠️ Khalti payment not completed:", khaltiData);
             setPaymentStatus("failed");
-            setError(`Payment status: ${khaltiData.status}`);
-            toast.error(`Payment ${khaltiData.status?.toLowerCase()}`);
+            setError(`Payment status: ${khaltiData?.status || "Unknown"}`);
+            toast.error(`Payment ${khaltiData?.status?.toLowerCase() || "failed"}`);
           }
         } else {
           // ── eSewa verification ─────────────────────────────────────
