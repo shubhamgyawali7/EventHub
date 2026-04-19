@@ -70,6 +70,7 @@ const eventSchema = new mongoose.Schema(
       default: "system",
     },
     googleFormUrls: [{ type: String, trim: true }], // Array of Google Form and response sheet URLs
+    googleSheetResponseLink: { type: String, trim: true }, // Direct link to CSV or Response sheet
 
     // 5. Geospatial Data - Optional, only for physical events
     location: {

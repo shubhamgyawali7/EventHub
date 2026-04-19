@@ -308,6 +308,29 @@ const updateEvent = async (req, res) => {
   }
 };
 
+const updateGoogleSheetLink = async (req, res) => {
+  console.log("📍 [BACKEND] updateGoogleSheetLink hit for ID:", req.params.id);
+  const eventId = req.params.id;
+  const userId = req.user.id;
+  const { googleSheetResponseLink } = req.body;
+
+  try {
+    const event = await eventService.getEventById(eventId);
+    if (!event) return res.status(404).json({ error: "Event Not Found" });
+
+    if (event.createdBy.toString() !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Unauthorized: Access denied" });
+    }
+
+    const result = await eventService.updateEvent(eventId, { googleSheetResponseLink });
+    res.status(200).json({ success: true, message: "Link updated successfully", event: result });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 const deleteEvent = async (req, res) => {
   const eventId = req.params.id;
   const userId = req.user.id;
@@ -329,4 +352,4 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent };
+export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent, updateGoogleSheetLink };
