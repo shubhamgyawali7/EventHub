@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import ROLES from "./roles.js";
 import ProtectedRoute from "../components/protected/ProtectedRoute";
 import RegistrationFormWrapper from "./wrappers/RegistrationFormWrapper";
+import UserLayout from "../components/layout/UserLayout";
 
 // Public Pages
 import Home from "../pages/public/Home";
@@ -70,32 +71,24 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forget-password" element={<Signup />} />
 
-      {/* 👤 Student/User Routes */}
+      {/* 👤 Student/User Routes (Nested in Layout) */}
       <Route
-        path="/dashboard"
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-            <Dashboard />
+            <UserLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/registered-events" element={<RegisteredEvents />} />
+        <Route path="/profile" element={<Profile />} />
+      </Route>
 
       <Route
-        path="/registered-events"
+        path="/payment-complete"
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-            <RegisteredEvents />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute
-            allowedRoles={[ROLES.STUDENT, ROLES.CLUB, ROLES.ADMIN]}
-          >
-            <Profile />
+            <PaymentComplete />
           </ProtectedRoute>
         }
       />

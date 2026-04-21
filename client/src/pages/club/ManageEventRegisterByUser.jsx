@@ -15,11 +15,24 @@ import {
   Database,
   ArrowRight,
   Filter,
+  Info,
+  MapPin,
+  Building,
+  Fingerprint,
+  Code,
+  X,
+  ChevronRight,
+  CreditCard,
 } from "lucide-react";
 import ClubSidebar from "./ClubSidebar";
 import useOrganizer from "../../hooks/useOrganizer";
 import { toast } from "react-hot-toast";
 import Papa from "papaparse";
+import { getImageUrl } from "../../utils/imageUrl";
+
+// Payment Symbol Assets
+import khaltiSymbol from "../../assets/payment/khalti-symbol.jpg";
+import esewaSymbol from "../../assets/payment/esewa-symbol logo.webp";
 
 const ManageEventRegisterByUser = () => {
   const navigate = useNavigate();
@@ -37,6 +50,8 @@ const ManageEventRegisterByUser = () => {
   // Modal for Google Sheet Link
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [sheetUrlInput, setSheetUrlInput] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null); // High-fidelity detail view
+
 
   const {
     fetchClubRegistrations,
@@ -304,8 +319,12 @@ const ManageEventRegisterByUser = () => {
                       <tr key={reg._id} className="hover:bg-slate-50/80 transition-all group">
                         <td className="px-8 py-6">
                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                {reg.user.name.charAt(0)}
+                              <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black border border-indigo-100 group-hover:bg-indigo-600 group-hover:text-white transition-all overflow-hidden">
+                                {reg.user.profilePicture ? (
+                                  <img src={getImageUrl(reg.user.profilePicture)} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  reg.user.name.charAt(0)
+                                )}
                               </div>
                               <div>
                                 <p className="font-black text-slate-900 text-sm tracking-tight">{reg.user.name}</p>
@@ -328,13 +347,34 @@ const ManageEventRegisterByUser = () => {
                            <p className="text-[10px] font-bold text-slate-400 uppercase">{formatDate(reg.createdAt)}</p>
                         </td>
                         <td className="px-8 py-6">
-                           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${reg.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-                              {reg.status}
-                           </span>
+                           <div className="flex items-center justify-center">
+                             {reg.event?.isPaid && reg.paymentService && reg.paymentService !== "None" ? (
+                               <div 
+                                 className="flex items-center justify-center p-2 bg-white border border-slate-50 rounded-lg shadow-sm w-12 h-10" 
+                                 title={`Authenticated via ${reg.paymentService}`}
+                               >
+                                  {reg.paymentService === "Khalti" ? (
+                                    <img src={khaltiSymbol} alt="Khalti" className="w-full h-auto object-contain" />
+                                  ) : reg.paymentService === "eSewa" ? (
+                                    <img src={esewaSymbol} alt="eSewa" className="w-full h-auto object-contain" />
+                                  ) : (
+                                    <span className="text-[10px] font-black text-slate-400">{reg.paymentService}</span>
+                                  )}
+                               </div>
+                             ) : (
+                               <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 border border-emerald-100" title="System Verified (Free)">
+                                 <UserCheck size={14} />
+                               </div>
+                             )}
+                           </div>
                         </td>
                         <td className="px-8 py-6 text-right">
-                           <button className="p-2 border border-slate-200 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm group-hover:border-slate-300">
-                              <ArrowRight size={16} />
+                           <button 
+                             onClick={() => setSelectedUser(reg.user)}
+                             className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-slate-50 transition-all shadow-sm group-hover:border-slate-300"
+                             title="View Node Metadata"
+                           >
+                              <Info size={16} />
                            </button>
                         </td>
                       </tr>
@@ -439,6 +479,88 @@ const ManageEventRegisterByUser = () => {
              >
                 Save Integration <ArrowRight size={14} />
              </button>
+          </div>
+        </div>
+      )}
+      {/* PARTICIPANT DETAIL MODAL (High Fidelity) */}
+      {selectedUser && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-6"
+          onClick={() => setSelectedUser(null)}
+        >
+          <div 
+            className="bg-white rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-3xl animate-in fade-in zoom-in duration-300 border border-slate-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-48 bg-linear-to-br from-indigo-600 to-indigo-800 p-10 flex items-end relative">
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors bg-white/10 p-2 rounded-full backdrop-blur-md border border-white/10"
+              >
+                <X size={24} />
+              </button>
+              <div className="w-32 h-32 rounded-[2.5rem] bg-white absolute -bottom-16 left-12 p-1.5 shadow-2xl">
+                <div className="w-full h-full rounded-[2rem] bg-indigo-50 flex items-center justify-center font-black text-4xl text-indigo-600 overflow-hidden relative">
+                   {selectedUser.profilePicture ? (
+                     <img src={getImageUrl(selectedUser.profilePicture)} className="w-full h-full object-cover" />
+                   ) : (
+                     selectedUser.name?.charAt(0).toUpperCase()
+                   )}
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-24 px-12 pb-12">
+              <div className="flex justify-between items-start mb-10">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic">{selectedUser.name}</h2>
+                  <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px] mt-1">{selectedUser.email}</p>
+                </div>
+                <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl text-[9px] font-black uppercase tracking-widest border border-indigo-100 shadow-sm">Verified Node</span>
+              </div>
+
+              <div className="space-y-8">
+                <div>
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 flex items-center gap-2">
+                    <Fingerprint size={12} /> Registry Biography
+                  </h4>
+                  <p className="text-slate-600 font-medium italic bg-slate-50/50 p-6 rounded-3xl border border-dashed border-slate-200 leading-relaxed text-sm">
+                    {selectedUser.bio || "This user hasn't initialized their identity protocol statement yet."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8">
+                   <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 flex items-center gap-2">
+                        <Code size={12} /> Tech Vectors
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedUser.interestedSkills?.length > 0 ? selectedUser.interestedSkills.map((s, i) => (
+                          <span key={i} className="px-3 py-1 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase tracking-widest">
+                            {s}
+                          </span>
+                        )) : (
+                          <span className="text-[9px] font-bold text-slate-400 italic">No Vectors Defined</span>
+                        )}
+                      </div>
+                   </div>
+                   <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-4 flex items-center gap-2">
+                        <Building size={12} /> Academic Hub
+                      </h4>
+                      <p className="text-sm font-black text-slate-800 uppercase tracking-tight truncate mb-0.5">{selectedUser.college || "Independent"}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2"><MapPin size={10} /> {selectedUser.district || "Global Area"}</p>
+                   </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedUser(null)}
+                className="mt-12 w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-indigo-600 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 transition-all group"
+              >
+                Close Profile <ChevronRight size={14} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </div>
         </div>
       )}

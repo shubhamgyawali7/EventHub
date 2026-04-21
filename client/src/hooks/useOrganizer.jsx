@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import {
-  registerClub,
+
   fetchOrganizerEvents,
   deleteOrganizerEvent,
   fetchClubRegistrations,
@@ -8,7 +8,6 @@ import {
 import clubService from "../services/clubService";
 import { useCallback } from "react";
 // import { registerClub } from "../redux/organizer/organizerAction";
-
 const useOrganizer = () => {
   const dispatch = useDispatch();
   const orgEvents = useSelector((state) => state.organizer);
@@ -16,16 +15,21 @@ const useOrganizer = () => {
   const clubRegister = useCallback(
     async (clubData) => {
       try {
-        console.log("Hook sending data to backend:", clubData);
-        const result = await dispatch(registerClub(clubData)).unwrap();
-        console.log("Hook received result:", result);
+        console.log("Club Data going from hook");
+        const result = await clubService.registerClub(clubData);
+        console.log("Club Data coming from service =>", result);
         return { success: true, data: result };
       } catch (err) {
-        console.error("Hook error:", err);
-        return { success: false, message: err };
+        console.log("Club Data coming from service =>", err);
+        console.log("Club Data coming from service =>", err.message);
+        console.log("Club Data coming from service =>", err.response?.data);
+        console.log("Club Data coming from service =>", err.response?.data?.message);
+        console.log("Club Data coming from service =>", err.response?.data?.error);
+        console.log("Club Data coming from service =>", err.response?.data?.errors);
+        return { success: false, message: err.message || "Something went wrong" };
       }
     },
-    [dispatch],
+    [],
   );
 
   // Memoize the fetch function to prevent recreation on every render

@@ -5,6 +5,10 @@ import { CheckCircle, ChevronRight, ChevronLeft, AlertCircle } from "lucide-reac
 import useEvents from "../../hooks/useEvents";
 import usePayment from "../../hooks/usePayment";
 
+// Payment Full Assets
+import khaltiFull from "../../assets/payment/khalti-full logo.jpg";
+import esewaFull from "../../assets/payment/esewa-full logo.jpg";
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STEPS = [
@@ -118,27 +122,28 @@ const GatewayOption = ({ gateway, selected, onSelect }) => (
         ? { borderColor: gateway.border, backgroundColor: gateway.bg }
         : {}
     }
-    className={`p-4 rounded-2xl border-2 transition-all duration-200 text-left w-full
-      ${selected ? "shadow-md" : "border-slate-200 bg-white hover:border-slate-300"}
+    className={`relative group p-5 rounded-2xl border-2 transition-all duration-300 text-center w-full overflow-hidden
+      ${selected ? "shadow-xl shadow-indigo-100/50" : "border-slate-100 bg-white hover:border-slate-200 hover:shadow-lg"}
     `}
   >
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col items-center justify-center gap-3">
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-base shrink-0"
-        style={{ backgroundColor: gateway.color }}
+        className={`w-full h-16 flex items-center justify-center p-1 transition-transform duration-500`}
       >
-        {gateway.initial}
+        {gateway.id === "khalti" ? (
+          <img src={khaltiFull} alt="Khalti" className="max-w-full max-h-full object-contain" />
+        ) : (
+          <img src={esewaFull} alt="eSewa" className="max-w-full max-h-full object-contain" />
+        )}
       </div>
-      <div>
-        <p className="font-bold text-slate-800 text-sm">{gateway.name}</p>
-        <p className="text-xs text-slate-400">{gateway.tagline}</p>
-      </div>
+
       {selected && (
-        <CheckCircle
-          size={16}
-          className="ml-auto shrink-0"
+        <div 
+          className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-lg animate-in zoom-in duration-300"
           style={{ color: gateway.color }}
-        />
+        >
+          <CheckCircle size={12} />
+        </div>
       )}
     </div>
   </button>
@@ -340,13 +345,13 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
       {step === 3 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-right-3 duration-300">
           <div className="mb-2">
-            <h3 className="text-2xl font-bold text-slate-800">
-              {isPaidEvent ? "Payment & Confirm" : "Review & Confirm"}
+            <h3 className="text-xl font-black text-slate-800 tracking-tight uppercase">
+              {isPaidEvent ? "Payment Terminal" : "Final Review"}
             </h3>
-            <p className="text-slate-400 text-sm mt-1">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">
               {isPaidEvent
-                ? "Pick a payment method and submit."
-                : "Review your details before submitting."}
+                ? "Select Uplink Protocol"
+                : "Verify Node Data"}
             </p>
           </div>
 
@@ -360,8 +365,10 @@ const RegistrationForm = ({ eventId, onClose, onSuccess }) => {
 
           {/* Payment section — only for paid events */}
           {isPaidEvent && (
-            <div className="space-y-3 pt-4 border-t border-slate-100">
-              <FieldLabel>Payment Gateway</FieldLabel>
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="text-center mb-2">
+                <FieldLabel>Secure Gateways</FieldLabel>
+              </div>
               <div className="grid grid-cols-2 gap-3">
                 {PAYMENT_GATEWAYS.map((gw) => (
                   <GatewayOption

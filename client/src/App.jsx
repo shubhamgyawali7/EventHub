@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import AppRoutes from "./routes/AppRoutes";
+import useAuth from "./hooks/useAuth";
 
 const App = () => {
+  const { getMe } = useAuth();
+
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      getMe();
+    }
+  }, [getMe]);
+
   return (
     <div>
       <AppRoutes />

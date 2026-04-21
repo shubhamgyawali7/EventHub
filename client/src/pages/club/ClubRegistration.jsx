@@ -49,7 +49,7 @@ const ClubRegistration = () => {
   const [checking, setChecking] = useState(true);
   const [existingClub, setExistingClub] = useState(null);
   const [success, setSuccess] = useState(false);
-
+  const [logoFile, setLogoFile] = useState(null);
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
     name: "",
@@ -111,9 +111,39 @@ const ClubRegistration = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors({ ...errors, [name]: "" });
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  // Handle image upload
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("File size should be less than 5MB");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast.error("Please upload an image file");
+        return;
+      }
+
+      // Create preview URL
+      const preview = URL.createObjectURL(file);
+
+      setLogoFile(file);
+
+      setFormData({
+        ...formData,
+        logo: file,
+        logoPreview: preview,
+      });
     }
   };
 
@@ -189,15 +219,12 @@ const ClubRegistration = () => {
   const validateStep3 = () => {
     const newErrors = {};
 
-    if (!formData.logo.trim()) newErrors.logo = "Logo URL is required";
+    // if (!formData.logo) newErrors.logo = "Logo file is required";
 
     const urlRegex =
       /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
     if (formData.website && !urlRegex.test(formData.website)) {
       newErrors.website = "Please enter a valid URL";
-    }
-    if (formData.logo && !urlRegex.test(formData.logo)) {
-      newErrors.logo = "Please enter a valid image URL";
     }
 
     setErrors(newErrors);
@@ -227,7 +254,47 @@ const ClubRegistration = () => {
     setLoading(true);
 
     try {
-      const result = await clubRegister(formData);
+      const formDataToSend = new FormData();
+
+      // Step 1: Basic Info
+      formDataToSend.append("name", formData.name.trim());
+      formDataToSend.append("email", formData.email.trim());
+      formDataToSend.append("phone", formData.phone.trim());
+      formDataToSend.append("contactPerson", formData.contactPerson.trim());
+      formDataToSend.append("district", formData.district);
+
+      // Step 2: Organization Details
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("description", formData.description.trim());
+      if (formData.establishedYear) {
+        formDataToSend.append("establishedYear", formData.establishedYear);
+      }
+      formDataToSend.append("website", formData.website.trim());
+
+      // Step 3: Social & Media
+      if (logoFile) {
+        formDataToSend.append("logo", logoFile);
+        console.log("✅ [FRONTEND] Logo file selected:", logoFile.name);
+      }
+      if (formData.facebook?.trim()) formDataToSend.append("facebook", formData.facebook.trim());
+      if (formData.instagram?.trim()) formDataToSend.append("instagram", formData.instagram.trim());
+      if (formData.twitter?.trim()) formDataToSend.append("twitter", formData.twitter.trim());
+      if (formData.linkedin?.trim()) formDataToSend.append("linkedin", formData.linkedin.trim());
+      if (formData.github?.trim()) formDataToSend.append("github", formData.github.trim());
+      if (formData.youtube?.trim()) formDataToSend.append("youtube", formData.youtube.trim());
+
+      // 🔍 DEBUG: Log raw state and FormData contents
+      console.log("📦 Raw formData state:", formData);
+      console.log("📦 formData.name:", formData.name);
+      console.log("📦 formData.logo:", formData.logo);
+
+      const formDataEntries = [];
+      for (let pair of formDataToSend.entries()) {
+        formDataEntries.push([pair[0], pair[1]]);
+      }
+      console.log("📦 FormData entries:", formDataEntries);
+
+      const result = await clubRegister(formDataToSend);
 
       if (result?.success) {
         toast.success("Club registration submitted successfully!");
@@ -400,11 +467,10 @@ const ClubRegistration = () => {
                       <div
                         className={`
                         w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold transition-all duration-300 z-10 relative
-                        ${
-                          currentStep >= step
+                        ${currentStep >= step
                             ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
                             : "bg-white border-2 border-slate-200 text-slate-400"
-                        }
+                          }
                       `}
                       >
                         {currentStep > step ? <CheckCircle size={24} /> : step}
@@ -458,11 +524,10 @@ const ClubRegistration = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.name
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.name
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="Enter your organization name"
                           />
                         </div>
@@ -487,11 +552,10 @@ const ClubRegistration = () => {
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.email
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.email
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="contact@yourclub.com"
                           />
                         </div>
@@ -516,11 +580,10 @@ const ClubRegistration = () => {
                             name="phone"
                             value={formData.phone}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.phone
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.phone
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="+977 1234567890"
                           />
                         </div>
@@ -546,11 +609,10 @@ const ClubRegistration = () => {
                             name="contactPerson"
                             value={formData.contactPerson}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.contactPerson
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.contactPerson
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="John Doe (President)"
                           />
                         </div>
@@ -574,11 +636,10 @@ const ClubRegistration = () => {
                             name="district"
                             value={formData.district}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-10 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none bg-white ${
-                              errors.district
-                                ? "border-red-300 focus:border-red-500"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-10 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none bg-white ${errors.district
+                              ? "border-red-300 focus:border-red-500"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                           >
                             <option value="">Select District</option>
                             {Object.entries(NEPAL_DISTRICTS).map(
@@ -636,11 +697,10 @@ const ClubRegistration = () => {
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none bg-white ${
-                              errors.category
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none bg-white ${errors.category
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                           >
                             <option value="">Select Category</option>
                             <option value="college_club">
@@ -700,11 +760,10 @@ const ClubRegistration = () => {
                             name="website"
                             value={formData.website}
                             onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.website
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${errors.website
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="https://yourclub.com"
                           />
                         </div>
@@ -730,11 +789,10 @@ const ClubRegistration = () => {
                             value={formData.description}
                             onChange={handleChange}
                             rows="5"
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-y ${
-                              errors.description
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
+                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-y ${errors.description
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                             placeholder="Describe your organization's mission, vision, activities, and goals..."
                           />
                         </div>
@@ -758,7 +816,7 @@ const ClubRegistration = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-bold text-slate-700 mb-2">
-                          Logo URL <span className="text-red-500">*</span>
+                          Club Logo <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <ImageIcon
@@ -766,16 +824,14 @@ const ClubRegistration = () => {
                             size={20}
                           />
                           <input
-                            type="url"
+                            type="file"
                             name="logo"
-                            value={formData.logo}
-                            onChange={handleChange}
-                            className={`w-full pl-12 pr-4 py-4 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${
-                              errors.logo
-                                ? "border-red-300"
-                                : "border-slate-200 focus:border-indigo-500"
-                            }`}
-                            placeholder="https://yourclub.com/logo.png"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className={`w-full pl-12 pr-4 py-3.5 text-base border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all cursor-pointer bg-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-black file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 ${errors.logo
+                              ? "border-red-300"
+                              : "border-slate-200 focus:border-indigo-500"
+                              }`}
                           />
                         </div>
                         {errors.logo && (
@@ -784,21 +840,20 @@ const ClubRegistration = () => {
                           </p>
                         )}
 
-                        {formData.logo && (
-                          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                            <p className="text-xs font-semibold text-slate-600 mb-2">
-                              Logo Preview:
-                            </p>
+                        {formData.logoPreview && (
+                          <div className="mt-4 p-4 bg-slate-50 rounded-xl border border-slate-200 flex items-center gap-4">
                             <img
-                              src={formData.logo}
-                              alt="Club Logo"
-                              className="h-20 w-20 rounded-xl object-cover border-2 border-indigo-200 shadow-sm"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                e.target.src =
-                                  "https://via.placeholder.com/80?text=Invalid+URL";
-                              }}
+                              src={formData.logoPreview}
+                              alt="Club Logo Preview"
+                              className="h-20 w-20 rounded-xl object-contain bg-white border-2 border-indigo-200 shadow-sm flex-shrink-0"
                             />
+                            <div>
+                              <p className="text-xs font-bold text-slate-700">Logo Preview</p>
+                              <p className="text-xs text-slate-500 mt-1">{logoFile?.name}</p>
+                              <p className="text-xs text-indigo-500 mt-1">
+                                {logoFile ? `${(logoFile.size / 1024).toFixed(1)} KB` : ""}
+                              </p>
+                            </div>
                           </div>
                         )}
                       </div>

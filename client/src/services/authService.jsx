@@ -11,7 +11,9 @@ const authService = {
       localStorage.setItem("authToken", response.data.token);
       return response.data;
     } catch (error) {
-      throw new Error(error.response?.data?.message || "Login failure");
+      // Return a structured error object
+      const message = error.response?.data?.message || error.response?.data || "Login failure";
+      throw new Error(message);
     }
   },
 
@@ -29,20 +31,18 @@ const authService = {
     }
   },
 
-  /**
-   * 📥 Get Current Identity
-   * Retrieves the current user profile metadata for active session verification.
-   */
   getMe: async () => {
     try {
       const response = await api.get("/api/auth/me");
       console.log("Frontedn Me data=>", response.data);
-      localStorage.setItem("authToken", response.data.token);
+      // Only set if we actually got a token back (some setups don't return it in 'me')
+      if (response.data?.token && response.data.token !== "undefined") {
+        localStorage.setItem("authToken", response.data.token);
+      }
       return response.data;
     } catch (error) {
-      throw new Error(
-        error.response?.data?.message || "Identity verification failure",
-      );
+      const message = error.response?.data?.message || error.response?.data || "Identity verification failure";
+      throw new Error(message);
     }
   },
 

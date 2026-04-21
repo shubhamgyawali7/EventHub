@@ -11,35 +11,14 @@ import {
   Clock,
   MapPin,
   UserCheck2Icon,
+  Home,
 } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import eventService from "../../services/eventService";
 
 const SideBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [upcomingEvents, setUpcomingEvents] = useState([]);
-  const [loadingEvents, setLoadingEvents] = useState(true);
-
-  useEffect(() => {
-    const fetchUpcomingEvents = async () => {
-      try {
-        const events = await eventService.getAllEvents();
-        const now = new Date();
-        const upcoming = events
-          .filter((event) => new Date(event.eventDate) > now)
-          .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate))
-          .slice(0, 5);
-        setUpcomingEvents(upcoming);
-      } catch (error) {
-        console.error("Failed to fetch events:", error);
-      } finally {
-        setLoadingEvents(false);
-      }
-    };
-
-    fetchUpcomingEvents();
-  }, []);
 
   const menuItems = [
     { label: "Dashboard", icon: LayoutDashboard, path: "/admin/dashboard" },
@@ -88,20 +67,34 @@ const SideBar = () => {
         ))}
       </nav>
    
-      {/* Logout */}
-      <button
-        onClick={() => {
-          localStorage.removeItem("authToken");
-          navigate("/login");
-        }}
-        className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all mt-auto group"
-      >
-        <LogOut
-          size={20}
-          className="group-hover:-translate-x-1 transition-transform"
-        />
-        <span className="text-sm font-bold">Sign Out</span>
-      </button>
+      {/* Footer Actions */}
+      <div className="mt-auto border-t border-slate-800/50 pt-4 space-y-2">
+        <Link
+          to="/"
+          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition-all group"
+        >
+          <Home
+            size={20}
+            className="text-slate-500 group-hover:text-indigo-400 group-hover:scale-110 transition-all"
+          />
+          <span className="text-sm font-bold tracking-tight">
+            Portal View
+          </span>
+        </Link>
+        <button
+          onClick={() => {
+            localStorage.removeItem("authToken");
+            navigate("/login");
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-rose-500/10 hover:text-rose-400 transition-all group"
+        >
+          <LogOut
+            size={20}
+            className="group-hover:scale-110 transition-all"
+          />
+          <span className="text-sm font-bold">Sign Out</span>
+        </button>
+      </div>
     </aside>
   );
 };

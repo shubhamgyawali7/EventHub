@@ -37,6 +37,11 @@ const profileStorage = new CloudinaryStorage({
   },
 });
 
+// CLUB Storage — Memory Buffer (upload to Cloudinary manually in controller)
+// Using memoryStorage guarantees req.body is ALWAYS populated (CloudinaryStorage streams
+// can silently fail to parse text fields if the file stream has connectivity issues)
+const clubMemoryStorage = multer.memoryStorage();
+
 // Create Multer Instances
 const uploadEvent = multer({
   storage: eventStorage,
@@ -50,9 +55,16 @@ const uploadProfile = multer({
   fileFilter,
 });
 
+const uploadClub = multer({
+  storage: clubMemoryStorage,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter,
+});
+
 // Midlewares
 export const uploadEventPoster = uploadEvent.single("poster");
 export const uploadProfilePicture = uploadProfile.single("profilePicture");
+export const uploadClubLogo = uploadClub.single("logo");
 
 // Standard Multer Error handling
 export const handleMulterError = (err, req, res, next) => {

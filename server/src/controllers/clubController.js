@@ -1,18 +1,40 @@
 import clubService from "../services/clubService.js";
+import cloudinary from "../config/cloudinary.js";
 
 const submitClubRegistration = async (req, res) => {
-  console.log("I am at Controller of Club !!!");
+  console.log("\n=== CLUB REGISTRATION ===");
+  console.log("Content-Type:", req.headers['content-type']);
+  console.log("req.body:", req.body);
+  console.log("req.file:", req.file ? `${req.file.originalname} (${req.file.size} bytes)` : "none");
+
   try {
-    const data = req.body;
+    const data = { ...req.body };
     const userId = req.user.id;
-    console.log("Frontend Data in backend=>", data);
+
+    // Upload logo buffer to Cloudinary manually
+    if (req.file) {
+      try {
+        const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`;
+        const uploadResult = await cloudinary.uploader.upload(base64, {
+          folder: "eventhub/clubs",
+          transformation: [{ width: 500, height: 500, crop: "limit", quality: "auto" }],
+        });
+        data.logo = uploadResult.secure_url;
+        console.log("Cloudinary upload success:", data.logo);
+      } catch (uploadErr) {
+        console.error("Cloudinary upload error:", uploadErr.message);
+        return res.status(500).json({ error: "Logo upload failed: " + uploadErr.message });
+      }
+    }
+
+    console.log("Final data to service:", data);
     const club = await clubService.applyForClub(userId, data);
-    console.log("Backend Data in Frontend=>", club);
     res.status(201).json({
       message: "Club application submitted. Pending Admin approval.",
       club,
     });
   } catch (error) {
+    console.error("Club registration error:", error.message);
     res.status(500).json({ error: error.message });
   }
 };

@@ -35,14 +35,18 @@ const login = async (req, res) => {
   try {
     const existingUser = await authService.login(data);
     const token = createAuthToken(existingUser);
-    res.cookie("authToken", token);
+    res.cookie("authToken", token, { 
+      httpOnly: true, 
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Lax" 
+    });
     res.status(200).json({
       ...existingUser,
       clubStatus: existingUser.club ? existingUser.club.status : "None",
       token,
     });
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -50,10 +54,10 @@ const getMe = async (req, res) => {
   const userId = req.user.id;
   try {
     const meData = await authService.me(userId);
-    if (!meData) return res.status(404).send("User not found");
+    if (!meData) return res.status(404).json({ message: "User not found" });
     res.status(200).json(meData);
   } catch (error) {
-    res.status(500).send(error.message);
+    res.status(500).json({ message: error.message });
   }
 };
 

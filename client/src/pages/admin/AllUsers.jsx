@@ -19,6 +19,7 @@ import {
   Fingerprint,
 } from "lucide-react";
 import useAdmin from "../../hooks/useAdmin";
+import { getImageUrl } from "../../utils/imageUrl";
 
 const AdminAllUsers = () => {
   const { users, loading, error, fetchUsers, deleteUser } = useAdmin();
@@ -238,7 +239,7 @@ const AdminAllUsers = () => {
                         <div className="w-14 h-14 rounded-3xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-100 overflow-hidden border-2 border-white">
                           {u.profilePicture ? (
                             <img
-                              src={`${VITE_BASE_API_URL}${u.profilePicture}`}
+                              src={getImageUrl(u.profilePicture)}
                               alt=""
                               className="w-full h-full object-cover"
                             />
@@ -388,7 +389,7 @@ const AdminAllUsers = () => {
                 <div className="w-full h-full rounded-[2rem] bg-indigo-100 flex items-center justify-center font-black text-4xl text-indigo-600 overflow-hidden">
                   {selectedUser.profilePicture ? (
                     <img
-                      src={`${VITE_BASE_API_URL}${selectedUser.profilePicture}`}
+                      src={getImageUrl(selectedUser.profilePicture)}
                       className="w-full h-full object-cover"
                     />
                   ) : (
