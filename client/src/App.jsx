@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Toaster } from "react-hot-toast";
 import AppRoutes from "./routes/AppRoutes";
 import useAuth from "./hooks/useAuth";
+import Navbar from "./components/common/Navbar";
 
 const App = () => {
   const { getMe } = useAuth();
@@ -15,6 +16,7 @@ const App = () => {
 
   return (
     <div>
+      {/* <Navbar/> */}
       <AppRoutes />
       <Toaster />
     </div>

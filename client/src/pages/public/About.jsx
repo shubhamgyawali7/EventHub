@@ -5,7 +5,7 @@ import Footer from "../../components/common/Footer";
 const About = () => {
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-1">
         {/* Hero Section */}

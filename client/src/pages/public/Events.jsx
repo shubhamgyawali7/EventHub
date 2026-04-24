@@ -82,7 +82,7 @@ const Events = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FDFDFF]">
-      <Navbar />
+      {/* <Navbar /> */}
 
       {/* Hero Section */}
       <section className="bg-linear-to-b from-[#4F46E5]/10 to-transparent pt-32 pb-16 px-6 text-center">

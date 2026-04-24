@@ -131,11 +131,11 @@ const EventDetails = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/50">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-1">
         <div className="relative pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 to-transparent -z-10"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-indigo-600/5 to-transparent -z-10"></div>
 
           <div className="max-w-7xl mx-auto px-6">
             <button
@@ -159,7 +159,7 @@ const EventDetails = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold">
+                    <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold">
                       {event.title?.[0]}
                     </div>
                   )}

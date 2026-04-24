@@ -13,6 +13,9 @@ import Events from "../pages/public/Events";
 import EventDetails from "../pages/public/EventDetails";
 import About from "../pages/public/About";
 import Contact from "../pages/public/Contact";
+import PrivacyPolicy from "../pages/public/PrivacyPolicy";
+import TermsConditions from "../pages/public/TermsConditions";
+import FAQ from "../pages/public/FAQ .jsx";
 import PaymentSuccess from "../pages/public/PaymentSuccess";
 import EsewaPayment from "../pages/public/EsewaPayment";
 
@@ -44,16 +47,23 @@ import AdminEventDetails from "../pages/admin/AdminEventDetails";
 import AdminRegistrations from "../pages/admin/AdminRegistrations";
 import AdminHome from "../pages/admin/AdminHome.jsx";
 import PaymentComplete from "../components/payment/PaymentComplete.jsx";
+import MainLayout from "../components/layout/MainLayout.jsx";
 
 const AppRoutes = () => {
   return (
+    // /privacy-policy, /terms, and /faq
     <Routes>
       {/* 🌍 Public Routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/events" element={<Events />} />
-      <Route path="/event/:id" element={<EventDetails />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
+      <Route element={<MainLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/events" element={<Events />} />
+        <Route path="/event/:id" element={<EventDetails />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        <Route path="/terms-and-conditions" element={<TermsConditions />} />
+        <Route path="/faq" element={<FAQ />} />
+      </Route>
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/esewa-payment" element={<EsewaPayment />} />
 
@@ -71,7 +81,7 @@ const AppRoutes = () => {
       <Route path="/signup" element={<Signup />} />
       <Route path="/forget-password" element={<Signup />} />
 
-      {/* 👤 Student/User Routes (Nested in Layout) */}
+      {/* 👤 Student/User Routes */}
       <Route
         element={
           <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
@@ -92,96 +102,22 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/payment-complete"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.STUDENT]}>
-            <PaymentComplete />
-          </ProtectedRoute>
-        }
-      />
+
       {/* 🏢 Club Routes */}
-      <Route
-        path="/club/register"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubRegistration />
-          </ProtectedRoute>
-        }
-      />
 
-      <Route
-        path="/club/verification"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubPortal />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/club/dashboard"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubDashboard />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/club/create-event"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <CreateEvents />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/club/my-events/:id"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <AdminEventManagement />
-          </ProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/club/my-events"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ManageYourEvents />
-          </ProtectedRoute>
-        }
-      />
-
+      <Route path="/club/register" element={<ClubRegistration />} />
+      <Route path="/club/verification" element={<ClubPortal />} />
+      <Route path="/club/dashboard" element={<ClubDashboard />} />
+      <Route path="/club/create-event" element={<CreateEvents />} />
+      <Route path="/club/my-events/:id" element={<AdminEventManagement />} />
+      <Route path="/club/my-events" element={<ManageYourEvents />} />
       <Route
         path="/club/registrations"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ManageEventRegisterByUser />
-          </ProtectedRoute>
-        }
+        element={<ManageEventRegisterByUser />}
       />
 
-      {/* <Route
-        path="/club/profile"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.CLUB]}>
-            <ClubEventList />
-          </ProtectedRoute>
-        }
-      /> */}
-
-      {/* 🛡️ Admin Routes (Nested Layout) */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
-            <AdminHome />
-          </ProtectedRoute>
-        }
-      >
+      {/* 🛡️ Admin Routes */}
+      <Route path="/admin" element={<AdminHome />}>
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="events" element={<AdminManageEvents />} />
