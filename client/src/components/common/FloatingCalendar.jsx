@@ -136,6 +136,18 @@ const FloatingCalendar = ({ events = [] }) => {
                                 borderColor = "border-rose-200";
                             }
 
+                            const dayOfWeek = idx % 7;
+                            let tooltipPositionClass = "left-1/2 -translate-x-1/2";
+                            let arrowPositionClass = "left-1/2 -translate-x-1/2";
+                            
+                            if (dayOfWeek === 0 || dayOfWeek === 1) {
+                                tooltipPositionClass = "left-0";
+                                arrowPositionClass = "left-5 -translate-x-1/2";
+                            } else if (dayOfWeek === 5 || dayOfWeek === 6) {
+                                tooltipPositionClass = "right-0";
+                                arrowPositionClass = "right-5 translate-x-1/2";
+                            }
+
                             return (
                                 <div
                                     key={day}
@@ -157,7 +169,7 @@ const FloatingCalendar = ({ events = [] }) => {
 
                                     {/* Hover tooltip */}
                                     {(hasEvent || hasDeadline) && (
-                                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-48 bg-slate-900 text-white rounded-2xl p-3 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-50 shadow-2xl">
+                                        <div className={`absolute bottom-full mb-3 w-48 bg-slate-900 text-white rounded-2xl p-3 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-all z-50 shadow-2xl ${tooltipPositionClass}`}>
                                             <div className="space-y-2">
                                                 {dayEvents.map((e) => (
                                                     <div
@@ -206,7 +218,7 @@ const FloatingCalendar = ({ events = [] }) => {
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 border-6 border-transparent border-t-slate-900" />
+                                            <div className={`absolute top-full border-6 border-transparent border-t-slate-900 ${arrowPositionClass}`} />
                                         </div>
                                     )}
                                 </div>

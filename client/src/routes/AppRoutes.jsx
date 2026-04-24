@@ -13,9 +13,7 @@ import Events from "../pages/public/Events";
 import EventDetails from "../pages/public/EventDetails";
 import About from "../pages/public/About";
 import Contact from "../pages/public/Contact";
-import PrivacyPolicy from "../pages/public/PrivacyPolicy";
-import TermsConditions from "../pages/public/TermsConditions";
-import FAQ from "../pages/public/FAQ .jsx";
+import SupportCenter from "../pages/public/SupportCenter";
 import PaymentSuccess from "../pages/public/PaymentSuccess";
 import EsewaPayment from "../pages/public/EsewaPayment";
 
@@ -60,9 +58,9 @@ const AppRoutes = () => {
         <Route path="/event/:id" element={<EventDetails />} />
         <Route path="/about" element={<About />} />
         <Route path="/contact" element={<Contact />} />
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="/terms-and-conditions" element={<TermsConditions />} />
-        <Route path="/faq" element={<FAQ />} />
+        <Route path="/privacy-policy" element={<SupportCenter />} />
+        <Route path="/terms-and-conditions" element={<SupportCenter />} />
+        <Route path="/faq" element={<SupportCenter />} />
       </Route>
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/esewa-payment" element={<EsewaPayment />} />
