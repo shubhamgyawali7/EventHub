@@ -106,3 +106,15 @@ export const fetchMyRegistrations = createAsyncThunk(
     }
   }
 );
+
+export const fetchRecommendedEvents = createAsyncThunk(
+  "events/fetchRecommendedEvents",
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await eventService.getRecommendedEvents();
+      return data.map(normalizeEvent);
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch recommendations");
+    }
+  }
+);

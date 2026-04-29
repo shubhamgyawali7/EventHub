@@ -58,7 +58,7 @@ const RegisteredEvents = () => {
               </button>
            </div>
 
-           <div className="relative group min-w-[300px]">
+           <div className="relative group min-w-75">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input 
                 type="text" 
@@ -71,7 +71,7 @@ const RegisteredEvents = () => {
 
       {eventsLoading ? (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-             {[1, 2, 3].map(i => <div key={i} className="h-[450px] bg-white animate-pulse rounded-[3.5rem] border border-slate-100 shadow-sm"></div>)}
+             {[1, 2, 3].map(i => <div key={i} className="h-112.5 bg-white animate-pulse rounded-[3.5rem] border border-slate-100 shadow-sm"></div>)}
            </div>
       ) : error ? (
         <div className="bg-rose-50 border border-rose-100 p-12 rounded-[3.5rem] text-center max-w-xl mx-auto shadow-sm">

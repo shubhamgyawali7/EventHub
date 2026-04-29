@@ -352,4 +352,22 @@ const deleteEvent = async (req, res) => {
   }
 };
 
-export { addEvents, getAllEvents, getEventById, updateEvent, deleteEvent, updateGoogleSheetLink };
+const getRecommendedEvents = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const events = await eventService.getRecommendedEvents(userId);
+    res.status(200).json(events);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export {
+  addEvents,
+  getAllEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  updateGoogleSheetLink,
+  getRecommendedEvents,
+};

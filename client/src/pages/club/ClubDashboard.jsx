@@ -527,9 +527,12 @@ const ClubDashboard = () => {
               >
                 View All Events
               </Link>
-              <button className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all">
+              <Link
+                to="/club/analytics"
+                className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all text-center"
+              >
                 Event Analytics
-              </button>
+              </Link>
               <Link
                 to="/club/registrations"
                 className="block w-full px-4 py-3 bg-slate-50 text-slate-700 rounded-lg font-bold text-sm hover:bg-slate-100 transition-all text-center"

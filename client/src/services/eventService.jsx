@@ -161,6 +161,21 @@ const eventService = {
       throw new Error(error.response?.data?.message || "Search failed");
     }
   },
+
+  /**
+   * 💡 Get Recommended Events
+   * Fetches events matching the student's interest vector
+   */
+  getRecommendedEvents: async () => {
+    try {
+      const response = await api.get("/api/events/recommendations");
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        error.response?.data?.message || "Failed to fetch recommendations",
+      );
+    }
+  },
 };
 
 export default eventService;

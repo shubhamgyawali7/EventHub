@@ -8,6 +8,7 @@ import {
   deleteEvent,
   registerForEvent as registerAction,
   fetchMyRegistrations as fetchMyRegistrationsAction,
+  fetchRecommendedEvents as fetchRecommendedEventsAction,
 } from "../redux/events/eventsAction.js";
 
 const useEvents = () => {
@@ -15,6 +16,7 @@ const useEvents = () => {
   const events = useSelector((state) => state.events.events);
   const selectedEvent = useSelector((state) => state.events.selectedEvent);
   const myRegistrations = useSelector((state) => state.events.myRegistrations);
+  const recommendedEvents = useSelector((state) => state.events.recommendedEvents);
   const loading = useSelector((state) => state.events.loading);
   const error = useSelector((state) => state.events.error);
 
@@ -101,6 +103,18 @@ const useEvents = () => {
     [dispatch],
   );
 
+  const fetchRecommendedEvents = useCallback(
+    async () => {
+      try {
+        const res = await dispatch(fetchRecommendedEventsAction()).unwrap();
+        return { success: true, data: res };
+      } catch (err) {
+        return { success: false, message: err };
+      }
+    },
+    [dispatch],
+  );
+
   return {
     fetchEvents: fetchAllEvents,
     fetchEventById,
@@ -109,9 +123,11 @@ const useEvents = () => {
     deleteEvent: deleteExistingEvent,
     registerForEvent,
     fetchMyRegistrations,
+    fetchRecommendedEvents,
     events,
     selectedEvent,
     myRegistrations,
+    recommendedEvents,
     loading,
     error,
   };
