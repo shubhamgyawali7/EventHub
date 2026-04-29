@@ -130,7 +130,7 @@ const EsewaPayment = () => {
         {debugInfo && (
           <div className="mt-8 text-left bg-slate-100 p-4 rounded-lg text-xs font-mono max-h-64 overflow-y-auto border border-slate-300">
             <p className="font-bold mb-2">🔍 Debug Info:</p>
-            <pre className="whitespace-pre-wrap break-words text-slate-700">
+            <pre className="whitespace-pre-wrap wrap-break-word text-slate-700">
               {debugInfo.fullResult}
             </pre>
           </div>

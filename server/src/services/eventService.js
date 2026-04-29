@@ -1,5 +1,10 @@
 import Events from "../models/Events.js";
 import RegisterClub from "../models/RegisterClub.js";
+import User from "../models/User.js";
+import {
+  calculateRelevanceScore,
+  sortEventsByRelevance,
+} from "../utils/recommendationEngine.js";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -111,6 +116,39 @@ const getNearbyEvents = async (
     .limit(limit);
 };
 
+const getRecommendedEvents = async (userId) => {
+  const user = await User.findById(userId);
+  const interests = (user?.interestedSkills || []).map((i) =>
+    i.toLowerCase().trim(),
+  );
+
+  // 1. Get all published events
+  let events = await Events.find({ status: "published" }).populate(
+    "organizer",
+    "name logo district",
+  );
+
+  if (interests.length > 0) {
+    // Apply scoring from utility
+    events = events.map((event) => ({
+      ...event.toObject(),
+      relevanceScore: calculateRelevanceScore(event, interests),
+    }));
+
+    // Apply sorting from utility
+    events = sortEventsByRelevance(events);
+
+    // Filter: Only show events that have at least some relevance match
+    events = events.filter((event) => event.relevanceScore > 0);
+  } else {
+    // Default: Sort by date if no interests defined
+    events.sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+  }
+
+  // Return top 10 matches
+  return events.slice(0, 10);
+};
+
 export default {
   getClubByUser,
   createEvent,
@@ -119,4 +157,5 @@ export default {
   updateEvent,
   deleteEvent,
   getNearbyEvents,
+  getRecommendedEvents,
 };

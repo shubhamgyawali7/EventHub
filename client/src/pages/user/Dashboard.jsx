@@ -21,7 +21,15 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { events, fetchEvents, fetchMyRegistrations, myRegistrations, loading: eventsLoading } = useEvents();
+  const { 
+    events, 
+    fetchEvents, 
+    fetchMyRegistrations, 
+    myRegistrations, 
+    fetchRecommendedEvents,
+    recommendedEvents,
+    loading: eventsLoading 
+  } = useEvents();
   const { verifyKhalti } = usePayment();
 
   const normalizePoster = (poster) => {
@@ -34,6 +42,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchEvents();
     fetchMyRegistrations();
+    fetchRecommendedEvents();
 
     const query = new URLSearchParams(location.search);
     const pidx = query.get("pidx");
@@ -241,6 +250,49 @@ const Dashboard = () => {
            </div>
         </div>
       </div>
+
+      {/* --- RECOMMENDED FOR YOU (Based on Tags) --- */}
+      <section className="space-y-8">
+         <div className="flex items-center justify-between px-2">
+            <h3 className="text-xl font-black tracking-tight uppercase italic">Recommended <span className="text-indigo-600">For You</span></h3>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Based on your interests</p>
+         </div>
+         
+         {recommendedEvents?.length > 0 ? (
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+             {recommendedEvents.slice(0, 3).map((event, i) => (
+               <div key={i} className="bg-white border border-slate-100 p-6 rounded-[2.5rem] shadow-sm hover:shadow-xl transition-all group flex flex-col gap-4">
+                  <div className="aspect-video bg-slate-50 rounded-2xl overflow-hidden shadow-inner shrink-0 group-hover:scale-[1.02] transition-transform duration-500 relative">
+                     <img src={normalizePoster(event.poster)} className="w-full h-full object-cover" alt="" />
+                     <div className="absolute top-4 left-4">
+                        <span className="px-3 py-1 bg-white/90 backdrop-blur-sm text-indigo-600 text-[8px] font-black uppercase tracking-widest rounded-lg border border-indigo-100 shadow-sm">
+                           {event.category}
+                        </span>
+                     </div>
+                  </div>
+                  <div className="flex-1 space-y-3">
+                     <h4 className="text-lg font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors uppercase line-clamp-1">{event.title}</h4>
+                     <div className="flex flex-wrap gap-1">
+                        {event.tags?.slice(0, 3).map((tag, j) => (
+                           <span key={j} className="text-[7px] font-black text-slate-400 uppercase tracking-widest">#{tag}</span>
+                        ))}
+                     </div>
+                     <button 
+                        onClick={() => navigate(`/event/${event._id}`)}
+                        className="w-full py-3 bg-slate-50 hover:bg-indigo-600 hover:text-white text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 group/btn"
+                     >
+                        View Node <ArrowRight size={12} className="group-hover/btn:translate-x-1 transition-transform" />
+                     </button>
+                  </div>
+               </div>
+             ))}
+           </div>
+         ) : (
+           <div className="bg-slate-50 border-2 border-dashed border-slate-200 p-12 rounded-[3rem] text-center">
+              <p className="text-slate-400 font-black uppercase tracking-widest text-[10px] italic">No Matching Nodes Found</p>
+           </div>
+         )}
+      </section>
 
       {/* --- NEAR EVENT SESSIONS (Upcoming) --- */}
       <section className="space-y-8">

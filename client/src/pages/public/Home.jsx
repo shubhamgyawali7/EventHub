@@ -73,7 +73,7 @@ const StatItem = ({ target, suffix, label, format, started }) => {
       <div className="text-4xl md:text-5xl font-extrabold text-white mb-1 tabular-nums">
         {display}{suffix}
       </div>
-      <div className="text-blue-200 text-sm font-medium">{label}</div>
+      <div className="text-indigo-200 text-sm font-medium">{label}</div>
     </div>
   );
 };
@@ -93,7 +93,7 @@ const Stats = () => {
   }, []);
 
   return (
-    <section ref={ref} className="bg-blue-600 py-12">
+    <section ref={ref} className="bg-indigo-600 py-12">
       <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
         {STATS_DATA.map((s, i) => (
           <StatItem key={i} {...s} started={started} />
@@ -106,7 +106,7 @@ const Stats = () => {
 // ─── Floating Hero Card ───────────────────────────────────────────────────────
 const FloatingCard = ({ icon: Icon, title, sub, color, delay }) => (
   <div
-    className="flex items-center gap-3 bg-white rounded-2xl shadow-xl shadow-blue-100 border border-slate-100 px-4 py-3"
+    className="flex items-center gap-3 bg-white rounded-2xl shadow-xl shadow-indigo-100 border border-slate-100 px-4 py-3"
     style={{ animation: `float 4s ease-in-out ${delay} infinite` }}
   >
     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
@@ -130,9 +130,9 @@ const EventCard = ({ event }) => {
     seats && registeredCount ? Math.round((registeredCount / seats) * 100) : null;
 
   return (
-    <div className="group bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:shadow-blue-50 hover:-translate-y-1 transition-all duration-300">
+    <div className="group bg-white rounded-2xl border border-slate-100 overflow-hidden hover:shadow-xl hover:shadow-indigo-50 hover:-translate-y-1 transition-all duration-300">
       {/* Poster */}
-      <div className="relative h-48 overflow-hidden bg-blue-50">
+      <div className="relative h-48 overflow-hidden bg-indigo-50">
         {poster ? (
           <img
             src={poster}
@@ -140,11 +140,11 @@ const EventCard = ({ event }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-blue-200">
+          <div className="w-full h-full flex items-center justify-center text-indigo-200">
             <Calendar size={48} />
           </div>
         )}
-        <span className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+        <span className="absolute top-3 left-3 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full">
           {category}
         </span>
       </div>
@@ -157,18 +157,18 @@ const EventCard = ({ event }) => {
 
         <div className="flex flex-col gap-1.5 mb-4">
           <div className="flex items-center gap-2 text-slate-500 text-xs">
-            <Calendar size={13} className="text-blue-400 shrink-0" />
+            <Calendar size={13} className="text-indigo-400 shrink-0" />
             <span>{formatDate(eventDate)}</span>
           </div>
           {district && (
             <div className="flex items-center gap-2 text-slate-500 text-xs">
-              <MapPin size={13} className="text-blue-400 shrink-0" />
+              <MapPin size={13} className="text-indigo-400 shrink-0" />
               <span>{district}</span>
             </div>
           )}
           {deadline && (
             <div className="flex items-center gap-2 text-slate-500 text-xs">
-              <Clock size={13} className="text-blue-400 shrink-0" />
+              <Clock size={13} className="text-indigo-400 shrink-0" />
               <span>Register by {formatDate(deadline)}</span>
             </div>
           )}
@@ -185,7 +185,7 @@ const EventCard = ({ event }) => {
             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all duration-700 ${
-                  pct >= 90 ? "bg-red-400" : pct >= 70 ? "bg-amber-400" : "bg-blue-500"
+                  pct >= 90 ? "bg-red-400" : pct >= 70 ? "bg-amber-400" : "bg-indigo-500"
                 }`}
                 style={{ width: `${pct}%` }}
               />
@@ -195,7 +195,7 @@ const EventCard = ({ event }) => {
 
         <div className="flex items-center justify-between pt-3 border-t border-slate-50">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs overflow-hidden shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs overflow-hidden shrink-0">
               {organizer?.logo ? (
                 <img src={organizer.logo} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -208,7 +208,7 @@ const EventCard = ({ event }) => {
           </div>
           <Link
             to={`/event/${_id}`}
-            className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
+            className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors"
           >
             View <ArrowRight size={13} />
           </Link>
@@ -237,12 +237,12 @@ const Home = () => {
         {/* Radial glow — top right */}
         <div
           className="pointer-events-none absolute -top-40 -right-40 w-175 h-175 rounded-full opacity-25"
-          style={{ background: "radial-gradient(circle, #3B82F6 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #4F46E5 0%, transparent 70%)" }}
         />
         {/* Radial glow — bottom left */}
         <div
           className="pointer-events-none absolute -bottom-40 -left-20 w-125 h-125 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #60A5FA 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, #818CF8 0%, transparent 70%)" }}
         />
         {/* Dot grid */}
         <div
@@ -258,18 +258,18 @@ const Home = () => {
 
           {/* Left — Text */}
           <div style={{ animation: "slideUp 0.7s ease both" }}>
-            <span className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 border border-blue-100 text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-blue-500 rounded-full" style={{ animation: "pulse 2s infinite" }} />
+            <span className="inline-flex items-center gap-2 bg-indigo-50 text-indigo-600 border border-indigo-100 text-[11px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" style={{ animation: "pulse 2s infinite" }} />
               Nepal's #1 IT Event Platform
             </span>
 
             <h1 className="text-5xl md:text-6xl font-extrabold text-slate-900 leading-[1.07] tracking-tight mb-6">
               Discover Events.
               <br />
-              <span className="text-blue-600 relative inline-block">
+              <span className="text-indigo-600 relative inline-block">
                 Grow Your Skills.
                 <svg viewBox="0 0 320 12" className="absolute -bottom-1 left-0 w-full" fill="none">
-                  <path d="M2 8 Q80 1 160 8 Q240 15 318 8" stroke="#93C5FD" strokeWidth="3" strokeLinecap="round" />
+                  <path d="M2 8 Q80 1 160 8 Q240 15 318 8" stroke="#A5B4FC" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </span>
             </h1>
@@ -281,14 +281,14 @@ const Home = () => {
             <div className="flex flex-wrap gap-3 mb-10">
               <Link
                 to="/events"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-7 py-3.5 rounded-xl shadow-lg shadow-blue-200 transition-all hover:shadow-xl hover:shadow-blue-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm px-7 py-3.5 rounded-xl shadow-lg shadow-indigo-200 transition-all hover:shadow-xl hover:shadow-indigo-200 hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
               >
                 Browse Events <ArrowRight size={16} />
               </Link>
               {!user && (
                 <Link
                   to="/signup"
-                  className="bg-white border border-slate-200 hover:border-blue-300 text-slate-700 hover:text-blue-600 font-bold text-sm px-7 py-3.5 rounded-xl transition-all"
+                  className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-700 hover:text-indigo-600 font-bold text-sm px-7 py-3.5 rounded-xl transition-all"
                 >
                   Join Free →
                 </Link>
@@ -328,13 +328,13 @@ const Home = () => {
             <div
               className="relative w-80 h-80 rounded-full flex items-center justify-center"
               style={{
-                background: "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
-                border: "2px solid #BFDBFE",
+                background: "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
+                border: "2px solid #C7D2FE",
               }}
             >
               {/* Dashed spinning ring */}
               <div
-                className="absolute w-64 h-64 rounded-full border-2 border-dashed border-blue-200"
+                className="absolute w-64 h-64 rounded-full border-2 border-dashed border-indigo-200"
                 style={{ animation: "spin 22s linear infinite" }}
               />
 
@@ -346,31 +346,31 @@ const Home = () => {
                 xmlns="http://www.w3.org/2000/svg"
               >
                 {/* Monitor body */}
-                <rect x="38" y="52" width="124" height="84" rx="9" fill="#1D4ED8" />
-                <rect x="46" y="60" width="108" height="68" rx="5" fill="#EFF6FF" />
+                <rect x="38" y="52" width="124" height="84" rx="9" fill="#4338CA" />
+                <rect x="46" y="60" width="108" height="68" rx="5" fill="#EEF2FF" />
                 {/* Calendar grid on screen */}
-                <rect x="54" y="68" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="72" y="68" width="13" height="13" rx="2" fill="#2563EB" />
-                <rect x="90" y="68" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="108" y="68" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="126" y="68" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="54" y="86" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="72" y="86" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="90" y="86" width="13" height="13" rx="2" fill="#2563EB" />
-                <rect x="108" y="86" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="126" y="86" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="54" y="104" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="72" y="104" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="90" y="104" width="13" height="13" rx="2" fill="#BFDBFE" />
-                <rect x="108" y="104" width="13" height="13" rx="2" fill="#2563EB" />
-                <rect x="126" y="104" width="13" height="13" rx="2" fill="#BFDBFE" />
+                <rect x="54" y="68" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="72" y="68" width="13" height="13" rx="2" fill="#4F46E5" />
+                <rect x="90" y="68" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="108" y="68" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="126" y="68" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="54" y="86" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="72" y="86" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="90" y="86" width="13" height="13" rx="2" fill="#4F46E5" />
+                <rect x="108" y="86" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="126" y="86" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="54" y="104" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="72" y="104" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="90" y="104" width="13" height="13" rx="2" fill="#C7D2FE" />
+                <rect x="108" y="104" width="13" height="13" rx="2" fill="#4F46E5" />
+                <rect x="126" y="104" width="13" height="13" rx="2" fill="#C7D2FE" />
                 {/* Stand */}
-                <rect x="91" y="136" width="18" height="12" rx="2" fill="#1D4ED8" />
-                <rect x="74" y="148" width="52" height="6" rx="3" fill="#1D4ED8" />
+                <rect x="91" y="136" width="18" height="12" rx="2" fill="#4338CA" />
+                <rect x="74" y="148" width="52" height="6" rx="3" fill="#4338CA" />
                 {/* Avatar head */}
                 <circle cx="100" cy="26" r="15" fill="#FDE68A" />
                 {/* Avatar body */}
-                <rect x="82" y="39" width="36" height="18" rx="8" fill="#2563EB" />
+                <rect x="82" y="39" width="36" height="18" rx="8" fill="#4F46E5" />
                 {/* Notification badge */}
                 <circle cx="150" cy="58" r="8" fill="#EF4444" />
                 <text x="146.5" y="62.5" fontSize="8.5" fill="white" fontWeight="bold">2</text>
@@ -378,7 +378,7 @@ const Home = () => {
 
               {/* Animated dots */}
               <div
-                className="absolute w-3.5 h-3.5 rounded-full bg-blue-400 shadow-lg shadow-blue-200"
+                className="absolute w-3.5 h-3.5 rounded-full bg-indigo-400 shadow-lg shadow-indigo-200"
                 style={{ top: "10%", right: "8%", animation: "bob 5s ease-in-out infinite" }}
               />
               <div
@@ -393,7 +393,7 @@ const Home = () => {
 
             {/* Floating event cards */}
             <div className="absolute -left-8 top-6">
-              <FloatingCard icon={Zap} title="HackFest 2026" sub="148 / 200 seats" color="bg-blue-500" delay="0s" />
+              <FloatingCard icon={Zap} title="HackFest 2026" sub="148 / 200 seats" color="bg-indigo-500" delay="0s" />
             </div>
             <div className="absolute -right-8 top-20">
               <FloatingCard icon={Code2} title="Open Source Bootcamp" sub="Kathmandu · Jun 1" color="bg-indigo-500" delay="1.4s" />
@@ -416,7 +416,7 @@ const Home = () => {
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-          <path d="M0 56 L0 28 Q360 0 720 28 Q1080 56 1440 28 L1440 56 Z" fill="#2563EB" />
+          <path d="M0 56 L0 28 Q360 0 720 28 Q1080 56 1440 28 L1440 56 Z" fill="#4F46E5" />
         </svg>
       </section>
 
@@ -428,8 +428,8 @@ const Home = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <TrendingUp size={15} className="text-blue-500" />
-              <span className="text-blue-600 text-xs font-bold uppercase tracking-widest">Featured</span>
+              <TrendingUp size={15} className="text-indigo-500" />
+              <span className="text-indigo-600 text-xs font-bold uppercase tracking-widest">Featured</span>
             </div>
             <h2 className="text-2xl md:text-3xl font-extrabold text-slate-800 tracking-tight">
               Upcoming Events
@@ -437,7 +437,7 @@ const Home = () => {
           </div>
           <Link
             to="/events"
-            className="hidden md:flex items-center gap-1.5 text-blue-600 hover:text-blue-700 text-sm font-semibold transition-colors"
+            className="hidden md:flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700 text-sm font-semibold transition-colors"
           >
             View all <ArrowRight size={15} />
           </Link>
@@ -467,12 +467,12 @@ const Home = () => {
           </div>
         ) : (
           <div className="bg-white border border-slate-100 rounded-2xl p-16 text-center">
-            <Calendar size={40} className="text-blue-200 mx-auto mb-4" />
+            <Calendar size={40} className="text-indigo-200 mx-auto mb-4" />
             <h3 className="font-bold text-slate-700 text-lg mb-2">No events yet</h3>
             <p className="text-slate-400 text-sm mb-6">Check back soon for upcoming events.</p>
             <Link
               to="/events"
-              className="bg-blue-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-blue-700 transition-colors inline-block"
+              className="bg-indigo-600 text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-indigo-700 transition-colors inline-block"
             >
               Explore Events
             </Link>
@@ -481,7 +481,7 @@ const Home = () => {
 
         {Array.isArray(events) && events.length > 0 && (
           <div className="mt-8 text-center md:hidden">
-            <Link to="/events" className="text-blue-600 font-semibold text-sm flex items-center gap-1.5 justify-center">
+            <Link to="/events" className="text-indigo-600 font-semibold text-sm flex items-center gap-1.5 justify-center">
               View all events <ArrowRight size={15} />
             </Link>
           </div>
@@ -491,27 +491,27 @@ const Home = () => {
       {/* ── CTA Banner ── */}
       {!user && (
         <section className="px-6 pb-16 max-w-6xl mx-auto w-full">
-          <div className="bg-blue-600 rounded-2xl p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <div className="bg-indigo-600 rounded-2xl p-10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
             <div
               className="absolute -top-16 -right-16 w-56 h-56 rounded-full opacity-20"
               style={{ background: "radial-gradient(circle, #fff 0%, transparent 70%)" }}
             />
             <div className="relative">
               <h3 className="text-white text-2xl font-extrabold mb-2">Ready to get started?</h3>
-              <p className="text-blue-100 text-sm">
+              <p className="text-indigo-100 text-sm">
                 Join thousands of students discovering IT events across Nepal.
               </p>
             </div>
             <div className="flex gap-3 shrink-0 relative">
               <Link
                 to="/signup"
-                className="bg-white text-blue-600 font-bold text-sm px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors"
+                className="bg-white text-indigo-600 font-bold text-sm px-6 py-3 rounded-xl hover:bg-indigo-50 transition-colors"
               >
                 Create Account
               </Link>
               <Link
                 to="/events"
-                className="border border-blue-400 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
+                className="border border-indigo-400 text-white font-bold text-sm px-6 py-3 rounded-xl hover:bg-indigo-700 transition-colors"
               >
                 Browse Events
               </Link>

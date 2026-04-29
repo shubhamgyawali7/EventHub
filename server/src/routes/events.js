@@ -9,11 +9,15 @@ import {
   updateEvent,
   deleteEvent,
   updateGoogleSheetLink,
+  getRecommendedEvents,
 } from "../controllers/eventsController.js";
 
 const router = express.Router();
 
 router.get("/diag/ping", (req, res) => res.json({ status: "Events Router is Online" }));
+
+// Recommendation route - Must be before /:id to avoid conflict
+router.get("/recommendations", auth, getRecommendedEvents);
 
 // GET /api/events?lat=27.717&lng=85.324&radius=10 - for nearby events
 // GET /api/events - for all events

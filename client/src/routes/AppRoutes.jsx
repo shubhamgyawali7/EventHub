@@ -34,6 +34,7 @@ import AdminEventManagement from "../pages/club/ManageEventDetails";
 import ClubRegistration from "../pages/club/ClubRegistration.jsx";
 import ClubPortal from "../components/Organizer/ClubRedirection.jsx";
 import ManageEventRegisterByUser from "../pages/club/ManageEventRegisterByUser";
+import EventAnalytics from "../pages/club/EventAnalytics";
 
 // Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -113,6 +114,7 @@ const AppRoutes = () => {
         path="/club/registrations"
         element={<ManageEventRegisterByUser />}
       />
+      <Route path="/club/analytics" element={<EventAnalytics />} />
 
       {/* 🛡️ Admin Routes */}
       <Route path="/admin" element={<AdminHome />}>

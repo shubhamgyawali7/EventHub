@@ -18,7 +18,7 @@ router.post("/khalti/verify", auth, verifyKhaltiPayment);
 /**
  * 🟢 eSewa Routes
  */
-router.get("/esewa/form", auth, getEsewaPaymentForm);
-router.post("/esewa/verify", auth, verifyEsewaPayment);
+router.get("/esewa/form", getEsewaPaymentForm);
+router.post("/esewa/verify", verifyEsewaPayment);
 
 export default router;

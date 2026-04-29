@@ -49,6 +49,7 @@ const ClubSidebar = () => {
     { name: "Create Event", path: "/club/create-event", icon: CalendarPlus },
     { name: "Event List", path: "/club/my-events", icon: ListOrdered },
     { name: "Registrations", path: "/club/registrations", icon: Users },
+    { name: "Analytics", path: "/club/analytics", icon: PieChart },
   ];
 
   return (
