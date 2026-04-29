@@ -62,9 +62,8 @@ const EventCard = ({
           <img
             src={poster}
             alt={title}
-            className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${
-              isEventCompleted ? "grayscale" : ""
-            }`}
+            className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ${isEventCompleted ? "grayscale" : ""
+              }`}
           />
         ) : (
           <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-3xl font-bold">
@@ -117,11 +116,10 @@ const EventCard = ({
           {/* Deadline Section */}
           {deadline && (
             <div
-              className={`flex items-center text-sm gap-2 font-medium p-1.5 rounded-lg border ${
-                isDeadlinePassed
+              className={`flex items-center text-sm gap-2 font-medium p-1.5 rounded-lg border ${isDeadlinePassed
                   ? "bg-gray-50 text-gray-500 border-gray-100"
                   : "bg-amber-50 text-amber-600 border-amber-100"
-              }`}
+                }`}
             >
               <Clock size={16} />
               <span className="truncate">
@@ -148,13 +146,12 @@ const EventCard = ({
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all duration-1000 rounded-full ${
-                occupancyPercent > 90
+              className={`h-full transition-all duration-1000 rounded-full ${occupancyPercent > 90
                   ? "bg-red-500"
                   : occupancyPercent > 70
                     ? "bg-orange-500"
                     : "bg-indigo-600"
-              }`}
+                }`}
               style={{ width: `${occupancyPercent}%` }}
             ></div>
           </div>

@@ -12,7 +12,7 @@ const Contact = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-1">
         {/* Header Section */}

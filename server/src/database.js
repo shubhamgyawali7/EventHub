@@ -15,15 +15,15 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(url, {
       // This ensures your data goes into the correct database inside your cluster
-      dbName: "event_hub_portal", 
+      dbName: "event_hub_portal",
     });
 
     // console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
-    console.log(`✅ MongoDB Connected !!!!!`);
+    console.log(`✅ MongoDB Connected !!!!!`, conn.connection);
   } catch (error) {
 
     console.error(`❌ MongoDB Connection Failed: ${error.message}`);
-   
+
     process.exit(1);
   }
 };

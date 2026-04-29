@@ -465,19 +465,17 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
-                        formData.eventType === "physical"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.eventType === "physical"
                           ? "border-indigo-600 bg-white shadow-lg"
                           : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
-                      }`}
+                        }`}
                     >
                       <MapPin
                         size={20}
-                        className={`mx-auto mb-2 ${
-                          formData.eventType === "physical"
+                        className={`mx-auto mb-2 ${formData.eventType === "physical"
                             ? "text-indigo-600"
                             : "text-indigo-400"
-                        }`}
+                          }`}
                       />
                       <p className="text-sm font-black text-indigo-900">
                         Physical
@@ -501,19 +499,17 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
-                        formData.eventType === "online"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.eventType === "online"
                           ? "border-blue-600 bg-white shadow-lg"
                           : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
-                      }`}
+                        }`}
                     >
                       <Globe
                         size={20}
-                        className={`mx-auto mb-2 ${
-                          formData.eventType === "online"
+                        className={`mx-auto mb-2 ${formData.eventType === "online"
                             ? "text-blue-600"
                             : "text-indigo-400"
-                        }`}
+                          }`}
                       />
                       <p className="text-sm font-black text-indigo-900">
                         Online
@@ -545,19 +541,17 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
-                        formData.registrationType === "system"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.registrationType === "system"
                           ? "border-emerald-600 bg-white shadow-lg"
                           : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
-                      }`}
+                        }`}
                     >
                       <FormInput
                         size={20}
-                        className={`mx-auto mb-2 ${
-                          formData.registrationType === "system"
+                        className={`mx-auto mb-2 ${formData.registrationType === "system"
                             ? "text-emerald-600"
                             : "text-emerald-400"
-                        }`}
+                          }`}
                       />
                       <p className="text-sm font-black text-emerald-900">
                         System Registration
@@ -586,19 +580,17 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
-                        formData.registrationType === "google_form"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.registrationType === "google_form"
                           ? "border-blue-600 bg-white shadow-lg"
                           : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
-                      }`}
+                        }`}
                     >
                       <ExternalLink
                         size={20}
-                        className={`mx-auto mb-2 ${
-                          formData.registrationType === "google_form"
+                        className={`mx-auto mb-2 ${formData.registrationType === "google_form"
                             ? "text-blue-600"
                             : "text-emerald-400"
-                        }`}
+                          }`}
                       />
                       <p className="text-sm font-black text-emerald-900">
                         Google Form

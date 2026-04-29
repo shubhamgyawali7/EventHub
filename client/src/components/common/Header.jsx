@@ -26,7 +26,7 @@ const Hero = () => {
           <div className="mt-10 flex flex-wrap gap-6">
             <Link
               to="/events"
-              className="px-10 py-5 rounded-[2rem] bg-indigo-600 text-white font-black uppercase tracking-widest text-xs shadow-2xl shadow-indigo-100 hover:bg-slate-900 transition-all hover:scale-105 active:scale-95"
+              className="px-10 py-5 rounded-4xl bg-indigo-600 text-white font-black uppercase tracking-widest text-xs shadow-2xl shadow-indigo-100 hover:bg-slate-900 transition-all hover:scale-105 active:scale-95"
             >
               Explore Node Registry
             </Link>

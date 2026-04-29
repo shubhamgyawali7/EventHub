@@ -131,11 +131,11 @@ const EventDetails = () => {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/50">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-1">
         <div className="relative pt-24 pb-12 lg:pt-32 lg:pb-20 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/5 to-transparent -z-10"></div>
+          <div className="absolute inset-0 bg-linear-to-b from-indigo-600/5 to-transparent -z-10"></div>
 
           <div className="max-w-7xl mx-auto px-6">
             <button
@@ -159,7 +159,7 @@ const EventDetails = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold">
+                    <div className="w-full h-full bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-6xl font-bold">
                       {event.title?.[0]}
                     </div>
                   )}
@@ -176,11 +176,10 @@ const EventDetails = () => {
                       {event.category}
                     </span>
                     <span
-                      className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${
-                        event.isPaid && event.price > 0
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider border ${event.isPaid && event.price > 0
                           ? "bg-green-50 text-green-600 border-green-100"
                           : "bg-emerald-50 text-emerald-600 border-emerald-100"
-                      }`}
+                        }`}
                     >
                       {event.isPaid && event.price > 0
                         ? `Rs. ${event.price}`
@@ -211,11 +210,10 @@ const EventDetails = () => {
                     </div>
                     <div className="flex items-start gap-4">
                       <div
-                        className={`p-3 rounded-2xl mt-1 ${
-                          event.eventType === "online"
+                        className={`p-3 rounded-2xl mt-1 ${event.eventType === "online"
                             ? "bg-blue-50 text-blue-600"
                             : "bg-indigo-50 text-indigo-600"
-                        }`}
+                          }`}
                       >
                         {event.eventType === "online" ? (
                           <Globe size={20} />
@@ -321,13 +319,12 @@ const EventDetails = () => {
                     <div className="space-y-2">
                       <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className={`h-full transition-all duration-1000 rounded-full ${
-                            occupancyPercent > 90
+                          className={`h-full transition-all duration-1000 rounded-full ${occupancyPercent > 90
                               ? "bg-rose-500"
                               : occupancyPercent > 70
                                 ? "bg-orange-500"
                                 : "bg-indigo-600"
-                          }`}
+                            }`}
                           style={{ width: `${occupancyPercent}%` }}
                         ></div>
                       </div>
@@ -355,9 +352,9 @@ const EventDetails = () => {
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registration Fee</span>
                         <div className="bg-indigo-50 px-6 py-3 rounded-2xl border border-indigo-100 flex items-center justify-center min-w-[120px]">
-                           <span className="text-sm font-black text-indigo-600 uppercase tracking-widest">
-                             {event.isPaid && event.price > 0 ? `Rs. ${event.price}` : "Free"}
-                           </span>
+                          <span className="text-sm font-black text-indigo-600 uppercase tracking-widest">
+                            {event.isPaid && event.price > 0 ? `Rs. ${event.price}` : "Free"}
+                          </span>
                         </div>
                       </div>
 
@@ -452,62 +449,62 @@ const EventDetails = () => {
                   <div className="bg-indigo-600 rounded-[2.5rem] p-10 shadow-2xl shadow-indigo-200 overflow-hidden relative group mt-8 text-white">
                     <div className="relative z-10">
                       <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-10">Organized By</p>
-                      
+
                       <div className="flex items-start gap-6 mb-8">
-                         <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
-                            <Building2 size={32} />
-                         </div>
-                         <div className="flex-1">
-                            <h4 className="text-xl font-black text-white tracking-tighter mb-2">
-                              {event.organizer.name}
-                            </h4>
-                            <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
-                              <CheckCircle2 size={12} /> Verified Legacy
-                            </div>
-                         </div>
+                        <div className="w-16 h-16 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white border border-white/20">
+                          <Building2 size={32} />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="text-xl font-black text-white tracking-tighter mb-2">
+                            {event.organizer.name}
+                          </h4>
+                          <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                            <CheckCircle2 size={12} /> Verified Legacy
+                          </div>
+                        </div>
                       </div>
 
                       <div className="w-full h-px bg-white/10 mb-8" />
 
                       <div className="space-y-4 mb-8">
-                         {event.organizer.email && (
-                           <div className="flex items-center gap-4 text-sm font-bold text-white/80">
-                              <Mail size={18} className="text-white/40" />
-                              <span>{event.organizer.email}</span>
-                           </div>
-                         )}
-                         {event.organizer.website && (
-                           <div className="flex items-center gap-4 text-sm font-bold text-white/80">
-                              <Globe size={18} className="text-white/40" />
-                              <a href={event.organizer.website} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">{event.organizer.website}</a>
-                         </div>
-                       )}
-                    </div>
+                        {event.organizer.email && (
+                          <div className="flex items-center gap-4 text-sm font-bold text-white/80">
+                            <Mail size={18} className="text-white/40" />
+                            <span>{event.organizer.email}</span>
+                          </div>
+                        )}
+                        {event.organizer.website && (
+                          <div className="flex items-center gap-4 text-sm font-bold text-white/80">
+                            <Globe size={18} className="text-white/40" />
+                            <a href={event.organizer.website} target="_blank" rel="noreferrer" className="hover:text-white transition-colors">{event.organizer.website}</a>
+                          </div>
+                        )}
+                      </div>
 
-                    {/* Socials Link Icons */}
-                    <div className="flex flex-wrap gap-2 pt-4">
-                       {[
-                        { icon: Facebook, url: event.organizer.facebook },
-                        { icon: Instagram, url: event.organizer.instagram },
-                        { icon: Twitter, url: event.organizer.twitter },
-                        { icon: Github, url: event.organizer.github },
-                        { icon: Linkedin, url: event.organizer.linkedin }
-                       ].filter(s => s.url).map((social, i) => {
-                         const Icon = social.icon;
-                         return (
-                           <a key={i} href={social.url} target="_blank" rel="noreferrer" className="w-11 h-11 bg-white/10 hover:bg-white text-white hover:text-indigo-600 rounded-xl flex items-center justify-center transition-all duration-300 border border-white/5">
+                      {/* Socials Link Icons */}
+                      <div className="flex flex-wrap gap-2 pt-4">
+                        {[
+                          { icon: Facebook, url: event.organizer.facebook },
+                          { icon: Instagram, url: event.organizer.instagram },
+                          { icon: Twitter, url: event.organizer.twitter },
+                          { icon: Github, url: event.organizer.github },
+                          { icon: Linkedin, url: event.organizer.linkedin }
+                        ].filter(s => s.url).map((social, i) => {
+                          const Icon = social.icon;
+                          return (
+                            <a key={i} href={social.url} target="_blank" rel="noreferrer" className="w-11 h-11 bg-white/10 hover:bg-white text-white hover:text-indigo-600 rounded-xl flex items-center justify-center transition-all duration-300 border border-white/5">
                               <Icon size={18} />
-                           </a>
-                         );
-                       })}
-                    </div>
+                            </a>
+                          );
+                        })}
+                      </div>
 
-                    <button 
-                      onClick={() => navigate(`/organizer/${event.organizer._id}`)}
-                      className="w-full mt-10 py-5 bg-white/10 hover:bg-white text-white hover:text-indigo-600 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      Visit Profile <ExternalLink size={14} />
-                    </button>
+                      <button
+                        onClick={() => navigate(`/organizer/${event.organizer._id}`)}
+                        className="w-full mt-10 py-5 bg-white/10 hover:bg-white text-white hover:text-indigo-600 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        Visit Profile <ExternalLink size={14} />
+                      </button>
                     </div>
                   </div>
                 )}
