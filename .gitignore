@@ -1,3 +1,16 @@
+# Ignore everything
+*
+
+# Allow required files/folders
+!.gitignore
+!README.md
+!client/
+!server/
+
+# Allow all contents inside client and server
+!client/**
+!server/**
+
 # Node modules
 node_modules/
 server/node_modules/
@@ -31,8 +44,14 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Optional: coverage reports
-coverage/
+# # Optional: coverage reports
+# coverage/
+# /flow-coverage/
+# club_verification_report.txt
+# docs/
+# docs/deployment_report.txt
+# docs/event_troubleshooting_report.txt
+# docs/near_location_report.txt
 
 club_verification_report.txt
 FlexiEvent_Implementation_Guide.txt
