@@ -27,6 +27,7 @@ import Navbar from "../../components/common/Navbar";
 import Footer from "../../components/common/Footer";
 import CountdownTimer from "../../components/common/CountdownTimer";
 import useEvents from "../../hooks/useEvents";
+import useAuth from "../../hooks/useAuth";
 
 // Normalize poster URLs
 const normalizePoster = (poster) => {
@@ -38,7 +39,8 @@ const normalizePoster = (poster) => {
 
 const EventDetails = () => {
   const { id } = useParams();
-  const { fetchEventById } = useEvents(); // no need for events array here
+  const { fetchEventById, fetchMyRegistrations, myRegistrations } = useEvents();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -61,12 +63,17 @@ const EventDetails = () => {
         setError(result.message || "Failed to load event details");
       }
 
+      // If user is logged in, also fetch their registrations to check status
+      if (user) {
+        await fetchMyRegistrations();
+      }
+
       setLoading(false);
       window.scrollTo(0, 0);
     };
 
     loadEvent();
-  }, [id]); // only re-runs when URL id changes
+  }, [id, user, fetchEventById, fetchMyRegistrations]); // only re-runs when URL id or user changes
 
   useEffect(() => {
     if (!showQrModal || !event) return;
@@ -128,6 +135,14 @@ const EventDetails = () => {
   const occupancyPercent = totalCapacity
     ? Math.round((currentParticipants / totalCapacity) * 100)
     : 0;
+
+  // Check if user is already registered
+  const isAlreadyRegistered = myRegistrations?.some(
+    (reg) => (reg.event?._id === id || reg.event === id)
+  );
+
+  // Check if deadline has passed
+  const isDeadlinePassed = event.deadline && new Date(event.deadline) < new Date();
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50/50">
@@ -359,7 +374,13 @@ const EventDetails = () => {
                       </div>
 
                       <button
-                        className="w-full py-6 bg-linear-to-r from-indigo-600 to-purple-700 text-white rounded-full font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-indigo-200 hover:scale-[1.02] transition-all duration-500 active:scale-95 disabled:opacity-50"
+                        className={`w-full py-6 rounded-full font-black uppercase tracking-[0.2em] text-[11px] transition-all duration-500 
+                          ${isAlreadyRegistered && !isDeadlinePassed
+                            ? "bg-indigo-50 text-indigo-600 border border-indigo-100 cursor-not-allowed shadow-none"
+                            : isDeadlinePassed || (availableSeats <= 0 && event.registrationType === "system")
+                              ? "bg-slate-100 text-slate-400 cursor-not-allowed shadow-none"
+                              : "bg-linear-to-r from-indigo-600 to-purple-700 text-white shadow-2xl shadow-indigo-200 hover:scale-[1.02] active:scale-95"
+                          }`}
                         onClick={() => {
                           if (
                             event.registrationType === "google_form" &&
@@ -371,15 +392,21 @@ const EventDetails = () => {
                           }
                         }}
                         disabled={
-                          availableSeats <= 0 &&
-                          event.registrationType === "system"
+                          isAlreadyRegistered ||
+                          isDeadlinePassed ||
+                          (availableSeats <= 0 &&
+                            event.registrationType === "system")
                         }
                       >
-                        {event.registrationType === "google_form"
-                          ? "Register via Link"
-                          : availableSeats > 0
-                            ? "Book My Seat Now"
-                            : "Event Full"}
+                        {isAlreadyRegistered
+                          ? "Registration Completed"
+                          : isDeadlinePassed
+                            ? "Registration Closed"
+                            : event.registrationType === "google_form"
+                              ? "Register via Link"
+                              : availableSeats > 0
+                                ? "Book My Seat Now"
+                                : "Event Full"}
                       </button>
 
                       <div className="flex justify-center gap-10 pt-2">
