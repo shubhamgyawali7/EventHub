@@ -4,6 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-hot-toast";
 import useAuth from "../../hooks/useAuth";
 import MapPicker from "../../components/common/MapPicker";
+import { NEPAL_DISTRICTS } from "../../utils/districts";
 import {
   Calendar,
   MapPin,
@@ -82,10 +83,16 @@ const CreateEvents = () => {
               eventType: event.eventType || "physical",
               venue: event.venue || "",
               eventDate: event.eventDate
-                ? new Date(event.eventDate).toLocaleString("sv-SE").replace(" ", "T").substring(0, 16)
+                ? new Date(event.eventDate)
+                    .toLocaleString("sv-SE")
+                    .replace(" ", "T")
+                    .substring(0, 16)
                 : "",
               deadline: event.deadline
-                ? new Date(event.deadline).toLocaleString("sv-SE").replace(" ", "T").substring(0, 16)
+                ? new Date(event.deadline)
+                    .toLocaleString("sv-SE")
+                    .replace(" ", "T")
+                    .substring(0, 16)
                 : "",
               participantCount: event.participantCount || 50,
               tags: event.tags?.join(",") || "",
@@ -465,17 +472,19 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.eventType === "physical"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.eventType === "physical"
                           ? "border-indigo-600 bg-white shadow-lg"
                           : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
-                        }`}
+                      }`}
                     >
                       <MapPin
                         size={20}
-                        className={`mx-auto mb-2 ${formData.eventType === "physical"
+                        className={`mx-auto mb-2 ${
+                          formData.eventType === "physical"
                             ? "text-indigo-600"
                             : "text-indigo-400"
-                          }`}
+                        }`}
                       />
                       <p className="text-sm font-black text-indigo-900">
                         Physical
@@ -499,17 +508,19 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.eventType === "online"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.eventType === "online"
                           ? "border-blue-600 bg-white shadow-lg"
                           : "border-indigo-200 bg-white/50 group-hover:border-indigo-300"
-                        }`}
+                      }`}
                     >
                       <Globe
                         size={20}
-                        className={`mx-auto mb-2 ${formData.eventType === "online"
+                        className={`mx-auto mb-2 ${
+                          formData.eventType === "online"
                             ? "text-blue-600"
                             : "text-indigo-400"
-                          }`}
+                        }`}
                       />
                       <p className="text-sm font-black text-indigo-900">
                         Online
@@ -541,17 +552,19 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.registrationType === "system"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.registrationType === "system"
                           ? "border-emerald-600 bg-white shadow-lg"
                           : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
-                        }`}
+                      }`}
                     >
                       <FormInput
                         size={20}
-                        className={`mx-auto mb-2 ${formData.registrationType === "system"
+                        className={`mx-auto mb-2 ${
+                          formData.registrationType === "system"
                             ? "text-emerald-600"
                             : "text-emerald-400"
-                          }`}
+                        }`}
                       />
                       <p className="text-sm font-black text-emerald-900">
                         System Registration
@@ -580,17 +593,19 @@ const CreateEvents = () => {
                       className="sr-only"
                     />
                     <div
-                      className={`p-6 rounded-2xl border-2 transition-all text-center ${formData.registrationType === "google_form"
+                      className={`p-6 rounded-2xl border-2 transition-all text-center ${
+                        formData.registrationType === "google_form"
                           ? "border-blue-600 bg-white shadow-lg"
                           : "border-emerald-200 bg-white/50 group-hover:border-emerald-300"
-                        }`}
+                      }`}
                     >
                       <ExternalLink
                         size={20}
-                        className={`mx-auto mb-2 ${formData.registrationType === "google_form"
+                        className={`mx-auto mb-2 ${
+                          formData.registrationType === "google_form"
                             ? "text-blue-600"
                             : "text-emerald-400"
-                          }`}
+                        }`}
                       />
                       <p className="text-sm font-black text-emerald-900">
                         Google Form
@@ -640,18 +655,18 @@ const CreateEvents = () => {
                   value={formData.district}
                   required
                 >
-                  {[
-                    "Kathmandu",
-                    "Lalitpur",
-                    "Bhaktapur",
-                    "Pokhara",
-                    "Chitwan",
-                    "Butwal",
-                  ].map((d) => (
-                    <option key={d} value={d}>
-                      {d}
-                    </option>
-                  ))}
+                  <option value="">Select a district</option>
+                  {Object.entries(NEPAL_DISTRICTS).map(
+                    ([province, districts]) => (
+                      <optgroup key={province} label={province}>
+                        {districts.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ),
+                  )}
                 </select>
               </div>
 
@@ -801,7 +816,8 @@ const CreateEvents = () => {
           <div className="space-y-8">
             <section className="bg-white p-8 rounded-[3.5rem] border border-slate-100 shadow-sm space-y-6">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 ml-1">
-                <ImageIcon size={12} /> Event Poster {isEditMode ? "(optional to change)" : "*"}
+                <ImageIcon size={12} /> Event Poster{" "}
+                {isEditMode ? "(optional to change)" : "*"}
               </label>
               <div className="relative group">
                 <div

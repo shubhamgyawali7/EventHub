@@ -23,6 +23,7 @@ import {
 } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { DISTRICT_COORDINATES } from "../../utils/districtCoordinates";
 
 // Fix for default marker icons in Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -97,13 +98,32 @@ const MapPicker = ({ onLocationSelect, searchQuery, initialLocation }) => {
   );
   const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState("map");
-  const [mapCenter, setMapCenter] = useState(
-    initialLocation || { lat: 27.7172, lng: 85.324 },
-  );
+
+  // Determine initial map center based on district (searchQuery)
+  const getInitialMapCenter = () => {
+    if (initialLocation) {
+      return initialLocation;
+    }
+    if (searchQuery && DISTRICT_COORDINATES[searchQuery]) {
+      return DISTRICT_COORDINATES[searchQuery];
+    }
+    // Default to Kathmandu if no district or initial location
+    return { lat: 27.7172, lng: 85.324 };
+  };
+
+  const [mapCenter, setMapCenter] = useState(getInitialMapCenter());
   const [mapZoom, setMapZoom] = useState(15);
   const [addressString, setAddressString] = useState("");
 
   const mapRef = useRef(null);
+
+  // Update map center when searchQuery (district) changes
+  useEffect(() => {
+    if (searchQuery && DISTRICT_COORDINATES[searchQuery] && !initialLocation) {
+      setMapCenter(DISTRICT_COORDINATES[searchQuery]);
+      setSearchTerm(searchQuery);
+    }
+  }, [searchQuery, initialLocation]);
 
   // Get user's current location
   const useCurrentLocation = () => {
