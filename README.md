@@ -260,45 +260,7 @@ npm test         # Run tests
 - **Nirmal Bashyal - Frontend Developer**
 - **Ujjal Pandey - Frontend Developer**
 
-## 🗺️ Further Updates
 
-### Phase 1: Core Enhancement
-
-- [x] Centralized event hub with organization verification
-- [x] Role-based access control (Student, Organizer, Admin)
-- [x] Event discovery with location-based filtering
-- [x] Basic event registration system
-- [ ] Google Calendar API integration for automatic event sync
-- [ ] Nepal-specific payment gateway integration for paid events
-
-### Phase 2: Smart Features
-
-- [x] Advanced event prioritization algorithm (Trending & Urgent badges)
-- [x] Automated deadline alerts and notifications
-- [x] Email notification system for registrations and updates
-- [ ] Event recommendation engine based on user interests
-- [x] Advanced analytics dashboard for organizers
-- [x] Export registration data to multiple formats (CSV)
-
-### Phase 3: Extended Functionality
-
-- [ ] Mobile app development (iOS & Android)
-- [ ] QR code generation and check-in system
-- [ ] Event feedback and ratings system
-- [ ] Event sponsorship management
-- [ ] Community social features (comments, event discussions)
-- [ ] Attendance verification and certificate generation
-
-### Phase 4: Enterprise Features
-
-- [ ] Advanced security enhancements
-- [ ] Multi-language support (Nepali, English)
-- [ ] Event scheduling automation
-- [ ] Integration with popular calendar services
-- [ ] Analytics and insights dashboard
-- [x] Export registration data to multiple formats (CSV)
-
----
 ## 📄 License
 
 This project is licensed under the ISC License - see the LICENSE file for details.
