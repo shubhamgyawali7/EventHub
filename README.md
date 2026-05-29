@@ -285,29 +285,8 @@ npm test          # Run test suite
 
 ### Event List Page
 
-![Admin Dashboard](./client/public/screenshots/5.jpeg)
 
-### Admin Dashboard
-
-![Location Search](./client/public/screenshots/6.jpeg)
-
-### Student Dashboard
-
-![Mobile View](./client/public/screenshots/7.png)
-
-## Usage
-
-1. **For Students**: Sign up, browse events by location/category, register with one click
-2. **For Organizers**: Create club account, post events, track registrations in real-time
-3. **For Admins**: Verify organizations, moderate content, monitor platform health
-
-## Authors
-
-- **Shubham Gyawali** — Full Stack Developer
-- **Nirmal Bashyal** — Frontend Developer
-- **Ujjal Pandey** — Frontend Developer
-
-## License
+## 📄 License
 
 This project is licensed under the **ISC License** — see the [LICENSE](LICENSE) file for details.
 
