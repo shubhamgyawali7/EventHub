@@ -43,15 +43,3 @@ Thumbs.db
 # IDE / Editor files
 .vscode/
 .idea/
-
-# # Optional: coverage reports
-# coverage/
-# /flow-coverage/
-# club_verification_report.txt
-# docs/
-# docs/deployment_report.txt
-# docs/event_troubleshooting_report.txt
-# docs/near_location_report.txt
-
-club_verification_report.txt
-FlexiEvent_Implementation_Guide.txt

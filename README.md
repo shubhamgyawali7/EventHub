@@ -1,268 +1,299 @@
 # EventHub
 
-A smart, centralized platform for discovering and managing IT events across Nepal. EventHub connects students with verified technical opportunities, helping IT clubs and organizations reach their target audience efficiently.
+[![Built with MERN](https://img.shields.io/badge/MERN-Stack-61DAFB?logo=react)](https://github.com)
+[![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](LICENSE)
+[![Node.js](https://img.shields.io/badge/Node.js-v16%2B-green)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-green?logo=mongodb)](https://www.mongodb.com/)
 
-## 🎯 Overview
+**EventHub** is a centralized event discovery and management platform for Nepal's IT community. It connects students with verified technical opportunities while helping organizations efficiently manage and promote their events.
 
-EventHub solves the critical challenge of fragmented event information in Nepal's IT community. Currently, students miss valuable workshops and hackathons due to scattered social media announcements, while organizations struggle to reach interested participants.
+## Problem & Solution
 
-Our platform provides:
+**The Challenge**: Students across Nepal miss valuable workshops, hackathons, and tech events due to scattered social media announcements. Meanwhile, organizations struggle to reach their target audience effectively.
 
-- **Centralized Hub**: All IT events in one verified, searchable location
-- **Smart Prioritization**: Events ranked by popularity and urgency, ensuring students never miss important deadlines
-- **Verified Organizations**: Admin-verified clubs and organizations guarantee authentic, quality events
-- **Location-Based Discovery**: Find workshops and bootcamps in your district (Butwal, Kathmandu, etc.)
-- **Easy Registration**: One-click event signup with automated deadline alerts
-- **For Organizers**: Streamlined event management, real-time registration tracking, and participant analytics
+**EventHub's Solution**: A unified, intelligent platform that brings all verified IT events to one searchable hub, complete with smart prioritization, location-based discovery, and automated notifications.
 
-Built with modern technologies (MERN Stack) for reliability and performance, EventHub is designed specifically for Nepal's IT community while maintaining scalability for future expansion.
+## Key Highlights
 
-## ✨ Key Features
+- **Centralized Verified Hub**: All events in one place with organization verification
+- **Smart Prioritization Algorithm**: Events ranked by popularity and urgency—never miss important deadlines
+- **Location-Based Search**: Discover events in your district with interactive mapping
+- **Streamlined Event Management**: Organizers get real-time registration tracking and analytics
+- **Role-Based Access Control**: Secure system for students, organizers, and admins
+- **Seamless Registration**: One-click signup with automated deadline alerts
 
-### For Students
+## Features
 
-- **Event Discovery**: Browse and search for campus events with detailed information
-- **Event Registration**: Easy registration for events with verification systems
-- **Event Calendar**: Visual calendar view of upcoming events
-- **User Dashboard**: Track registered events and manage profiles
-- **Map Integration**: Interactive map to locate event venues
+### For Students 👨‍🎓
 
-### For Organizations/Clubs
+- Browse and search events with advanced filters
+- Location-based event discovery with interactive maps
+- One-click event registration with confirmation
+- Personal dashboard to track registered events
+- Automated deadline alerts and notifications
+- Export event information for offline access
 
-- **Event Creation**: Intuitive event creation and management tools
-- **Club Portal**: Dedicated portal for managing club activities
-- **Event Management**: List, update, modify, and delete events
-- **Registration Dashboard**: Real-time management of participant lists
-- **Data Export**: Export registration data to CSV for offline usage
-- **Google Forms Integration**: Support for events using external registration links
+### For Organizers 🏢
 
-### For Administrators
+- Intuitive event creation and management interface
+- Real-time registration tracking and analytics
+- Participant list management and data export (CSV)
+- Event image uploads and detailed descriptions
+- External registration link support (Google Forms integration)
+- Club portal with performance insights
 
-- **Admin Dashboard**: Comprehensive overview of all events and users
-- **Event Management**: Approve, reject, or manage events
-- **User Management**: Manage user accounts and permissions
-- **Club Management**: Oversee all registered organizations
-- **Role-Based Access Control**: Secure access control system
+### For Administrators 🔑
 
-## 🛠️ Tech Stack
+- Comprehensive admin dashboard for platform oversight
+- Event approval and content moderation system
+- User and club management with permission controls
+- Role-based access control (RBAC)
+- Platform analytics and reporting tools
 
-### Frontend
+## Tech Stack
 
-- **React 19**: Modern UI library for building component-based interfaces
-- **Vite**: Next generation frontend build tool for rapid development
-- **Redux Toolkit**: State management for complex application data
-- **TailwindCSS**: Utility-first CSS framework for responsive design
-- **React Router v7**: Client-side routing
-- **Axios**: HTTP client for API communication
-- **React Hook Form**: Efficient form state management
-- **Leaflet & React-Leaflet**: Interactive mapping capabilities
-- **Lucide React**: Beautiful icon library
+| Layer                | Technology                   | Purpose                                       |
+| -------------------- | ---------------------------- | --------------------------------------------- |
+| **Frontend**         | React 19, Vite, TailwindCSS  | Modern, fast UI with responsive design        |
+| **State Management** | Redux Toolkit, Redux Persist | Scalable application state                    |
+| **Routing**          | React Router v7              | Client-side navigation                        |
+| **Forms**            | React Hook Form              | Efficient form handling                       |
+| **HTTP Client**      | Axios                        | API communication                             |
+| **Mapping**          | Leaflet, React-Leaflet       | Interactive location features                 |
+| **UI Components**    | Lucide React, React Icons    | Professional icon library                     |
+| **Backend**          | Node.js, Express.js          | Scalable server runtime                       |
+| **Database**         | MongoDB, Mongoose            | Flexible document storage with validation     |
+| **Authentication**   | JWT, Bcryptjs                | Secure session management                     |
+| **Security**         | Helmet, CORS                 | HTTP security headers & cross-origin handling |
+| **File Management**  | Multer, Cloudinary           | Image uploads & cloud storage                 |
+| **Email**            | Nodemailer, Resend           | Transactional email notifications             |
+| **Logging**          | Morgan                       | HTTP request tracking                         |
 
-### Backend
-
-- **Node.js & Express.js**: Server runtime and web framework
-- **MongoDB & Mongoose**: Document database and ODM
-- **JWT**: Secure authentication mechanism
-- **Bcryptjs**: Password hashing and security
-- **Multer**: File upload handling
-- **Helmet**: Security middleware for HTTP headers
-- **CORS**: Cross-Origin Resource Sharing support
-- **Morgan**: HTTP request logger
-
-## 📂 Project Structure
+## Project Structure
 
 ```
 EventHub/
-├── client/                          # React frontend application
+├── client/                    # React frontend (Vite + Redux)
 │   ├── src/
-│   │   ├── components/             # Reusable UI components
-│   │   │   ├── admin/             # Admin-specific components
-│   │   │   ├── auth/              # Authentication components
-│   │   │   ├── common/            # Shared components
-│   │   │   ├── organizer/         # Organizer-specific components
-│   │   │   └── protected/         # Route protection components
-│   │   ├── pages/                 # Page components
-│   │   │   ├── admin/             # Admin pages
-│   │   │   ├── auth/              # Login/Signup pages
-│   │   │   ├── club/              # Club-related pages
-│   │   │   ├── public/            # Public-facing pages
-│   │   │   └── user/              # User profile pages
-│   │   ├── context/               # React context for state management
-│   │   ├── hooks/                 # Custom React hooks
-│   │   ├── redux/                 # Redux store and slices
-│   │   ├── services/              # API service files
-│   │   ├── routes/                # Routing configuration
-│   │   ├── api/                   # API configuration
-│   │   └── utils/                 # Utility functions
-│   ├── package.json
+│   │   ├── components/       # Reusable UI components
+│   │   │   ├── admin/       # Admin-specific UI
+│   │   │   ├── auth/        # Auth flows (Login, Signup, etc.)
+│   │   │   ├── common/      # Shared components
+│   │   │   ├── organizer/   # Organizer features
+│   │   │   ├── layout/      # Layout wrappers
+│   │   │   └── protected/   # Route guards
+│   │   ├── pages/           # Full page components
+│   │   ├── context/         # React Context API
+│   │   ├── redux/           # Redux store & slices
+│   │   ├── hooks/           # Custom React hooks
+│   │   ├── services/        # API service layer
+│   │   ├── routes/          # Routing configuration
+│   │   ├── utils/           # Helpers & utilities
+│   │   └── api/             # Axios instance setup
 │   └── vite.config.js
 │
-└── server/                          # Express backend application
+└── server/                    # Express backend (Node.js)
     ├── src/
-    │   ├── controllers/            # Route controllers
-    │   ├── models/                 # Database schemas
-    │   ├── routes/                 # API routes
-    │   ├── services/               # Business logic
-    │   ├── middlewares/            # Express middlewares
-    │   ├── helpers/                # Helper functions
-    │   ├── database.js             # Database connection
-    │   └── app.js                  # Express app configuration
-    ├── uploads/                    # File upload storage
-    ├── package.json
-    └── .env                        # Environment variables
+    │   ├── controllers/      # Request handlers
+    │   ├── models/           # MongoDB schemas
+    │   ├── routes/           # API route definitions
+    │   ├── services/         # Business logic layer
+    │   ├── middlewares/      # Express middlewares
+    │   ├── helpers/          # Utility functions
+    │   ├── config/           # Configuration (Cloudinary, etc.)
+    │   ├── database.js       # MongoDB connection
+    │   └── app.js            # Express app setup
+    ├── uploads/              # File storage
+    └── package.json
 ```
 
-## 🚀 Getting Started
+## Installation
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
-- MongoDB (local or Atlas)
-- npm or yarn
+- **Node.js** v16 or higher
+- **MongoDB** (local instance or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) cluster)
+- **npm** or **yarn** package manager
 
-### Installation
+### Setup Steps
 
-#### 1. Clone the Repository
+#### 1. Clone Repository
 
 ```bash
 git clone https://github.com/yourusername/EventHub.git
 cd EventHub
 ```
 
-#### 2. Backend Setup
+#### 2. Backend Configuration
 
 ```bash
 cd server
 npm install
 
-# Create a .env file in the server directory
-# Configure your MongoDB connection and JWT secret
+# Create .env file with required variables
 cp .env.example .env
 
+# Start backend server (development mode with auto-reload)
 npm run dev
 ```
 
-#### 3. Frontend Setup
+Backend runs on: **http://localhost:5000** (or your configured PORT)
+
+#### 3. Frontend Configuration
 
 ```bash
 cd ../client
 npm install
 
-# Start development server
+# Start frontend development server
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:5173` and the backend at the configured port.
+Frontend runs on: **http://localhost:5173**
 
-## 🔧 Environment Variables
+## Environment Variables
 
 ### Server (.env)
 
 ```env
-PORT=your_port
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-CORS_ORIGIN=http://localhost:5173
+# Server Configuration
+PORT=5000
 NODE_ENV=development
+
+# Database
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/EventHub
+
+# Authentication
+JWT_SECRET=your_super_secret_jwt_key_here
+
+# CORS
+CORS_ORIGIN=http://localhost:5173
+
+# Cloudinary (Image Upload)
+CLOUDINARY_NAME=your_cloudinary_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Email Service
+SMTP_HOST=smtp.your-email-provider.com
+SMTP_PORT=587
+SMTP_USER=your-email@example.com
+SMTP_PASS=your-app-password
 ```
 
 ### Client (.env.local)
 
 ```env
-VITE_API_BASE_URL=http://localhost:your_backend_port/api
+VITE_API_BASE_URL=http://localhost:5000/api
 ```
 
-## 📝 API Endpoints
+## API Endpoints
 
 ### Authentication
 
-- `POST /api/auth/signup` - User registration
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
+| Method | Endpoint           | Description               |
+| ------ | ------------------ | ------------------------- |
+| POST   | `/api/auth/signup` | Register new user         |
+| POST   | `/api/auth/login`  | User login with JWT token |
+| POST   | `/api/auth/logout` | Clear session & logout    |
 
 ### Events
 
-- `GET /api/events` - List all events
-- `GET /api/events/:id` - Get event details
-- `POST /api/events` - Create event (authenticated)
-- `PUT /api/events/:id` - Update event
-- `DELETE /api/events/:id` - Delete event
-
-### Clubs
-
-- `GET /api/clubs` - List all clubs
-- `GET /api/clubs/:id` - Get club details
-- `POST /api/clubs` - Create club (authenticated)
+| Method | Endpoint          | Description                    |
+| ------ | ----------------- | ------------------------------ |
+| GET    | `/api/events`     | List all events (with filters) |
+| GET    | `/api/events/:id` | Get event details              |
+| POST   | `/api/events`     | Create event (auth required)   |
+| PUT    | `/api/events/:id` | Update event details           |
+| DELETE | `/api/events/:id` | Delete event                   |
 
 ### Registrations
 
-- `POST /api/registrations/:eventId` - Register for a specific event
-- `GET /api/registrations/club/all` - Club: View all registrations for owned events
-- `GET /api/registrations/:eventId` - Get participants for a single event
-- `DELETE /api/registrations/:id` - Cancel registration
+| Method | Endpoint                      | Description                  |
+| ------ | ----------------------------- | ---------------------------- |
+| POST   | `/api/registrations/:eventId` | Register user for event      |
+| GET    | `/api/registrations/:eventId` | Get event registrations      |
+| GET    | `/api/registrations/club/all` | Get all club's registrations |
+| DELETE | `/api/registrations/:id`      | Cancel registration          |
 
-## 🔐 Authentication & Authorization
+### Clubs
 
-EventHub implements a role-based access control system with three user roles:
+| Method | Endpoint         | Description                 |
+| ------ | ---------------- | --------------------------- |
+| GET    | `/api/clubs`     | List all clubs              |
+| GET    | `/api/clubs/:id` | Get club details            |
+| POST   | `/api/clubs`     | Create club (auth required) |
+| PUT    | `/api/clubs/:id` | Update club info            |
 
-1. **User**: Can browse events and register
-2. **Organizer**: Can create and manage club events
-3. **Admin**: Full platform administration
+### Admin
 
-JWT tokens are used for secure authentication and are stored securely in HTTP-only cookies.
+| Method | Endpoint                      | Description                   |
+| ------ | ----------------------------- | ----------------------------- |
+| GET    | `/api/admin/dashboard`        | Platform analytics            |
+| GET    | `/api/admin/users`            | List all users                |
+| GET    | `/api/admin/clubs`            | List all clubs for moderation |
+| PUT    | `/api/admin/clubs/:id/verify` | Verify/approve club           |
 
-## 🎨 Features in Detail
+## Authentication & Authorization
 
-### Event Management
+EventHub uses **JWT (JSON Web Tokens)** for secure authentication with role-based access control:
 
-- Create events with detailed information
-- Upload event images
-- Set event dates, times, and locations
-- Define event capacity and registration limits
-- View registration analytics
+| Role          | Permissions                                            |
+| ------------- | ------------------------------------------------------ |
+| **User**      | Browse events, register, view profile                  |
+| **Organizer** | Manage events, view registrations, analytics           |
+| **Admin**     | Full platform control, event approval, user management |
 
-### Registration System
+Tokens are stored in HTTP-only cookies for enhanced security against XSS attacks.
 
-- Student registration for events
-- Email verification
-- Registration confirmation
-- Attendance tracking
+## Scripts & Commands
 
-### Map Integration
-
-- Interactive venue location picker
-- Event location display on map
-- Search events by location
-
-## 📦 Scripts
-
-### Frontend
-
-```bash
-npm run dev      # Start development server
-npm run build    # Build for production
-npm run lint     # Run ESLint
-npm run preview  # Preview production build
-```
-
-### Backend
+### Frontend Scripts
 
 ```bash
-npm run dev      # Start with nodemon (auto-reload)
-npm run start    # Start production server
-npm test         # Run tests
+npm run dev       # Start development server (hot-reload)
+npm run build     # Build for production
+npm run lint      # Run ESLint code checker
+npm run preview   # Preview production build locally
 ```
 
+### Backend Scripts
 
-## 👥 Authors
+```bash
+npm run dev       # Start with nodemon (auto-restart on changes)
+npm run start     # Run production server
+npm test          # Run test suite
+```
 
-- **Shubham Gyawali - FullStack Developer**
-- **Nirmal Bashyal - Frontend Developer**
-- **Ujjal Pandey - Frontend Developer**
+## Screenshots
+
+### Event Discovery
+
+![EventHub Homepage](./client/public/screenshots/1.jpeg)
+
+### Event Registration Flow
+
+![Event Registration](./client/public/screenshots/2.jpeg)
+
+### Home Page
+
+![User Dashboard](./client/public/screenshots/3.jpeg)
+
+### Organizer Dashboard
+
+![Organizer Portal](./client/public/screenshots/4.jpeg)
+
+### Event List Page
 
 
 ## 📄 License
 
-This project is licensed under the ISC License - see the LICENSE file for details.
+This project is licensed under the **ISC License** — see the [LICENSE](LICENSE) file for details.
+
+## Copyright
+
+© Shubham Gyawali, All rights reserved.
 
 ---
+
+**Made with ❤️ for Nepal's IT Community**
