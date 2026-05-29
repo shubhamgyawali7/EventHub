@@ -52,7 +52,7 @@ const FloatingCalendar = ({ events = [] }) => {
 
             {/* Calendar popup */}
             <div
-                className={`fixed bottom-24 right-6 z-50 w-[360px] bg-white rounded-3xl border border-slate-100 shadow-2xl shadow-indigo-100/50 transition-all duration-300 origin-bottom-right ${
+                className={`fixed bottom-24 right-6 z-50 w-90 bg-white rounded-3xl border border-slate-100 shadow-2xl shadow-indigo-100/50 transition-all duration-300 origin-bottom-right ${
                     isOpen
                         ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
                         : "opacity-0 scale-90 translate-y-4 pointer-events-none"
